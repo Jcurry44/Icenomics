@@ -1,0 +1,85 @@
+{
+  "generatedAt": "2026-07-01T16:30:44Z",
+  "freshness": {
+    "gamesThrough": "2026-06-09",
+    "transactionsThrough": "2026-06-30",
+    "databaseUpdated": "2026-07-01T16:28:51Z"
+  },
+  "counts": [
+    {
+      "label": "NHL games",
+      "rows": 88581
+    },
+    {
+      "label": "player game lines",
+      "rows": 2696170
+    },
+    {
+      "label": "shots with xG",
+      "rows": 1877671
+    },
+    {
+      "label": "player shifts",
+      "rows": 16018911
+    },
+    {
+      "label": "player-season RAPM rows",
+      "rows": 10183
+    },
+    {
+      "label": "player-season WAR rows",
+      "rows": 10183
+    },
+    {
+      "label": "contracts",
+      "rows": 7862
+    },
+    {
+      "label": "trades",
+      "rows": 1480
+    },
+    {
+      "label": "signings",
+      "rows": 639
+    },
+    {
+      "label": "draft picks",
+      "rows": 13152
+    },
+    {
+      "label": "graded contract outcomes",
+      "rows": 1710
+    }
+  ],
+  "sources": [
+    {
+      "name": "NHL Stats API",
+      "provides": "games, box scores, play-by-play, shifts, rosters, NHL EDGE tracking"
+    },
+    {
+      "name": "CapWages",
+      "provides": "contracts, cap hits, the trades & signings trackers, movement clauses"
+    },
+    {
+      "name": "HockeyTech",
+      "provides": "CHL / USHL / AHL box scores and play-by-play (prospects)"
+    },
+    {
+      "name": "Euro leagues + NCAA + MHL/J20",
+      "provides": "European, college, and Russian junior prospect stats"
+    },
+    {
+      "name": "Icenomics models",
+      "provides": "xG, RAPM, WAR, market value, projections, the Deal Grader \u2014 original work"
+    }
+  ],
+  "knownGaps": [
+    "Shot coordinates / shifts / xG: 2010-11 onward (NHL play-by-play coordinates start then).",
+    "NHL EDGE tracking (skating + shot speed): 2021-22 onward only.",
+    "No per-shot puck velocity or in-net shot location (not in the public feed).",
+    "NCAA elite-prospect translation is thin (n=31) and flagged \u2014 defers to scouting.",
+    "Junior shot-quality does not beat points-per-game for NHL projection (a validated null).",
+    "Roster assignments can lag the trade tracker by a few players until team pages update."
+  ],
+  "note": "Icenomics is an independent hockey-analytics project. Stats are derived from the public feeds above; all models are original work. Figures are estimates \u2014 see the Reliability page for what we do and don't claim."
+}

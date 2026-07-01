@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>window.STATIC=1</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Free Agents — Icenomics</title>
+  <meta property="og:title" content="NHL Free Agents — Icenomics">
+  <meta property="og:description" content="The 2026-27 UFA market ranked, each with best-fit teams by need and cap space — plus the pending-RFA re-sign board.">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary">
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#0b1018">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <link rel="apple-touch-icon" href="./apple-touch-icon.png">
+  <link rel="stylesheet" href="./styles.css?v=20260617-mobilenav">
+  <style>
+    .fa-wrap { max-width: 880px; margin: 0 auto; padding: 26px 18px 60px; }
+    .fa-top { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 14px; }
+    .fa-hero h2 { margin: 16px 0 4px; font-size: 22px; color: var(--ink-strong); letter-spacing: -.01em; }
+    .fa-hero p { margin: 0 0 14px; color: var(--muted); font-size: 13px; line-height: 1.55; }
+    .fa-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 9px; align-items: center; }
+    .fa-lab { font-size: 11px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
+      color: var(--faint); margin-right: 4px; }
+    .fa-chip { min-height: 36px; padding: 0 13px; font-size: 12.5px; font-weight: 700; cursor: pointer;
+      border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--muted); }
+    .fa-chip.on { background: var(--ice); border-color: var(--ice); color: #06121f; }
+    .fa-pool .fa-chip.on { background: linear-gradient(90deg,#38bdf8,#2dd4a7); border-color: transparent; }
+    .fa-count { color: var(--faint); font-size: 12px; margin-left: auto; font-variant-numeric: tabular-nums; }
+
+    .fa-list { margin-top: 12px; border-top: 1px solid var(--line); }
+    .fa-card { border-bottom: 1px solid var(--line); }
+    .fa-head { display: grid; grid-template-columns: 30px 1fr auto; gap: 12px; align-items: center;
+      padding: 12px 4px; cursor: pointer; }
+    .fa-head:active { background: rgba(56,189,248,.06); }
+    .fa-rank { font-size: 13px; font-weight: 800; color: var(--faint); text-align: center; font-variant-numeric: tabular-nums; }
+    .fa-name { font-size: 15px; font-weight: 700; color: var(--ink-strong); line-height: 1.2; }
+    .fa-name a { color: inherit; text-decoration: none; }
+    .fa-name a:hover { color: var(--ice-bright); }
+    .fa-pos { font-size: 10.5px; font-weight: 700; color: var(--faint); margin-left: 7px; letter-spacing: .04em; }
+    .fa-meta { font-size: 11.5px; color: var(--muted); margin-top: 3px; font-variant-numeric: tabular-nums; }
+    .fa-vwar { display: inline-block; font-weight: 700; }
+    .fa-right { text-align: right; min-width: 116px; }
+    .fa-aav { font-size: 15px; font-weight: 800; color: var(--ink-strong); font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+    .fa-aav .x { color: var(--muted); font-weight: 600; font-size: 12.5px; }
+    .fa-range { font-size: 11px; color: var(--faint); margin-top: 2px; font-variant-numeric: tabular-nums; }
+    .fa-caret { font-size: 11px; color: var(--faint); margin-top: 3px; }
+
+    .fa-detail { display: none; padding: 2px 6px 16px 42px; }
+    .fa-card.open .fa-detail { display: block; }
+    .fa-card.open .fa-caret { color: var(--ice); }
+    .fa-dlab { font-size: 10.5px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
+      color: var(--faint); margin: 8px 0 7px; }
+    .fa-fit { display: flex; align-items: baseline; gap: 8px; padding: 7px 0; border-bottom: 1px dashed var(--line); }
+    .fa-fit:last-child { border-bottom: 0; }
+    .fa-fitteam { font-weight: 800; color: var(--ice-bright); font-size: 13px; min-width: 38px; }
+    .fa-fitwhy { font-size: 12.5px; color: var(--muted); line-height: 1.4; }
+    .fa-scn { display: flex; gap: 10px; flex-wrap: wrap; }
+    .fa-scn .box { flex: 1; min-width: 150px; border: 1px solid var(--line); border-radius: 9px; padding: 10px 12px;
+      background: linear-gradient(180deg, var(--panel-raised), var(--panel)); }
+    .fa-scn .box b { color: var(--ink-strong); font-size: 14px; font-variant-numeric: tabular-nums; }
+    .fa-scn .box .k { font-size: 10.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); margin-bottom: 4px; }
+    .fa-scn .box .s { font-size: 11.5px; color: var(--muted); margin-top: 3px; }
+    .fa-resign { font-size: 12.5px; color: var(--muted); line-height: 1.5; margin: 2px 0 10px; }
+    .fa-comps { font-size: 11.5px; color: var(--faint); margin-top: 9px; }
+    .fa-note { color: var(--muted); font-size: 12.5px; line-height: 1.6; margin-top: 18px; }
+    .fa-note b { color: var(--ink-strong); }
+    @media (max-width: 680px) { .fa-wrap { padding: 14px 12px; } .fa-chip { min-height: 42px; }
+      .fa-right { min-width: 96px; } .fa-detail { padding-left: 8px; } }
+  </style>
+</head>
+<body>
+  <div class="fa-wrap">
+    <div class="fa-top">
+      <a class="bl-brand" href="./index.html"><span class="bl-mark">IC</span> Icenomics</a>
+      <nav style="display:flex; gap:12px; flex-wrap:wrap; align-items:center; font-size:12.5px; font-weight:600;"><a href="./index.html" style="color:var(--muted); text-decoration:none;">Home</a> <a href="./player.html" style="color:var(--muted); text-decoration:none;">Players</a> <a href="./leaders.html" style="color:var(--muted); text-decoration:none;">Leaders</a> <a href="./standings.html" style="color:var(--muted); text-decoration:none;">Projections</a> <a href="./front-office.html" style="color:var(--muted); text-decoration:none;">Front office</a> <span style="color:var(--ice-bright);">Free agents</span> <a href="./draft-board.html" style="color:var(--muted); text-decoration:none;">Draft board</a> <a href="./transactions.html" style="color:var(--muted); text-decoration:none;">Transactions</a> <a href="./reliability.html" style="color:var(--muted); text-decoration:none;">Reliability</a></nav>
+    </div>
+
+    <div class="fa-hero">
+      <h2>Free Agents — 2026-27</h2>
+      <p id="fa-blurb">The open market: every pending UFA ranked by our value, each with the teams that fit
+        him best by need and cap room. Switch to RFAs to see the re-sign board.</p>
+    </div>
+
+    <div class="fa-row fa-pool"><span class="fa-lab">Pool</span>
+      <button class="fa-chip on" data-g="pool" data-v="ufa">UFA market</button>
+      <button class="fa-chip" data-g="pool" data-v="rfa">RFA re-sign</button>
+      <span class="fa-count" id="fa-count"></span>
+    </div>
+    <div class="fa-row"><span class="fa-lab">Position</span>
+      <button class="fa-chip on" data-g="pos" data-v="all">All</button>
+      <button class="fa-chip" data-g="pos" data-v="F">Forwards</button>
+      <button class="fa-chip" data-g="pos" data-v="D">Defense</button>
+      <button class="fa-chip" data-g="pos" data-v="G">Goalies</button>
+    </div>
+    <div class="fa-row"><span class="fa-lab">Sort</span>
+      <button class="fa-chip on" data-g="sort" data-v="value">Our value</button>
+      <button class="fa-chip" data-g="sort" data-v="aav">Proj. AAV</button>
+      <button class="fa-chip" data-g="sort" data-v="age">Youngest</button>
+    </div>
+
+    <div id="fa-list" class="fa-list"><div style="padding:24px; color:var(--muted); text-align:center;">Loading…</div></div>
+
+    <p class="fa-note" id="fa-foot"></p>
+  </div>
+
+<script>
+"use strict";
+const state = { pool: "ufa", pos: "all", sort: "value" };
+let DATA = null;
+
+const FOOT = {
+  ufa: "<b>UFA market.</b> Projected contracts are comparable-signings matches (age + recent WAR + production, "
+     + "era-normalized by cap %), shown as a range. <b>Best fits</b> reuse our team-needs engine — a player's "
+     + "strengths against each team's league-relative needs, gated by projected 2026-27 cap room — the same "
+     + "scoring the GM tools run. Tap a player for fits; click the name for the full card.",
+  rfa: "<b>RFA re-sign board.</b> These are the pending restricted free agents and their projected next deal "
+     + "(<b>bridge</b> vs <b>long-term</b>). Because NHL offer sheets are vanishingly rare, an RFA is a "
+     + "qualify-or-extend decision for his own club — not a market target — so we show the re-sign outlook "
+     + "rather than 'which teams could sign him.' Click the name for the full card."
+};
+
+function money(v) { return v == null ? "—" : "$" + (v / 1e6).toFixed(1) + "M"; }
+function esc(s) { return String(s == null ? "" : s).replace(/[<>&"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c])); }
+function plink(name) { return "player.html?name=" + encodeURIComponent(name); }
+
+function rows() {
+  let r = (DATA[state.pool] || []).slice();
+  if (state.pos !== "all") r = r.filter(e => (e.pos_group || "") === state.pos);
+  const k = { value: "value_war", aav: "proj_aav_mid", age: "age" }[state.sort];
+  const asc = state.sort === "age";
+  r.sort((a, b) => {
+    const av = a[k], bv = b[k];
+    if (av == null) return 1; if (bv == null) return -1;
+    return asc ? av - bv : bv - av;
+  });
+  return r;
+}
+
+function fitsHtml(e) {
+  if ((e.pos_group || "") === "G")
+    return `<div class="fa-resign">Goalie — projected ${esc(e.contract_summary)}. (No strength-need fit: we grade goaltending as a team dimension, not a per-goalie profile.)</div>`;
+  const fits = e.fits || [];
+  if (!fits.length) return `<div class="fa-resign">No team with a clear need + projected cap room at our valuation.</div>`;
+  return `<div class="fa-dlab">Best fits</div>` + fits.map(f =>
+    `<div class="fa-fit"><span class="fa-fitteam">${esc(f.team_code)}</span>` +
+    `<span class="fa-fitwhy">${esc((f.why_str || "").replace(f.team_code + " -- ", ""))}</span></div>`).join("");
+}
+
+function resignHtml(e) {
+  const s = e.scenarios || {};
+  const box = (k, label, sub) => {
+    const o = s[k]; if (!o || o.aavMid == null) return "";
+    return `<div class="box"><div class="k">${label}</div><b>${money(o.aavMid)} × ${o.term}</b><div class="s">${sub}</div></div>`;
+  };
+  // A bridge is a prove-it deal for young, unproven RFAs. A PROVEN star (sustained high value)
+  // holds the leverage and gets max term — projecting a bridge for him is silly. So suppress it.
+  const proven = (e.value_war != null && e.value_war >= 1.5) && (e.seasons != null && e.seasons >= 3);
+  if (proven) {
+    const lt = (s.longTerm && s.longTerm.aavMid != null) ? s.longTerm : null;
+    const headline = lt ? `${money(lt.aavMid)} × ${lt.term}` : esc(e.contract_summary);
+    return `<div class="fa-resign">Franchise RFA — he holds the leverage; realistically a long-term ` +
+      `extension, not a bridge (and offer sheets are nearly extinct).</div>` +
+      `<div class="fa-scn"><div class="box"><div class="k">Projected extension</div>` +
+        `<b>${headline}</b><div class="s">max-term range</div></div></div>` +
+      `<div class="fa-comps">Our comp-based AAV can sit under the open market for franchise players ` +
+      `(the model compresses the very top) — read it as a floor.${e.n_comps ? ` · ${e.n_comps} comps` : ""}</div>`;
+  }
+  const boxes = box("bridge", "Bridge", "prove-it term") + box("longTerm", "Long-term", "buy UFA years");
+  return `<div class="fa-resign">Pending RFA — his club's call: qualify, bridge, or commit long. ` +
+    `Offer sheets are nearly extinct, so this is a re-sign decision, not a market.</div>` +
+    (boxes ? `<div class="fa-scn">${boxes}</div>` : "") +
+    (e.n_comps ? `<div class="fa-comps">${e.n_comps} comparable signings · projected ${esc(e.contract_summary)}</div>` : "");
+}
+
+function render() {
+  document.querySelectorAll(".fa-chip").forEach(b =>
+    b.classList.toggle("on", state[b.dataset.g] === b.dataset.v));
+  document.getElementById("fa-blurb").style.opacity = 1;
+  document.getElementById("fa-foot").innerHTML = FOOT[state.pool];
+  const r = rows();
+  document.getElementById("fa-count").textContent =
+    r.length + " " + (state.pool === "ufa" ? "UFAs" : "RFAs") + (state.pos !== "all" ? " · " + state.pos : "");
+  if (!r.length) { document.getElementById("fa-list").innerHTML =
+    `<div style="padding:22px; color:var(--muted); text-align:center;">None in this filter.</div>`; return; }
+  const maxWar = Math.max(0.5, ...r.map(e => Math.abs(e.value_war || 0)));
+  document.getElementById("fa-list").innerHTML = r.map((e, i) => {
+    const war = e.value_war == null ? "—" : (e.value_war > 0 ? "+" : "") + e.value_war.toFixed(2);
+    const warCls = (e.value_war || 0) >= 0 ? "pos" : "neg";
+    const age = e.age != null ? e.age : "—";
+    const detail = state.pool === "ufa" ? fitsHtml(e) : resignHtml(e);
+    return `<div class="fa-card" data-i="${i}">` +
+      `<div class="fa-head" onclick="toggle(this)">` +
+        `<div class="fa-rank">${i + 1}</div>` +
+        `<div><div class="fa-name"><a href="${plink(e.name)}" onclick="event.stopPropagation()">${esc(e.name)}</a>` +
+          `<span class="fa-pos">${esc(e.position || e.pos_group)}</span></div>` +
+          `<div class="fa-meta">${esc(e.team || "—")} · age ${age} · ` +
+            `<span class="fa-vwar ${warCls}">${war} vWAR</span></div></div>` +
+        `<div class="fa-right"><div class="fa-aav">${money(e.proj_aav_mid)}<span class="x"> × ${e.proj_term ?? "?"}</span></div>` +
+          `<div class="fa-range">${money(e.proj_aav_low)}–${money(e.proj_aav_high)}</div>` +
+          `<div class="fa-caret">${state.pool === "ufa" ? "fits ▾" : "re-sign ▾"}</div></div>` +
+      `</div><div class="fa-detail">${detail}</div></div>`;
+  }).join("");
+}
+
+function toggle(head) { head.parentElement.classList.toggle("open"); }
+
+document.querySelectorAll(".fa-chip").forEach(b => b.onclick = () => {
+  state[b.dataset.g] = b.dataset.v;
+  if (b.dataset.g === "pool") {            // goalies have no UFA fits view; reset pos noise is fine
+    document.getElementById("fa-blurb").textContent = b.dataset.v === "ufa"
+      ? "The open market: every pending UFA ranked by our value, each with the teams that fit him best by need and cap room. Switch to RFAs to see the re-sign board."
+      : "The re-sign board: pending restricted free agents and their projected next contract. Offer sheets are nearly extinct, so these are qualify-or-extend calls for their own clubs, not market targets.";
+  }
+  render();
+});
+
+(async () => {
+  // iOS home-screen web apps (no service worker) cache these api JSON files very hard, so a
+  // once-empty board can stick around stale. Force a fresh copy and separate a real load
+  // failure from a genuinely empty filter.
+  const bust = "?v=" + Date.now();
+  async function grab(url) {
+    const res = await fetch(url + bust, { cache: "no-store" });
+    if (!res.ok) throw new Error("http " + res.status);
+    return res.json();
+  }
+  try { DATA = await grab("api/fa-board.json"); }
+  catch (_) { try { DATA = await grab("/api/nhl-fa-board"); } catch (e2) { DATA = null; } }
+  if (!DATA) {
+    document.getElementById("fa-foot").innerHTML = FOOT[state.pool];
+    document.getElementById("fa-list").innerHTML =
+      `<div style="padding:24px; color:var(--muted); text-align:center;">Couldn't load the free-agent board — pull down to refresh.</div>`;
+    return;
+  }
+  render();
+})();
+</script>
+</body>
+</html>

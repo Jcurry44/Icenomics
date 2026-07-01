@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>window.STATIC=1</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Transactions — Icenomics</title>
+  <meta property="og:title" content="NHL Transactions, graded — Icenomics">
+  <meta property="og:description" content="Every trade and signing in the league, graded the moment it happens — by WAR exchanged and contract value.">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary">
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#0b1018">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Icenomics">
+  <link rel="apple-touch-icon" href="./apple-touch-icon.png">
+  <link rel="stylesheet" href="./styles.css?v=20260617-mobilenav">
+  <style>
+    .tx-wrap { max-width: 880px; margin: 0 auto; padding: 24px; }
+    .tx-head { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+    .tx-lead { color: var(--muted, #8b98ab); margin: 6px 0 16px; font-size: .92rem; line-height: 1.5; }
+    .tx-filters { display: flex; gap: 7px; margin: 0 0 16px; flex-wrap: wrap; }
+    .tx-fchip { min-height: 32px; padding: 0 13px; border-radius: 8px; border: 1px solid var(--line, rgba(148,184,255,.14));
+                background: transparent; color: var(--muted, #8b98ab); font-size: 12.5px; font-weight: 650; cursor: pointer; }
+    .tx-fchip.on { color: var(--ice-bright, #7dd3fc); border-color: rgba(125,211,252,.42); background: rgba(56,189,248,.1); }
+    .tx-card { border: 1px solid var(--line, rgba(148,184,255,.1));
+               border-radius: 12px; padding: 13px 15px; margin: 9px 0; background: linear-gradient(165deg, rgba(56,189,248,.035), transparent 60%); }
+    .tx-row { display: flex; gap: 13px; align-items: flex-start; }
+    .tx-trade .tx-row { cursor: pointer; }
+    .tx-trade.tx-open { border-color: rgba(125,211,252,.3); background: linear-gradient(165deg, rgba(56,189,248,.07), transparent 64%); }
+    .tx-date { flex: 0 0 50px; font-size: 11px; color: var(--faint, #5d6b7e); font-weight: 650; padding-top: 3px; text-align: center; }
+    .tx-body { flex: 1 1 auto; min-width: 0; }
+    .tx-kind { font-size: 10px; text-transform: uppercase; letter-spacing: .09em; font-weight: 700; }
+    .tx-kind.trade { color: #a78bfa; } .tx-kind.signing { color: #34d399; }
+    .tx-title { font-size: 14.5px; font-weight: 700; color: var(--ink-strong, #f7fafc); margin: 2px 0 5px; letter-spacing: -.01em; }
+    .tx-detail { font-size: 12px; color: var(--muted, #8b98ab); line-height: 1.55; }
+    .tx-detail .o { color: var(--ink-strong, #f7fafc); }
+    .tx-grade { flex: 0 0 auto; align-self: center; text-align: right; }
+    .tx-pill { display: inline-block; padding: 4px 10px; border-radius: 8px; font-size: 12px; font-weight: 750; white-space: nowrap;
+               border: 1px solid var(--line, rgba(148,184,255,.14)); }
+    .tx-pill.good { color: #6ee7c8; border-color: rgba(45,212,167,.4); background: rgba(45,212,167,.1); }
+    .tx-pill.bad  { color: #fda4ab; border-color: rgba(244,116,127,.4); background: rgba(244,116,127,.1); }
+    .tx-pill.mid  { color: #c7d2e0; }
+    .tx-sub { font-size: 10.5px; color: var(--faint, #5d6b7e); margin-top: 4px; }
+    .tx-why-cue { display: inline-block; margin-top: 6px; font-size: 11px; font-weight: 700;
+                  color: var(--ice-bright, #7dd3fc); white-space: nowrap; user-select: none; }
+    /* the "why this grade" drill-down */
+    .tx-why { margin-top: 13px; padding-top: 13px; border-top: 1px solid var(--line, rgba(148,184,255,.12)); animation: txfade .18s ease; }
+    @keyframes txfade { from { opacity: 0; transform: translateY(-3px); } to { opacity: 1; transform: none; } }
+    .tx-why-head { font-size: 9.5px; text-transform: uppercase; letter-spacing: .09em; color: var(--ice-bright, #7dd3fc); font-weight: 700; margin-bottom: 7px; }
+    .tx-why-verdict { font-size: 13px; line-height: 1.5; color: var(--ink-strong, #f7fafc); font-weight: 600; margin-bottom: 5px; }
+    .tx-why-unit { font-size: 10.5px; color: var(--faint, #5d6b7e); margin: 0 0 12px; }
+    .tx-ledger { display: grid; grid-template-columns: 1fr 1fr; gap: 11px; }
+    @media (max-width: 560px) { .tx-ledger { grid-template-columns: 1fr; } }
+    .tx-side { border: 1px solid var(--line, rgba(148,184,255,.1)); border-radius: 10px; padding: 10px 11px; background: rgba(13,18,28,.4); }
+    .tx-side-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+    .tx-team { font-size: 13px; font-weight: 800; letter-spacing: .02em; color: var(--ink-strong, #f7fafc); }
+    .tx-net { font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--muted, #8b98ab); }
+    .tx-net.pos { color: #6ee7c8; } .tx-net.neg { color: #fda4ab; }
+    .tx-dir { font-size: 9.5px; text-transform: uppercase; letter-spacing: .08em; color: var(--faint, #5d6b7e); margin: 8px 0 2px; font-weight: 700; }
+    .tx-asset { display: flex; gap: 8px; align-items: baseline; padding: 2px 0; }
+    .tx-asset-w { flex: 0 0 44px; text-align: right; font-size: 12px; font-weight: 750; font-variant-numeric: tabular-nums; color: var(--ice-bright, #7dd3fc); }
+    .tx-asset.out .tx-asset-w { color: var(--muted, #8b98ab); }
+    .tx-asset-main { min-width: 0; font-size: 12px; line-height: 1.35; }
+    .tx-asset-main b { color: var(--ink-strong, #f7fafc); font-weight: 650; }
+    .tx-eq { font-size: 10px; color: var(--faint, #5d6b7e); border: 1px solid var(--line, rgba(148,184,255,.16)); border-radius: 5px; padding: 0 4px; margin-left: 3px; white-space: nowrap; }
+    .tx-lvl { color: var(--muted, #8b98ab); }
+    .tx-asset-sub { display: block; font-size: 10.5px; color: var(--faint, #5d6b7e); }
+    .tx-soft { color: #f0b86e; margin-left: 4px; cursor: help; font-weight: 800; }
+    .tx-asset.empty { color: var(--faint, #5d6b7e); font-size: 12px; padding-left: 52px; }
+    .tx-picknote { margin-top: 11px; font-size: 11.5px; line-height: 1.5; color: var(--muted, #8b98ab);
+                   padding: 8px 11px; border-left: 2px solid rgba(125,211,252,.45); background: rgba(56,189,248,.05); border-radius: 0 7px 7px 0; }
+    .tx-caveats { margin-top: 11px; }
+    .tx-caveats summary { font-size: 10.5px; color: var(--faint, #5d6b7e); cursor: pointer; font-weight: 600; }
+    .tx-caveats ul { margin: 6px 0 0; padding-left: 16px; }
+    .tx-caveats li { font-size: 10.5px; line-height: 1.5; color: var(--faint, #5d6b7e); margin: 2px 0; }
+    @media (max-width: 680px) { .tx-wrap { padding: 14px 12px; } .tx-row { flex-wrap: wrap; } .tx-grade { width: 100%; text-align: left; } }
+  </style>
+</head>
+<body>
+  <div class="tx-wrap">
+    <div class="tx-head">
+      <a class="bl-brand" href="./index.html"><span class="bl-mark">IC</span> Icenomics</a>
+      <nav style="display:flex; gap:12px; flex-wrap:wrap; align-items:center; font-size:12.5px; font-weight:600;"><a href="./index.html" style="color:var(--muted); text-decoration:none;">Home</a> <a href="./player.html" style="color:var(--muted); text-decoration:none;">Players</a> <a href="./leaders.html" style="color:var(--muted); text-decoration:none;">Leaders</a> <a href="./standings.html" style="color:var(--muted); text-decoration:none;">Projections</a> <a href="./front-office.html" style="color:var(--muted); text-decoration:none;">Front office</a> <a href="./fa-board.html" style="color:var(--muted); text-decoration:none;">Free agents</a> <a href="./draft-board.html" style="color:var(--muted); text-decoration:none;">Draft board</a> <span style="color:var(--ice-bright);">Transactions</span> <a href="./reliability.html" style="color:var(--muted); text-decoration:none;">Reliability</a></nav>
+    </div>
+    <h1 style="margin:6px 0 0; font-size:20px; color:var(--ink-strong);">Transactions, graded</h1>
+    <p class="tx-lead">Every trade and signing in the league, graded the moment it lands — trades by the <b style="color:var(--ink-strong)">WAR exchanged</b> (preliminary until the window elapses, then final), signings by <b style="color:var(--ink-strong)">contract value</b> (production worth vs the cap hit). A live, self-scoring ledger.</p>
+    <div class="tx-filters" id="tx-filters">
+      <button class="tx-fchip on" data-f="all">All</button>
+      <button class="tx-fchip" data-f="trade">Trades</button>
+      <button class="tx-fchip" data-f="signing">Signings</button>
+    </div>
+    <div id="tx-feed"><p class="tx-lead">Loading…</p></div>
+  </div>
+
+  <script src="./player-modal.js"></script>
+  <script>
+  (function () {
+    var FEED = [], filter = "all";
+    function fmtM(n) { if (n == null) return "—"; var a = Math.abs(n); return (n < 0 ? "−$" : "$") + (a >= 1e6 ? (a / 1e6).toFixed(1) + "M" : Math.round(a / 1e3) + "K"); }
+    function pill(cls, txt) { return '<span class="tx-pill ' + cls + '">' + txt + '</span>'; }
+    function tradeCard(it) {
+      var g = it.grade, gradeHtml = "", sub = "";
+      if (g) {
+        var cls = g.favors ? "good" : "mid";
+        gradeHtml = pill(cls, g.text + (g.favors ? " · " + (g.war > 0 ? "+" : "") + g.war + " WAR" : ""));
+        sub = '<div class="tx-sub">' + (g.realized ? "final" : "preliminary — window not elapsed") + "</div>";
+      }
+      var named = it.players.filter(function (p) { return !/^player \d+$/.test(p.name); });
+      var depth = it.players.length - named.length;
+      var moves = named.map(function (p) { return '<span class="o">' + p.name + "</span> " + p.from + "→" + p.to; });
+      it.picks.forEach(function (p) { moves.push((p.year || "") + " R" + p.round + " " + (p.from || "") + "→" + (p.to || "")); });
+      if (depth) moves.push('<span style="color:var(--faint,#5d6b7e)">+' + depth + " depth</span>");
+      var cue = it.explain ? '<div class="tx-why-cue">Why ▾</div>' : "";
+      return '<div class="tx-card tx-trade" data-kind="trade">'
+        + '<div class="tx-row"><div class="tx-date">' + dlabel(it.date) + '</div>'
+        + '<div class="tx-body"><div class="tx-kind trade">Trade</div>'
+        + '<div class="tx-title">' + it.teams.join(" ⇄ ") + '</div>'
+        + '<div class="tx-detail">' + moves.join(" &nbsp;·&nbsp; ") + '</div></div>'
+        + '<div class="tx-grade">' + gradeHtml + sub + cue + '</div></div>'
+        + (it.explain ? whyPanel(it.explain) : "")
+        + '</div>';
+    }
+    function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+    function assetRow(l, dir) {
+      var w = (l.war > 0 ? "+" : "") + Number(l.war).toFixed(2);
+      var eq = l.pickEq ? '<span class="tx-eq">' + esc(l.pickEq) + '</span>' : "";
+      var soft = (l.soft && l.note) ? '<span class="tx-soft" title="' + esc(l.note) + '">*</span>' : "";
+      var sub = [l.level ? esc(l.level) : "", l.detail ? esc(l.detail) : ""].filter(Boolean).join(" · ");
+      return '<div class="tx-asset ' + dir + '"><span class="tx-asset-w">' + w + '</span>'
+        + '<span class="tx-asset-main"><b>' + esc(l.label) + '</b>' + eq + soft
+        + (sub ? '<span class="tx-asset-sub">' + sub + '</span>' : "") + '</span></div>';
+    }
+    function sideCol(s) {
+      var got = s.got.length ? s.got.map(function (l) { return assetRow(l, "in"); }).join("") : '<div class="tx-asset empty">—</div>';
+      var gave = s.gave.length ? s.gave.map(function (l) { return assetRow(l, "out"); }).join("") : '<div class="tx-asset empty">—</div>';
+      var net = (s.net > 0 ? "+" : "") + Number(s.net).toFixed(2);
+      var ncls = s.net > 0.05 ? "pos" : (s.net < -0.05 ? "neg" : "");
+      return '<div class="tx-side"><div class="tx-side-head"><span class="tx-team">' + esc(s.team) + '</span>'
+        + '<span class="tx-net ' + ncls + '">net ' + net + ' WAR</span></div>'
+        + '<div class="tx-dir">Acquired</div>' + got
+        + '<div class="tx-dir">Gave up</div>' + gave + '</div>';
+    }
+    function whyPanel(ex) {
+      var sides = ex.sides.map(sideCol).join("");
+      var pick = ex.pickNote ? '<div class="tx-picknote">' + esc(ex.pickNote) + '</div>' : "";
+      var cav = (ex.caveats || []).map(function (c) { return '<li>' + esc(c) + '</li>'; }).join("");
+      return '<div class="tx-why" hidden>'
+        + '<div class="tx-why-head">Why the grade · value at the time of the deal</div>'
+        + '<div class="tx-why-verdict">' + esc(ex.verdict.line) + '</div>'
+        + '<div class="tx-why-unit">Every chip priced in WAR over a 7-year horizon — the same scale a draft pick is valued on, so players and picks compare directly.</div>'
+        + '<div class="tx-ledger">' + sides + '</div>' + pick
+        + (cav ? '<details class="tx-caveats"><summary>How this is valued · caveats</summary><ul>' + cav + '</ul></details>' : "")
+        + '</div>';
+    }
+    function signCard(it) {
+      var g = it.grade, cls = g.text === "Bargain" ? "good" : (g.text === "Overpay" ? "bad" : "mid");
+      return '<div class="tx-card" data-kind="signing"><div class="tx-date">' + dlabel(it.date) + '</div>'
+        + '<div class="tx-body"><div class="tx-kind signing">Signing</div>'
+        + '<div class="tx-title">' + it.player + ' <span style="color:var(--muted);font-weight:600;">→ ' + it.team + '</span></div>'
+        + '<div class="tx-detail">' + fmtM(it.capHit) + " × " + (it.years || "?") + "yr · " + (it.contractType || "") + (it.age ? " · age " + it.age : "") + '</div></div>'
+        + '<div class="tx-grade">' + pill(cls, g.text) + '<div class="tx-sub">' + fmtM(g.surplus) + " vs value</div></div></div>";
+    }
+    function dlabel(d) { if (!d) return ""; var p = d.split("-"); return ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][(+p[1] || 1) - 1] + " " + (+p[2] || ""); }
+    function render() {
+      var host = document.getElementById("tx-feed");
+      var rows = FEED.filter(function (it) { return filter === "all" || it.kind === filter; });
+      if (!rows.length) { host.innerHTML = '<p class="tx-lead">No ' + (filter === "all" ? "" : filter + " ") + "transactions yet this league year.</p>"; return; }
+      host.innerHTML = rows.map(function (it) { return it.kind === "trade" ? tradeCard(it) : signCard(it); }).join("");
+    }
+    document.getElementById("tx-filters").addEventListener("click", function (e) {
+      var b = e.target.closest(".tx-fchip"); if (!b) return;
+      filter = b.dataset.f;
+      [].forEach.call(this.querySelectorAll(".tx-fchip"), function (x) { x.classList.toggle("on", x === b); });
+      render();
+    });
+    // click a trade's header row -> reveal the "why this grade" breakdown
+    // (only the row toggles, so clicks inside the panel/caveats don't collapse it)
+    document.getElementById("tx-feed").addEventListener("click", function (e) {
+      var row = e.target.closest(".tx-row"); if (!row) return;
+      var card = row.closest(".tx-trade"); if (!card) return;
+      var why = card.querySelector(".tx-why"); if (!why) return;
+      var opening = why.hasAttribute("hidden");
+      if (opening) why.removeAttribute("hidden"); else why.setAttribute("hidden", "");
+      card.classList.toggle("tx-open", opening);
+      var cue = card.querySelector(".tx-why-cue"); if (cue) cue.textContent = opening ? "Why ▴" : "Why ▾";
+    });
+    var urls = window.STATIC ? ["api/transactions.json"] : ["/api/transactions", "api/transactions.json"];
+    (function next(i) {
+      if (i >= urls.length) { document.getElementById("tx-feed").innerHTML = '<p class="tx-lead">Transactions feed unavailable.</p>'; return; }
+      fetch(urls[i] + "?v=" + Date.now(), { cache: "no-store" }).then(function (r) { if (!r.ok) throw 0; return r.json(); })
+        .then(function (d) { FEED = (d && d.items) || []; render(); }).catch(function () { next(i + 1); });
+    })(0);
+  })();
+  </script>
+</body>
+</html>

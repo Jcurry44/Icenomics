@@ -1,0 +1,2348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>window.STATIC=1</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Front office — Icenomics</title>
+  <meta property="og:title" content="NHL Front Office — Icenomics">
+  <meta property="og:description" content="Roster toolkit, contracts, trade values, GM ratings, and the cap — built on validated WAR.">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary">
+    <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#0b1018">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Icenomics">
+  <link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<link rel="stylesheet" href="./styles.css?v=20260617-mobilenav">
+  <style>
+    .fo-wrap { max-width: 1000px; margin: 0 auto; padding: 24px; }
+    .fo-head { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+    .fo-head a { color: var(--muted, #9aa0aa); font-size: .85rem; }
+    .fo-hint { color: var(--muted, #9aa0aa); margin: 4px 0 16px; }
+    .fo-tabs { display: flex; gap: 6px; margin: 8px 0 18px; flex-wrap: wrap; }
+    .fo-tabs button { padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: .9rem;
+      border: 1px solid var(--line-strong); background: var(--panel, #15171c); color: inherit; }
+    .fo-tabs button.on { background: var(--ice); border-color: var(--ice); color: #06121f; font-weight: 700; }
+    .fo-panel { display: none; } .fo-panel.on { display: block; }
+    .fo-card { background: var(--panel, #15171c); border: 1px solid var(--line-strong);
+      border-radius: 10px; padding: 16px 20px; margin: 14px 0; }
+    .fo-card h3 { margin: 0 0 12px; font-size: .95rem; }
+    .fo-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
+    .fo-row label { display: flex; flex-direction: column; gap: 4px; font-size: .72rem;
+      text-transform: uppercase; letter-spacing: .04em; color: var(--muted, #9aa0aa); }
+    .fo-row input, .fo-row select, .fo-ta {
+      padding: 9px 12px; border-radius: 8px; border: 1px solid var(--line-strong);
+      background: #0f1116; color: inherit; font-size: .95rem; }
+    .fo-ta { width: 100%; min-height: 70px; font-family: inherit; resize: vertical; }
+    .fo-row button, .fo-go { padding: 9px 18px; border-radius: 8px; border: 1px solid var(--ice);
+      background: var(--ice); color: #06121f; font-weight: 700; cursor: pointer; font-size: .9rem; }
+    .seg button { padding: 7px 13px; border: 1px solid var(--line-strong);
+      background: var(--panel, #15171c); color: inherit; cursor: pointer; font-size: .82rem; }
+    .seg button:first-child { border-radius: 8px 0 0 8px; } .seg button:last-child { border-radius: 0 8px 8px 0; }
+    .seg button.on { background: rgba(56,189,248,.18); color: var(--ice-bright); }
+    table.fo { width: 100%; border-collapse: collapse; font-size: .85rem; margin-top: 6px; }
+    table.fo th, table.fo td { text-align: right; padding: 6px 9px; border-bottom: 1px solid var(--line-strong); }
+    table.fo th:first-child, table.fo td:first-child { text-align: left; }
+    .pos { color: #4ade80; } .neg { color: #f87171; } .mut { color: var(--muted, #9aa0aa); }
+    .fo-note { color: var(--muted, #9aa0aa); font-size: .78rem; margin-top: 12px; line-height: 1.5; }
+    .fo-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 0 -4px; }
+    .fo-scroll table.fo { min-width: 560px; }
+    /* Ranked list — fits mobile width, no horizontal clip, ranked metric is the hero */
+    .cl { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+    .cl-row { display: flex; align-items: center; gap: 11px; padding: 9px 12px;
+      background: var(--panel, #15171c); border: 1px solid var(--line-strong);
+      border-left: 3px solid var(--line-strong); border-radius: 10px; }
+    .cl-rank { font-size: .74rem; font-weight: 700; color: var(--muted, #9aa0aa); min-width: 16px;
+      text-align: right; font-variant-numeric: tabular-nums; }
+    .cl-main { flex: 1; min-width: 0; }
+    .cl-name { font-size: .92rem; font-weight: 600; display: flex; align-items: baseline; gap: 7px; }
+    .cl-name a { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .cl-pos { flex: none; font-size: .6rem; font-weight: 700; letter-spacing: .03em; color: var(--muted, #9aa0aa);
+      border: 1px solid var(--line-strong); border-radius: 4px; padding: 1px 5px; }
+    .cl-sub { font-size: .73rem; color: var(--muted, #9aa0aa); margin-top: 3px;
+      font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .cl-hero { flex: none; display: flex; flex-direction: column; align-items: flex-end; line-height: 1.15; }
+    .cl-hero .v { font-size: 1.04rem; font-weight: 800; font-variant-numeric: tabular-nums;
+      white-space: nowrap; letter-spacing: -.01em; }
+    .cl-hero .vd { font-size: .64rem; font-weight: 600; opacity: .9; white-space: nowrap; margin-top: 1px; }
+    /* asset board: worth-vs-fetch sub-line wraps (the comp package is the point) */
+    .av-sub { font-size: .73rem; color: var(--muted, #9aa0aa); margin-top: 3px; line-height: 1.5; }
+    .av-sub b { color: var(--ink-strong); font-weight: 650; }
+    .av-floor { font-size: 9px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase;
+      color: var(--muted, #9aa0aa); border: 1px solid var(--line-strong); border-radius: 4px;
+      padding: 0 4px; margin-left: 4px; white-space: nowrap; }
+    @media (max-width: 680px) {
+      .fo-wrap { padding: 14px 12px; }
+      .fo-card { padding: 13px 14px; }
+      .fo-tabs button { min-height: 44px; flex: 1 1 40%; }
+      .fo-row label { flex: 1 1 45%; }
+      .fo-row input, .fo-row select { min-height: 42px; }
+      .fo-row button, .fo-go { min-height: 44px; flex: 1 1 100%; }
+    }
+    .fo-big { font-size: 1.5rem; font-weight: 700; margin: 2px 0; }
+    .fo-kv { display: flex; flex-wrap: wrap; gap: 24px; margin: 6px 0; }
+    .fo-kv .k { color: var(--muted, #9aa0aa); font-size: .7rem; text-transform: uppercase; letter-spacing: .04em; }
+    .fo-kv .v { font-size: 1.25rem; font-weight: 600; }
+    .verdict { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: .8rem; font-weight: 600; }
+    .tn-lab { font-size: 10px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); margin-right: 5px; }
+    .tn-chip { display: inline-block; font-size: 11.5px; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line); margin: 2px 0; }
+    .tn-chip.need { background: rgba(248,113,113,.10); color: #fca5a5; border-color: rgba(248,113,113,.3); }
+    .tn-chip.strong { background: rgba(74,222,128,.10); color: #86efac; border-color: rgba(74,222,128,.3); }
+    .tn-fit { font-size: 10.5px; color: var(--ice-bright); margin-top: 2px; }
+
+    /* ---- Line Deck (drag-and-drop lineup builder) ---- */
+    /* command bar: team/season controls + a broadcast-style scoreboard, themed to
+       the selected club via --team (set on #p-lines in loadLineTeam). */
+    .lp-command { margin-bottom: 14px; }
+    .lp-controls { display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap; margin-bottom: 11px; }
+    .lp-ctl { display: flex; flex-direction: column; gap: 5px; font-size: .68rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+    #lp-team { padding: 9px 13px; border-radius: 9px; border: 1px solid var(--line-strong);
+      background: #0f1116; color: inherit; font-size: .95rem; font-weight: 650; min-height: 40px; }
+    .lp-actions { display: flex; gap: 8px; margin-left: auto; }
+    .lp-btn { padding: 9px 15px; border-radius: 9px; font-size: .82rem; font-weight: 750; cursor: pointer;
+      min-height: 40px; display: inline-flex; align-items: center; gap: 6px; transition: filter .12s, background .12s, border-color .12s; }
+    .lp-btn.primary { border: 1px solid var(--team, var(--ice)); color: #06121f;
+      background: linear-gradient(180deg, color-mix(in srgb, var(--team, var(--ice)) 88%, #fff 12%), var(--team, var(--ice))); }
+    .lp-btn.primary:hover { filter: brightness(1.08); }
+    .lp-btn.ghost { background: transparent; color: var(--muted); border: 1px solid var(--line-strong); }
+    .lp-btn.ghost:hover { color: var(--ink-strong); border-color: var(--line); }
+    /* the scoreboard: four cells with hairline dividers, big tabular readouts */
+    .lp-board { display: grid; grid-template-columns: 1fr 1fr 1fr auto; align-items: stretch;
+      border: 1px solid var(--line-strong); border-radius: 13px; overflow: hidden;
+      background: linear-gradient(180deg, color-mix(in srgb, var(--team, #2a3550) 9%, var(--panel-raised, #1a1d24)), var(--panel, #15171c)); }
+    .lp-stat { display: flex; flex-direction: column; gap: 2px; padding: 11px 16px; min-width: 0;
+      border-left: 1px solid var(--line); }
+    .lp-stat:first-child { border-left: 0; }
+    .lp-stat .k { color: var(--muted); font-size: .64rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; }
+    .lp-stat .v { font-size: 1.55rem; font-weight: 800; line-height: 1.05; color: var(--ink-strong);
+      font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+    .lp-statsub { font-size: 10px; color: var(--muted); font-weight: 600; }
+    .lp-board .lp-breakdown { font-size: 10px; }
+    /* the GM grade rides as the board's last cell — flatten its standalone pill */
+    .lp-board .lp-grade { border: 0; border-left: 1px solid var(--line); border-radius: 0; min-width: 96px;
+      flex-direction: column; align-items: flex-start; justify-content: center; gap: 1px; padding: 9px 16px;
+      background: var(--grade-bg, transparent); }
+    .lp-board .lp-grade .gl { color: var(--muted); }
+    .lp-board .lp-grade .g { font-size: 1.7rem; line-height: 1; }
+    .lp-board .lp-grade .gr { color: var(--muted); white-space: nowrap; }
+    .lp-deck { display: flex; flex-direction: column; gap: 16px; }
+    /* position groups: forwards / defense / goalies are first-class units */
+    .lp-group { display: flex; flex-direction: column; gap: 7px; }
+    .lp-group-head { display: flex; align-items: baseline; gap: 9px; padding: 0 2px 1px;
+      border-bottom: 1px solid var(--line); margin-bottom: 1px; }
+    .lp-group-name { font-size: 12px; font-weight: 850; letter-spacing: .12em; text-transform: uppercase;
+      color: var(--ink-strong); }
+    .lp-group-name::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 2px;
+      background: var(--team, var(--ice)); margin-right: 8px; vertical-align: middle;
+      box-shadow: 0 0 9px color-mix(in srgb, var(--team, var(--ice)) 70%, transparent); }
+    .lp-group-tot { margin-left: auto; font-size: 11.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+    .lp-group-tot b { color: var(--ink-strong); font-weight: 750; }
+    /* a line: a team-colored number tab, the player slots, then a WAR/cap readout */
+    .lp-line { display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; align-items: stretch; gap: 9px;
+      border: 1px solid var(--line); border-radius: 11px; padding: 7px 9px 7px 7px;
+      background: linear-gradient(100deg, color-mix(in srgb, var(--team, #2a3550) 7%, var(--panel, #15171c)), var(--panel, #15171c) 38%);
+      transition: border-color .14s ease; }
+    .lp-line:hover { border-color: color-mix(in srgb, var(--team, var(--ice)) 35%, var(--line-strong)); }
+    .lp-label { display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 850;
+      letter-spacing: .01em; color: #f4f8ff; border-radius: 8px;
+      background: linear-gradient(170deg, color-mix(in srgb, var(--team, #38506e) 80%, #fff 6%), color-mix(in srgb, var(--team, #38506e) 62%, #06121f));
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--team, var(--ice)) 30%, transparent),
+        0 2px 7px color-mix(in srgb, var(--team, #000) 40%, transparent); text-shadow: 0 1px 2px rgba(0,0,0,.35); }
+    .lp-slots { display: flex; gap: 8px; min-width: 0; }
+    .lp-slots.d { } .lp-slots.g { }
+    .lp-slot { flex: 1 1 0; min-width: 0; min-height: 64px; border: 1px dashed var(--line-strong);
+      border-radius: 9px; background: rgba(148,184,255,.03); display: flex; align-items: center;
+      transition: border-color .12s ease, background .12s ease, box-shadow .12s ease; }
+    .lp-slot.over { border-color: var(--team, var(--ice)); background: color-mix(in srgb, var(--team, var(--ice)) 12%, transparent); }
+    .lp-slot.empty { justify-content: center; }
+    .lp-slot .ph { color: var(--faint); font-size: 11px; font-weight: 700; letter-spacing: .06em; }
+    /* picking state: when a player is held, empty slots invite the drop */
+    .lp-deck.picking .lp-slot.empty { border-color: color-mix(in srgb, var(--team, var(--ice)) 55%, var(--line-strong));
+      border-style: solid; background: color-mix(in srgb, var(--team, var(--ice)) 7%, transparent); animation: lp-invite 1.4s ease-in-out infinite; }
+    .lp-deck.picking .lp-slot.empty .ph { color: color-mix(in srgb, var(--team, var(--ice)) 80%, #fff); }
+    @keyframes lp-invite { 0%,100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--team, var(--ice)) 0%, transparent); }
+      50% { box-shadow: 0 0 0 3px color-mix(in srgb, var(--team, var(--ice)) 28%, transparent); } }
+    .lp-linetot { display: flex; flex-direction: column; justify-content: center; align-items: flex-end;
+      min-width: 74px; padding-left: 4px; gap: 1px; }
+    .lp-linetot .w { font-size: 16px; font-weight: 800; color: var(--ink-strong); font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+    .lp-linetot .c { font-size: 10.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+    .lp-chem { font-size: 10px; font-weight: 750; }
+    .lp-chem.pos { color: #6ee7c8; } .lp-chem.neg { color: #fca5a5; }
+    /* tap-to-move hint bar (shown while a player is selected) */
+    .lp-pickbar[hidden] { display: none; }
+    .lp-pickbar { display: flex; align-items: center; gap: 9px; padding: 8px 12px; margin-bottom: 11px;
+      border-radius: 10px; border: 1px solid color-mix(in srgb, var(--team, var(--ice)) 45%, var(--line-strong));
+      background: color-mix(in srgb, var(--team, var(--ice)) 10%, var(--panel-raised, #1a1d24));
+      font-size: 12.5px; color: var(--ink-strong); position: sticky; top: 6px; z-index: 20; }
+    .lp-pickbar b { font-weight: 750; }
+    .lp-pickbar-dot { width: 9px; height: 9px; border-radius: 50%; flex: 0 0 auto; background: var(--team, var(--ice));
+      box-shadow: 0 0 9px var(--team, var(--ice)); animation: lp-invite 1.2s ease-in-out infinite; }
+    .lp-pickbar-x { margin-left: auto; background: transparent; border: 1px solid var(--line-strong); color: var(--muted);
+      border-radius: 7px; padding: 5px 11px; font-size: 11.5px; font-weight: 650; cursor: pointer; }
+    .lp-pickbar-x:hover { color: var(--ink-strong); border-color: var(--line); }
+    .lp-chip { display: flex; align-items: center; gap: 8px; width: 100%; min-width: 0; padding: 5px 8px 5px 5px;
+      border-radius: 8px; cursor: grab; background: linear-gradient(180deg, var(--panel-raised, #1a1d24), var(--panel, #15171c));
+      border: 1px solid var(--line); user-select: none; }
+    .lp-chip:active { cursor: grabbing; }
+    .lp-chip.sel { border-color: var(--team, var(--ice));
+      box-shadow: 0 0 0 1px var(--team, var(--ice)) inset, 0 0 14px color-mix(in srgb, var(--team, var(--ice)) 35%, transparent); }
+    .lp-chip.dragging { opacity: .4; }
+    .lp-mug { position: relative; width: 42px; height: 42px; border-radius: 50%; flex: 0 0 auto; overflow: hidden;
+      display: grid; place-items: center; border: 2px solid var(--accent, #2a2d34);
+      background: linear-gradient(160deg, var(--accent, #2a3550), #0f1116); }
+    .lp-mug .init { font-size: 13px; font-weight: 800; color: #e8eef7; }
+    .lp-mug img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; background: #0f1116; }
+    .lp-meta { min-width: 0; }
+    .lp-name { display: block; font-size: 12.5px; font-weight: 650; color: var(--ink-strong);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .lp-sub { display: block; font-size: 10.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+    .lp-sub .lp-pos { display: inline-block; font-size: 9.5px; font-weight: 800; letter-spacing: .03em;
+      color: var(--faint); border: 1px solid var(--line-strong); border-radius: 4px; padding: 0 4px; margin-right: 3px; }
+    .lp-sub .w-pos { color: #6ee7c8; font-weight: 750; }
+    .lp-sub .w-neg { color: #fca5a5; font-weight: 750; }
+    .lp-bench { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .lp-bench .lp-chip { width: auto; flex: 0 1 calc(33.333% - 6px); }
+    .lp-bench.over { outline: 2px dashed var(--ice); outline-offset: 4px; border-radius: 10px; }
+    .lp-sec-h { font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase;
+      color: var(--faint); margin: 14px 0 6px; }
+    .lp-bar button { padding: 8px 14px; border-radius: 8px; font-size: .82rem; font-weight: 700;
+      cursor: pointer; border: 1px solid var(--ice); background: var(--ice); color: #06121f; }
+    .lp-bar button.ghost { background: transparent; color: var(--muted); border-color: var(--line-strong); }
+    .lp-empty-note { color: var(--muted); font-size: 12px; padding: 4px 2px; }
+    .lp-deadrow { display: flex; flex-wrap: wrap; gap: 6px; }
+    .lp-deadchip { font-size: 11.5px; padding: 4px 9px; border-radius: 999px;
+      border: 1px solid var(--line); background: rgba(248,113,113,.07); color: var(--ink-strong);
+      font-variant-numeric: tabular-nums; }
+    .lp-deadchip b { color: #f87171; }
+    /* season selector + free-agent sidebar */
+    .lp-main { display: flex; gap: 16px; align-items: flex-start; }
+    .lp-deck-col { flex: 1 1 0; min-width: 0; }
+    .lp-fa-col { flex: 0 0 290px; min-width: 0; }
+    .lp-fa-head { font-size: 11px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase;
+      color: var(--faint); margin: 0 0 8px; }
+    .lp-fa-list { display: flex; flex-direction: column; gap: 7px; }
+    .lp-fa-list.over { outline: 2px dashed var(--ice); outline-offset: 4px; border-radius: 10px; }
+    .lp-chip.lp-fa { background: linear-gradient(180deg, rgba(245,158,11,.10), rgba(245,158,11,.03));
+      border-color: rgba(245,158,11,.35); border-style: dashed; align-items: flex-start; }
+    .lp-fa .lp-sub { white-space: normal; }
+    .lp-projtag { display: inline-block; font-size: 8.5px; font-weight: 800; letter-spacing: .04em;
+      text-transform: uppercase; color: #f59e0b; border: 1px solid rgba(245,158,11,.5);
+      border-radius: 4px; padding: 0 3px; margin-left: 4px; vertical-align: middle; }
+    .lp-stbadge { font-size: 9px; font-weight: 800; letter-spacing: .03em; border-radius: 4px;
+      padding: 1px 4px; margin-left: 5px; vertical-align: middle; }
+    .lp-stbadge.ufa { color: #fca5a5; background: rgba(248,113,113,.14); }
+    .lp-stbadge.rfa { color: #93c5fd; background: rgba(96,165,250,.16); }
+    .lp-famid { color: var(--ink-strong); font-weight: 750; }
+    .lp-facomps { font-size: 10px; color: var(--faint); margin-top: 1px; display: block; }
+    .lp-breakdown { font-size: 10.5px; color: var(--muted); }
+    @media (max-width: 860px) { .lp-main { flex-direction: column; } .lp-fa-col { flex: 1 1 auto; width: 100%; } }
+    /* move simulator: per-chip action menu + simulated-moves strip */
+    .lp-chip { position: relative; }
+    .lp-act { position: absolute; top: 2px; right: 3px; width: 16px; height: 16px; border-radius: 4px;
+      display: grid; place-items: center; font-size: 13px; line-height: 1; color: var(--faint);
+      background: rgba(0,0,0,.25); cursor: pointer; opacity: 0; transition: opacity .12s; border: none; }
+    .lp-chip:hover .lp-act, .lp-act:focus { opacity: 1; }
+    @media (max-width: 860px) { .lp-act { opacity: .8; } }
+    .lp-menu { position: fixed; z-index: 50; min-width: 184px; padding: 5px; border-radius: 10px;
+      background: var(--panel-raised, #1a1d24); border: 1px solid var(--line-strong);
+      box-shadow: 0 12px 32px rgba(0,0,0,.5); display: none; }
+    .lp-menu.on { display: block; }
+    .lp-menu .mh { font-size: 10.5px; font-weight: 700; color: var(--faint); padding: 3px 8px 5px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .lp-menu button { display: block; width: 100%; text-align: left; padding: 7px 9px; border: none;
+      border-radius: 6px; background: transparent; color: var(--ink-strong); font-size: 12.5px; cursor: pointer; }
+    .lp-menu button:hover { background: rgba(148,184,255,.10); }
+    .lp-menu button.danger:hover { background: rgba(248,113,113,.14); color: #fca5a5; }
+    .lp-menu .row { display: flex; gap: 5px; padding: 4px; align-items: center; }
+    .lp-menu input { width: 70px; padding: 5px 7px; border-radius: 6px; border: 1px solid var(--line-strong);
+      background: #0f1116; color: inherit; font-size: 12px; }
+    .lp-menu .row button { width: auto; padding: 6px 10px; background: var(--ice); color: #06121f; font-weight: 700; }
+    .lp-simchip { font-size: 11.5px; padding: 4px 9px; border-radius: 999px; border: 1px dashed rgba(245,158,11,.5);
+      background: rgba(245,158,11,.08); color: var(--ink-strong); font-variant-numeric: tabular-nums; cursor: pointer; }
+    .lp-simchip b { color: #f59e0b; } .lp-simchip .x { color: var(--faint); margin-left: 5px; font-weight: 700; }
+    /* ---- game feel: cap gauge, GM grade, motion ---- */
+    .lp-grade { display: flex; flex-direction: column; align-items: center; justify-content: center;
+      min-width: 84px; padding: 5px 12px; border-radius: 13px; border: 1.5px solid var(--grade-c, var(--line-strong));
+      background: var(--grade-bg, rgba(148,184,255,.06)); transition: border-color .4s, background .4s; }
+    .lp-grade .g { font-size: 2rem; font-weight: 850; line-height: 1; color: var(--grade-c, #cbd5e1);
+      font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+    .lp-grade .gl { font-size: 8.5px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; color: var(--muted); }
+    .lp-grade .gr { font-size: 9.5px; color: var(--muted); margin-top: 1px; white-space: nowrap; }
+    .lp-grade.bump { animation: lp-gradebump .5s cubic-bezier(.22,1.4,.4,1); }
+    @keyframes lp-gradebump { 0% { transform: scale(1); } 35% { transform: scale(1.18); } 100% { transform: scale(1); } }
+    .lp-gauge { position: relative; height: 15px; border-radius: 8px; background: rgba(148,184,255,.07);
+      overflow: hidden; margin: 0 0 12px; border: 1px solid var(--line); }
+    .lp-gauge .seg { position: absolute; top: 0; bottom: 0; transition: width .5s cubic-bezier(.22,1,.36,1), left .5s cubic-bezier(.22,1,.36,1); }
+    .lp-gauge .seg.s-committed { background: linear-gradient(180deg, #38bdf8, #0284c7); border-radius: 8px 0 0 8px; }
+    .lp-gauge .seg.s-dead { background: linear-gradient(180deg, #f87171, #dc2626); }
+    .lp-gauge .seg.s-proj { background: linear-gradient(180deg, #fbbf24, #f59e0b); }
+    .lp-gauge .tick { position: absolute; top: -2px; bottom: -2px; width: 2px; background: var(--ink-strong); opacity: .5; }
+    .lp-gauge.over { border-color: #f87171; animation: lp-pulse 1.1s ease-in-out infinite; }
+    @keyframes lp-pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(248,113,113,0); } 50% { box-shadow: 0 0 0 3px rgba(248,113,113,.45); } }
+    .lp-chip.justplaced { animation: lp-pop .3s ease-out; }
+    @keyframes lp-pop { 0% { transform: scale(.82); } 55% { transform: scale(1.06); } 100% { transform: scale(1); } }
+    .lp-space-flash { animation: lp-flash .5s ease-out; }
+    @keyframes lp-flash { 0% { text-shadow: 0 0 12px currentColor; } 100% { text-shadow: none; } }
+    @media (prefers-reduced-motion: reduce) { .lp-gauge .seg, .lp-grade, .lp-chip.justplaced, .lp-gauge.over { transition: none; animation: none; } }
+    /* ---- Recommended moves ---- */
+    .lp-rec { margin-top: 16px; border: 1px solid var(--line-strong); border-radius: 12px;
+      padding: 14px 15px; background: linear-gradient(165deg, rgba(56,189,248,.05), transparent 62%); }
+    .lp-rec-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-bottom: 11px; }
+    .lp-rec-title { font-size: 15px; font-weight: 800; letter-spacing: -.01em; color: var(--ink-strong); }
+    .lp-rec-beta { font-size: 9px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--ice-bright);
+      border: 1px solid rgba(56,189,248,.4); border-radius: 5px; padding: 1px 5px; margin-left: 6px; vertical-align: middle; }
+    .lp-rec-sub { font-size: 12px; color: var(--muted); }
+    .lp-rec-sub b { color: var(--ink-strong); font-weight: 700; }
+    .lp-rec-filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+    .lp-recf { display: inline-flex; border: 1px solid var(--line-strong); border-radius: 8px; overflow: hidden; }
+    .lp-recf button { background: transparent; border: 0; color: var(--muted); font-size: 12px; font-weight: 650; padding: 6px 11px; cursor: pointer; transition: background .12s, color .12s; }
+    .lp-recf button:hover { color: var(--ink-strong); }
+    .lp-recf button.on { background: rgba(56,189,248,.14); color: var(--ice-bright); }
+    .lp-rec-list { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+    @media (max-width: 720px) { .lp-rec-list { grid-template-columns: 1fr; } }
+    .lp-rc { display: flex; align-items: center; gap: 10px; min-width: 0; overflow: hidden; text-decoration: none; color: inherit;
+      border: 1px solid var(--line); border-radius: 9px; padding: 7px 9px; background: var(--panel);
+      transition: border-color .12s, background .12s; }
+    .lp-rc:hover { border-color: rgba(125,211,252,.5); background: var(--panel-raised); }
+    .lp-rc-main { flex: 1 1 auto; min-width: 0; }
+    .lp-rc-name { display: block; font-size: 13px; color: var(--ink-strong); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .lp-rc-name b { font-weight: 700; }
+    .lp-rc-name .m { color: var(--muted); font-weight: 600; font-size: 11px; }
+    .lp-rc-line { display: block; font-size: 11px; color: var(--muted); margin-top: 1px; }
+    .lp-rc.lp-rc-tall { align-items: flex-start; }
+    .lp-rc-costline { display: block; font-size: 11.5px; color: var(--ink-strong); margin-top: 3px; }
+    .lp-rc-costline b { color: var(--ice-bright); font-weight: 700; }
+    .lp-rc-thin { font-size: 9.5px; color: #fbbf24; }
+    .lp-rc-under { display: block; font-size: 10.5px; color: #fbbf24; margin-top: 2px; }
+    .lp-rc-right { flex: 0 0 auto; text-align: right; padding-left: 4px; }
+    .lp-rc-cost { display: block; font-size: 12.5px; font-weight: 750; color: var(--ink-strong); font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .lp-rc-csub { display: block; font-size: 10px; color: var(--faint); margin-top: 1px; white-space: nowrap; }
+    .lp-rc-tag { display: inline-block; font-size: 8.5px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase;
+      border-radius: 4px; padding: 1px 4px; margin-right: 5px; vertical-align: middle; }
+    .lp-rc-tag.big { color: #fbbf24; background: rgba(245,158,11,.16); }
+    .lp-rc-tag.mid { color: #7dd3fc; background: rgba(56,189,248,.13); }
+    .lp-rc-tag.depth { color: var(--muted); background: rgba(148,184,255,.08); }
+    .lp-rec-note { font-size: 10.5px; color: var(--faint); line-height: 1.5; margin: 12px 0 0; }
+    .lp-rec-empty { grid-column: 1 / -1; color: var(--muted); font-size: 12.5px; padding: 10px 4px; }
+    /* ---- Move-assets mode ---- */
+    .lp-rec-mode { margin-bottom: 13px; }
+    .lp-move-pickhead { font-size: 12px; font-weight: 700; color: var(--ink-strong); margin-bottom: 8px; }
+    .lp-move-pickhead span { color: var(--ice-bright); font-weight: 700; margin-left: 4px; }
+    .lp-move-picker { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; max-height: 172px; overflow-y: auto; padding: 2px; }
+    .lp-pick { display: inline-flex; align-items: center; gap: 5px; border: 1px solid var(--line-strong); border-radius: 999px;
+      padding: 4px 11px; font-size: 12px; color: var(--muted); background: var(--panel); cursor: pointer; white-space: nowrap;
+      transition: background .12s, border-color .12s, color .12s; }
+    .lp-pick:hover { color: var(--ink-strong); border-color: var(--line); }
+    .lp-pick.on { background: rgba(56,189,248,.16); border-color: rgba(125,211,252,.55); color: var(--ice-bright); }
+    .lp-pick .pp { font-size: 9.5px; color: var(--faint); font-weight: 700; }
+    .lp-pick.on .pp { color: var(--ice-bright); }
+    #lp-move-list { display: flex; flex-direction: column; gap: 6px; }
+    .lp-deal { display: block; border: 1px solid var(--line); border-radius: 9px;
+      background: var(--panel); transition: border-color .12s, background .12s; overflow: hidden; }
+    .lp-deal:hover { border-color: rgba(125,211,252,.5); }
+    .lp-deal-head { display: block; width: 100%; text-align: left; border: 0; background: transparent;
+      color: inherit; font: inherit; padding: 9px 11px; cursor: pointer; }
+    .lp-deal-row { display: flex; align-items: center; gap: 8px; font-size: 13px; flex-wrap: wrap; }
+    .lp-deal-send { color: var(--muted); } .lp-deal-send b { color: var(--ink-strong); font-weight: 650; }
+    .lp-deal-arrow { color: var(--ice-bright); font-weight: 800; }
+    .lp-deal-get b { color: var(--ink-strong); font-weight: 700; }
+    .lp-deal-get .tm { color: var(--muted); font-size: 11px; font-weight: 600; }
+    .lp-deal-pkg { font-size: 9.5px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase;
+      color: #fbbf24; border: 1px solid rgba(251,191,36,.45); border-radius: 4px; padding: 1px 5px; }
+    .lp-deal-chev { margin-left: auto; color: var(--muted); font-size: 11px; transition: transform .12s; }
+    .lp-deal-sub { display: block; font-size: 11px; color: var(--muted); margin-top: 4px; }
+    .lp-deal-bal { font-weight: 700; }
+    .lp-deal-bal.fair { color: #6ee7c8; } .lp-deal-bal.add { color: #fbbf24; }
+    /* expanded full-trade breakdown */
+    .lp-deal-detail { padding: 2px 11px 11px; border-top: 1px dashed var(--line); margin-top: -1px; }
+    .lp-dd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 9px; }
+    .lp-dd-h { font-size: 10px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 4px; }
+    .lp-dd-row { display: flex; justify-content: space-between; gap: 8px; font-size: 12.5px; padding: 2px 0; }
+    .lp-dd-row a { color: var(--ink-strong); text-decoration: none; border-bottom: 1px dotted var(--line-strong); }
+    .lp-dd-row.pick { color: var(--muted); font-style: italic; }
+    .lp-dd-v { font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .lp-dd-foot { font-size: 11.5px; color: var(--ink-strong); margin-top: 9px; line-height: 1.5; }
+    .lp-dd-foot .lp-dd-model { display: block; margin-top: 3px; }
+    .lp-dd-foot .lp-dd-fill { display: block; color: var(--muted); font-size: 11px; margin-top: 3px; }
+    @media (max-width: 680px) {
+      /* command bar: controls go full-width, the scoreboard folds to a 2×2 grid */
+      .lp-controls { gap: 9px 11px; }
+      .lp-ctl { flex: 1 1 130px; }
+      #lp-team { width: 100%; }
+      .lp-actions { margin-left: 0; width: 100%; }
+      .lp-actions .lp-btn { flex: 1 1 0; justify-content: center; }
+      .lp-board { grid-template-columns: 1fr 1fr; }
+      .lp-stat { padding: 10px 14px; border-left: 0; border-top: 1px solid var(--line); }
+      .lp-stat:nth-child(2n) { border-left: 1px solid var(--line); }
+      .lp-stat:nth-child(1), .lp-stat:nth-child(2) { border-top: 0; }
+      .lp-stat .v { font-size: 1.4rem; }
+      .lp-board .lp-grade { border-top: 1px solid var(--line); padding: 10px 14px; }
+      /* A line is a header (label + totals), then its players STACKED full-width.
+         3-across on a phone shreds names to "Jas…"; one-per-row gives them room. */
+      .lp-line { grid-template-columns: auto 1fr; grid-template-areas: "label tot" "slots slots";
+        gap: 8px 10px; padding: 9px 11px; }
+      .lp-label { grid-area: label; justify-self: start; align-self: center; min-width: 44px; padding: 5px 13px; font-size: 13.5px; }
+      .lp-linetot { grid-area: tot; flex-direction: row; gap: 12px; align-items: baseline;
+        justify-content: flex-end; min-width: 0; padding: 0; }
+      .lp-linetot .w { font-size: 15px; } .lp-linetot .c { font-size: 12px; }
+      .lp-slots { grid-area: slots; flex-direction: column; gap: 6px; }
+      /* stacked column: each slot sizes to its chip (flex:1 0 collapses them to the gap) */
+      .lp-slot { flex: 0 0 auto; min-height: 0; }
+      .lp-slot.empty { min-height: 46px; justify-content: center; }
+      .lp-slot.empty .ph { font-size: 11.5px; color: var(--faint); }
+      .lp-slot.empty .ph::before { content: "+ "; opacity: .7; }
+      /* full-width chips now have room for the whole name + a clean stat line */
+      .lp-chip { cursor: pointer; padding: 8px 40px 8px 7px; gap: 11px; }
+      .lp-mug { width: 42px; height: 42px; }
+      .lp-name { font-size: 14.5px; font-weight: 700; }
+      .lp-chip .lp-sub { font-size: 12px; margin-top: 1px; }
+      .lp-act { opacity: .85; width: 30px; height: 30px; font-size: 17px; top: 50%; transform: translateY(-50%); right: 6px; }
+      .lp-bench .lp-chip { flex: 0 1 calc(50% - 4px); padding: 7px 8px 7px 6px; }
+      .lp-bench .lp-chip .lp-act { display: none; }   /* keep bench tiles clean; menu via the deck */
+    }
+  </style>
+</head>
+<body>
+  <div class="fo-wrap">
+    <div class="fo-head"><a class="bl-brand" href="./index.html"><span class="bl-mark">IC</span> Icenomics</a><nav style="display:flex; gap:12px; flex-wrap:wrap; align-items:center; font-size:12.5px; font-weight:600;"><a href="./index.html" style="color:var(--muted); text-decoration:none;">Home</a> <a href="./player.html" style="color:var(--muted); text-decoration:none;">Players</a> <a href="./leaders.html" style="color:var(--muted); text-decoration:none;">Leaders</a> <a href="./standings.html" style="color:var(--muted); text-decoration:none;">Projections</a> <span style="color:var(--ice-bright);">Front office</span> <a href="./fa-board.html" style="color:var(--muted); text-decoration:none;">Free agents</a> <a href="./draft-board.html" style="color:var(--muted); text-decoration:none;">Draft board</a> <a href="./transactions.html" style="color:var(--muted); text-decoration:none;">Transactions</a> <a href="./reliability.html" style="color:var(--muted); text-decoration:none;">Reliability</a> <input type="search" placeholder="Find a player…" aria-label="Find a player" style="min-height:30px; padding:0 10px; font-size:12.5px; width:160px;" onkeydown="if(event.key==='Enter'&&this.value.trim())location.href='player.html?name='+encodeURIComponent(this.value.trim())"></nav></div>
+    <p class="fo-hint">Contracts, trades, and the salary cap — built on validated WAR (<a href="./reliability.html#how-to-read" style="color:var(--ice)">team WAR predicts the standings at r≈0.85</a>). Every dollar figure is explainable; read the caveats.</p>
+    <div class="fo-tabs">
+      <button data-tab="roster" class="on">Roster</button>
+      <button data-tab="lines">Line combos</button>
+      <button data-tab="contracts">Contracts</button>
+      <button data-tab="trades">Trade simulator</button>
+      <button data-tab="evaluator">Trade evaluator</button>
+      <button data-tab="cap">Cap optimizer</button>
+      <button data-tab="gm">GM ratings</button>
+      <button data-tab="prospects">Prospects</button>
+      <button data-tab="picks">Draft capital</button>
+      <button data-tab="dna">Championship DNA</button>
+    </div>
+
+    <!-- ROSTER: the summer toolkit -->
+    <section class="fo-panel on" id="p-roster">
+      <div class="fo-card">
+        <div class="fo-row" style="align-items:center; justify-content:space-between;">
+          <h3 style="margin:0">Roster — every lens at once</h3>
+          <label>Team <select id="ro-team"></select></label>
+        </div>
+        <div id="ro-summary" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin:12px 0;"></div>
+        <div id="ro-needs" style="margin:10px 0;"></div>
+        <div class="fo-scroll"><div id="ro-skaters">Pick a team.</div></div>
+        <div id="ro-goalies" style="margin-top:10px;"></div>
+        <div id="ro-strips" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:10px; margin-top:12px;"></div>
+        <p class="fo-note">Roster = minutes actually played in the latest regular season — offseason
+        moves appear once games are played. Trade value carries its calibration flags (superstar tier
+        uncalibrated); prospect attribution is the drafting team; speed is NHL EDGE tracking.</p>
+      </div>
+    </section>
+
+    <!-- LINE COMBOS: drag-and-drop deck -->
+    <section class="fo-panel" id="p-lines">
+      <div class="fo-card">
+        <div class="lp-command">
+          <div class="lp-controls">
+            <label class="lp-ctl">Team
+              <select id="lp-team"></select></label>
+            <label class="lp-ctl">Season
+              <div class="seg lp-season" id="lp-season">
+                <button type="button" data-s="2025">25-26</button>
+                <button type="button" data-s="2026" class="on">26-27</button>
+                <button type="button" data-s="2027">27-28</button>
+              </div></label>
+            <div class="lp-actions">
+              <button type="button" class="lp-btn primary" onclick="lpAuto()"><span aria-hidden="true">⚡</span> Auto-fill best</button>
+              <button type="button" class="lp-btn ghost" onclick="lpClear()">Clear</button>
+            </div>
+          </div>
+          <div class="lp-board">
+            <div class="lp-stat"><span class="k">Lineup WAR</span><span class="v" id="lp-war">—</span></div>
+            <div class="lp-stat"><span class="k">Cap used</span><span class="v" id="lp-cap">—</span><span class="lp-breakdown" id="lp-breakdown"></span></div>
+            <div class="lp-stat"><span class="k">Cap space</span><span class="v" id="lp-space">—</span><span class="lp-statsub" id="lp-capnote"></span></div>
+            <div class="lp-grade" id="lp-grade" title="Your lineup's projected WAR ranked against all 32 teams">
+              <span class="gl">GM grade</span><span class="g" id="lp-grade-g">—</span><span class="gr" id="lp-grade-r"></span>
+            </div>
+          </div>
+          <div class="lp-gauge" id="lp-gauge" title="Cap used vs the ceiling: committed (blue) · dead (red) · re-signings (amber)"></div>
+        </div>
+        <div class="lp-main">
+          <div class="lp-deck-col">
+            <div class="lp-pickbar" id="lp-pickbar" hidden><span class="lp-pickbar-dot"></span><span id="lp-pickbar-txt"></span><button type="button" class="lp-pickbar-x" onclick="lpSelect(LP.sel)">Cancel</button></div>
+            <div class="lp-deck" id="lp-deck"><p class="lp-empty-note">Pick a team to build your lines.</p></div>
+            <div id="lp-dead"></div>
+            <div id="lp-sim"></div>
+            <div id="lp-impact"></div>
+          </div>
+          <div class="lp-fa-col">
+            <div class="lp-fa-head" id="lp-fa-head">Free agents</div>
+            <div class="lp-fa-list" id="lp-fas"></div>
+          </div>
+        </div>
+        <!-- Recommended moves: the model reads your holes, then suggests fits -->
+        <div class="lp-rec" id="lp-rec" hidden>
+          <div class="lp-rec-head">
+            <div class="lp-rec-title">Recommended moves <span class="lp-rec-beta">model ideas</span></div>
+            <div class="lp-rec-sub" id="lp-rec-needs"></div>
+          </div>
+          <div class="seg lp-recf lp-rec-mode" id="lp-rec-mode">
+            <button class="on" type="button" data-m="fill">Fill needs</button>
+            <button type="button" data-m="move">Move assets</button>
+          </div>
+          <!-- MODE: fill needs (who to add) -->
+          <div id="lp-rec-fill">
+            <div class="lp-rec-filters">
+              <div class="seg lp-recf" id="lp-rec-kind">
+                <button class="on" type="button" data-k="all">All moves</button>
+                <button type="button" data-k="trade">Trades</button>
+                <button type="button" data-k="fa">Free agents</button>
+              </div>
+              <div class="seg lp-recf" id="lp-rec-tier">
+                <button class="on" type="button" data-t="all">Any caliber</button>
+                <button type="button" data-t="big">Big fish</button>
+                <button type="button" data-t="mid">Middle</button>
+                <button type="button" data-t="depth">Depth</button>
+              </div>
+            </div>
+            <div class="lp-rec-list" id="lp-rec-list"></div>
+            <p class="lp-rec-note">Availability % is a model estimate from contract, age, term and value — <b>not reported news</b>. “Cost to trade” is our empirical pick price (fit on ~1,000 real acquisitions); “to sign” is the projected next deal from comparable signings. For <b>big fish</b> that pick is a <b>value floor</b> (shown with a +) — a scarce, cost-controlled star commands a multi-piece premium our value model doesn't set; tap any player for the real comparable-trade returns. Skater fits only — goalie needs aren't covered here.</p>
+          </div>
+          <!-- MODE: move assets (what you can get for what you'd give) -->
+          <div id="lp-rec-move" hidden>
+            <div class="lp-move-pickhead">Tap the players you'd be willing to move <span id="lp-move-count"></span></div>
+            <div class="lp-move-picker" id="lp-move-picker"></div>
+            <div class="lp-rec-list" id="lp-move-list"><div class="lp-rec-empty">Mark one or more players above to see deals.</div></div>
+            <p class="lp-rec-note">Realistic matches: a partner that <b>needs your asset</b>, returning a player who fills <b>your</b> needs — graded by the same value math as the Trade evaluator. For a <b>big fish</b> it bundles a second piece into a <b>package</b> rather than attaching a high pick. <b>Tap any deal</b> to open the full trade: every piece each side moves, its value, and the pick that balances a lopsided swap.</p>
+          </div>
+        </div>
+        <div class="lp-sec-h">Bench — drag anyone in (or tap a player, then tap a slot)</div>
+        <div class="lp-bench" id="lp-bench"></div>
+        <div class="lp-menu" id="lp-menu"></div>
+        <p class="fo-note">Players show team-color initials. WAR is recent
+          play-driving value; pair “chem” is descriptive, not a projection. <b>Cap space</b> = the season's
+          upper limit minus the AAVs you dress, the team's dead cap (buyouts/retained/buried — e.g. Skinner
+          still costs Buffalo $6.4M), and any free agents you slide in. <b>Pending free agents</b> show a
+          projected range from comparable real signings (mid applied when you re-sign them); committed money
+          is hard, projected money is an estimate. Offseason trades aren't reflected until you make them.</p>
+      </div>
+    </section>
+
+    <!-- CONTRACTS -->
+    <section class="fo-panel" id="p-contracts">
+      <div class="fo-card">
+        <h3>A player's contract value</h3>
+        <form class="fo-row" onsubmit="lookupPlayer(event)">
+          <label>Player<input id="c-name" type="search" placeholder="e.g. Connor McDavid" style="min-width:240px" autofocus></label>
+          <button type="submit">Value</button>
+        </form>
+        <div id="c-player"></div>
+      </div>
+      <div class="fo-card">
+        <h3>Contract leaderboards</h3>
+        <div class="fo-row">
+          <div class="seg" id="c-lens">
+            <button data-l="surplus" class="on">Surplus</button>
+            <button data-l="acquisition">Trade value</button>
+            <button data-l="toxic">Toxic</button>
+          </div>
+          <div class="seg" id="c-kind">
+            <button data-k="best" class="on">Best value</button>
+            <button data-k="worst">Most overpaid</button>
+            <button data-k="fair">Fairest</button>
+          </div>
+          <div class="seg" id="c-group">
+            <button data-g="skater" class="on">Skaters</button>
+            <button data-g="goalie">Goalies</button>
+            <button data-g="all">All</button>
+          </div>
+        </div>
+        <div id="c-board"></div>
+      </div>
+    </section>
+
+    <!-- TRADES -->
+    <section class="fo-panel" id="p-trades">
+      <div class="fo-card">
+        <h3>Hypothetical trade — net WAR + cap + surplus</h3>
+        <div class="fo-row" style="align-items:stretch">
+          <label style="flex:1">Your team sends (give)<textarea id="t-give" class="fo-ta" placeholder="Comma-separated, e.g. Connor McDavid"></textarea></label>
+          <label style="flex:1">Your team receives (get)<textarea id="t-get" class="fo-ta" placeholder="e.g. Nathan MacKinnon, Cale Makar"></textarea></label>
+        </div>
+        <div class="fo-row"><button class="fo-go" onclick="runTrade()">Evaluate trade</button>
+          <span class="mut" style="font-size:.8rem;align-self:center">Tip: one name per side is a 1-for-1.</span></div>
+        <div id="t-out"></div>
+      </div>
+    </section>
+
+    <style>
+      #p-evaluator .ev-grid, #p-evaluator .ev-res-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:14px 0; }
+      #p-evaluator .ev-col { border:1px solid var(--line); border-radius:10px; padding:10px; background:var(--panel); min-width:0; }
+      #p-evaluator .ev-col-head { font-weight:700; color:var(--ink-strong); margin-bottom:8px; }
+      #p-evaluator .ev-lane { display:flex; flex-direction:column; gap:6px; min-height:38px; margin-bottom:8px; }
+      #p-evaluator .ev-chip { border:1px solid var(--line-strong); border-radius:8px; padding:7px 9px; background:var(--panel-raised); }
+      #p-evaluator .ev-chip-top { display:flex; justify-content:space-between; align-items:center; font-size:13px; font-weight:650; gap:8px; }
+      #p-evaluator .ev-chip-top button { border:none; background:none; cursor:pointer; font-size:17px; color:var(--muted); line-height:1; padding:0 2px; }
+      #p-evaluator .ev-chip-sub { font-size:11.5px; color:var(--muted); margin-top:2px; }
+      #p-evaluator .ev-retain { display:flex; align-items:center; gap:8px; margin-top:6px; font-size:11.5px; }
+      #p-evaluator .ev-retain input { flex:1; }
+      #p-evaluator .ev-addpick { align-self:flex-start; border:1px dashed var(--line-strong); background:none; border-radius:7px; padding:4px 10px; font-size:12px; cursor:pointer; color:var(--muted); }
+      #p-evaluator .ev-pool { display:flex; flex-direction:column; gap:3px; max-height:300px; overflow:auto; }
+      #p-evaluator .ev-pl { display:flex; justify-content:space-between; gap:8px; border:1px solid var(--line); border-radius:7px; padding:6px 9px; background:var(--panel-raised); cursor:pointer; font-size:12.5px; text-align:left; color:var(--ink-strong); }
+      #p-evaluator .ev-pl:hover { border-color:var(--ice); }
+      #p-evaluator .ev-clear { border:1px solid var(--line-strong); background:none; border-radius:8px; padding:8px 14px; cursor:pointer; color:var(--ink-strong); }
+      #p-evaluator .ev-meter-wrap { margin:18px 0 6px; }
+      #p-evaluator .ev-meter-top { display:flex; justify-content:space-between; font-size:13px; margin-bottom:6px; }
+      #p-evaluator .ev-meter { position:relative; height:8px; border-radius:6px; background:linear-gradient(90deg,#5dcaa5,#e7e3d8,#f0999b); }
+      #p-evaluator .ev-needle { position:absolute; top:-4px; width:3px; height:16px; border-radius:2px; background:var(--ink-strong); transition:left .55s cubic-bezier(.22,1,.36,1); }
+      #p-evaluator .ev-meter-lab { display:flex; justify-content:space-between; font-size:11px; color:var(--muted); margin-top:5px; }
+      #p-evaluator .ev-res-col { border:1px solid var(--line); border-radius:10px; padding:12px; background:var(--panel-raised); }
+      #p-evaluator .ev-res-team { font-weight:750; color:var(--ink-strong); margin-bottom:8px; }
+      #p-evaluator .ev-kv { display:flex; justify-content:space-between; gap:10px; font-size:13px; padding:3px 0; }
+      #p-evaluator .ev-note { font-size:13px; color:var(--ink-strong); background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:10px 12px; margin:10px 0; }
+      #p-evaluator .ti-wrap { margin-top:12px; border-top:1px solid var(--line); padding-top:12px; display:grid; gap:11px; }
+      #p-evaluator .ti-narrative { font-size:14.5px; line-height:1.62; color:var(--ink-strong); }
+      #p-evaluator .ti-whosays { font-size:12.5px; line-height:1.55; color:var(--muted); border-left:3px solid #b45309;
+                                 border-radius:7px; padding:8px 12px; background:var(--panel); }
+      #p-evaluator .ti-whosays b { color:#f6c780; font-weight:650; }
+      #p-evaluator .ti-h { font-size:10.5px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); margin-bottom:6px; }
+      #p-evaluator .ti-model { font-size:13px; color:var(--ink); line-height:1.5; }
+      #p-evaluator .ti-model b { color:var(--muted); }
+      #p-evaluator .ti-why { font-size:12.5px; color:var(--muted); padding:2px 0; }
+      #p-evaluator .ti-why b { color:var(--ink-strong); font-weight:650; }
+      #p-evaluator .ti-opts { display:flex; flex-wrap:wrap; gap:7px; }
+      #p-evaluator .ti-opt { display:inline-flex; padding:4px 11px; border-radius:999px; font-size:12px; font-weight:600; border:1px solid var(--line); color:var(--muted); }
+      #p-evaluator .ti-opt.player { color:#7dd3fc; border-color:rgba(125,211,252,.34); background:rgba(125,211,252,.08); }
+      #p-evaluator .ev-flags { display:flex; flex-wrap:wrap; gap:7px; margin-top:8px; }
+      #p-evaluator .ev-flag { font-size:11.5px; padding:4px 9px; border-radius:7px; background:var(--panel); border:1px solid var(--line); color:var(--muted); }
+      #p-evaluator .ev-flag.warn { color:#b45309; border-color:#f0c98a; }
+      #p-evaluator .ev-flag.error { color:#dc2626; border-color:#f0a5a5; }
+      #p-evaluator .ev-ideas-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:4px 0 2px; }
+      #p-evaluator .ev-ideas-col { border:1px solid var(--line); border-radius:10px; padding:10px; background:var(--panel); }
+      #p-evaluator .ev-ideas-head { font-size:11.5px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; margin-bottom:7px; }
+      #p-evaluator .ev-idea { display:flex; justify-content:space-between; gap:8px; align-items:center; border:1px solid var(--line); border-radius:7px; padding:6px 9px; background:var(--panel-raised); cursor:pointer; font-size:12.5px; margin-bottom:4px; width:100%; text-align:left; color:var(--ink-strong); }
+      #p-evaluator .ev-idea:hover { border-color:var(--ice); }
+      #p-evaluator .ev-idea .why { font-size:11px; color:var(--muted); margin-top:1px; }
+      #p-evaluator .ev-move { font-size:10.5px; padding:1px 6px; border-radius:6px; background:var(--panel); border:1px solid var(--line); color:var(--muted); white-space:nowrap; }
+      #p-evaluator .ev-impact { margin-top:8px; border-top:1px dashed var(--line); padding-top:8px; }
+      #p-evaluator .ev-imp-row { display:flex; justify-content:space-between; font-size:12px; padding:2px 0; }
+      #p-evaluator .ev-up { color:#16a34a; } #p-evaluator .ev-dn { color:#dc2626; }
+      @media (max-width:640px) { #p-evaluator .ev-grid, #p-evaluator .ev-res-grid, #p-evaluator .ev-ideas-grid { grid-template-columns:1fr; } }
+    </style>
+    <section class="fo-panel" id="p-evaluator">
+      <div class="fo-card">
+        <h3>Trade evaluator — is this deal smart, not just legal?</h3>
+        <div class="fo-row" style="align-items:center; gap:14px; flex-wrap:wrap;">
+          <label>Team A <select id="ev-a"></select></label>
+          <label>Team B <select id="ev-b"></select></label>
+          <button class="fo-go" onclick="runEval()">Evaluate</button>
+          <button class="ev-clear" onclick="clearDeal()">Clear deal</button>
+          <span class="mut" style="font-size:.78rem">Tap a player to add him to that team's outgoing side.</span>
+        </div>
+        <div class="ev-grid" id="ev-grid">Loading…</div>
+        <div id="ev-ideas"></div>
+        <div id="ev-out"></div>
+        <p class="fo-note">Value is calibrated surplus (asset layer) + the draft pick-value curve;
+        cap is the 2026-27 room minus retention; fit is need-vs-strength. Value is conserved, so
+        "favours" is the spread. No NMC/NTC data — termed players are flagged, not cleared.</p>
+      </div>
+    </section>
+
+    <!-- CAP OPTIMIZER -->
+
+
+    <section class="fo-panel" id="p-prospects">
+      <div class="fo-card">
+        <h3>Prospect pipelines — expected WAR over first 7 seasons</h3>
+        <div class="fo-row" style="align-items:center">
+          <label>Team <select id="pr-team"><option value="">League pipelines</option></select></label>
+        </div>
+        <div class="fo-scroll"><div id="pr-out">Loading…</div></div>
+        <p class="fo-note">Grades = draft-slot value × measured size residual × survival
+        (age + NHL evidence) + calibrated league production (AHL forwards carry signal so far;
+        no-signal lenses stay silent). Pedigree-and-evidence prior, not a scouting report —
+        drafted-team attribution until debut; goalies excluded.</p>
+      </div>
+    </section>
+
+    <section class="fo-panel" id="p-dna">
+      <div class="fo-row" style="align-items:center; margin-bottom:12px;">
+        <label>Team <select id="dna-team"></select></label>
+      </div>
+      <div id="dna-body">Loading…</div>
+      <p class="fo-note" id="dna-caveat" style="margin-top:12px;"></p>
+    </section>
+
+    <section class="fo-panel" id="p-picks">
+      <div class="fo-card" style="margin-bottom:14px;">
+        <div class="fo-row" style="align-items:center">
+          <label>Team <select id="pk-team"></select></label>
+        </div>
+        <p class="fo-note" id="pk-caveat" style="margin-top:8px;"></p>
+      </div>
+      <div id="pk-body">Loading…</div>
+    </section>
+
+    <section class="fo-panel" id="p-gm">
+      <div class="fo-card">
+        <div class="fo-row" style="align-items:center">
+          <div class="seg" id="gm-active-seg">
+            <button class="on" data-v="all">All GMs</button>
+            <button data-v="active">Active only</button>
+          </div>
+          <label>Era
+            <select id="gm-era">
+              <option value="all">All (2010-present)</option>
+              <option value="2010">2010-2014</option>
+              <option value="2015">2015-2019</option>
+              <option value="2020">2020+ (signings only)</option>
+            </select>
+          </label>
+          <label>Min picks / seasons
+            <input id="gm-min" type="number" value="20" min="1" style="max-width:90px">
+          </label>
+        </div>
+        <p class="fo-note" style="margin-top:8px">Era matches a regime whose window overlaps the range.
+        Draft cohorts end at 2019 (younger picks lack a full 7-season runway), so 2020+ filters signings only.</p>
+      </div>
+      <div class="fo-card">
+        <h3>Draft record — WAR over slot expectation (2010-2019 cohorts, min 20 picks)</h3>
+        <div class="fo-scroll"><div id="gm-draft">Loading…</div></div>
+        <p class="fo-note">Busts count as 0; goalies not value-graded. <b>Excl best</b> removes each
+        regime's single best pick — one McDavid is not a process.</p>
+      </div>
+      <div class="fo-card">
+        <h3>Signing record — realized surplus vs the market rate (non-ELC skater deals, min 40 contract-seasons)</h3>
+        <div class="fo-scroll"><div id="gm-signing">Loading…</div></div>
+        <p class="fo-note">Surplus = WAR delivered during the deal priced at $5.25M/WAR, minus cap paid.
+        Running deals graded on observed seasons only.</p>
+      </div>
+      <div class="fo-card">
+        <h3>Trade record — net 3-season WAR across deals made (min 8 trades)</h3>
+        <div class="fo-scroll"><div id="gm-trading">Loading…</div></div>
+        <p class="fo-note">Pick legs named in deal prose are valued EX-ANTE from our pick-value curve (in-season 1sts priced at the owner's PROJECTED slot via the season simulator; future-year picks at round priors) and folded into Net WAR 7y; coverage is partial because the source prose under-records picks on older deals
+        (<b>pick-leg deals</b> says how many). <b>Net WAR 7y*</b> is the rebuilder's horizon — counted only
+        for deals whose full 7-year window has elapsed (the /n shows how many qualify), the same cohort
+        discipline as draft grading. <b>Age Δ</b> = average years younger (−) or older (+) per deal —
+        a rebuild reads as a strategy, not a bad grade. Retained salary flagged, unpriced.</p>
+      </div>
+      <div class="fo-card">
+        <h3>Drafting preferences — deltas vs the same-era league (min 25 picks since 2010)</h3>
+        <div class="fo-scroll"><div id="gm-profile">Loading…</div></div>
+        <p class="fo-note">Descriptive, not value judgments: who drafts big/small, overagers, Europeans.</p>
+      </div>
+    </section>
+
+    <section class="fo-panel" id="p-cap">
+      <div class="fo-card">
+        <h3>Best value roster under a budget</h3>
+        <div class="fo-row">
+          <label>Budget ($M)<input id="o-budget" type="number" value="40" min="1" max="120" step="1" style="width:110px"></label>
+          <label>Forwards<input id="o-fwd" type="number" placeholder="any" min="1" max="14" step="1" style="width:90px"></label>
+          <label>Defense<input id="o-def" type="number" placeholder="any" min="1" max="8" step="1" style="width:90px"></label>
+          <button class="fo-go" onclick="runOpt()">Build roster</button>
+          <button onclick="runCapEff()" style="background:var(--panel,#15171c);border-color:var(--border,#2a2d34);color:inherit">Team cap efficiency</button>
+        </div>
+        <p class="fo-note">Leave forwards/defense blank for the raw "cheapest WAR" set; fill both (e.g. 12 / 6) for a buildable roster. Knapsack maximizes WAR with summed cap hit ≤ budget.</p>
+        <div id="o-out"></div>
+      </div>
+    </section>
+  </div>
+
+  <script src="gm-tools.js"></script>
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const M = (v) => v == null ? "—" : (v < 0 ? "-$" : "$") + (Math.abs(v)/1e6).toFixed(2) + "M";
+    const S = (v) => v == null ? "—" : `<span class="${v>=0?'pos':'neg'}">${v>=0?'+':''}${(+v).toFixed(2)}</span>`;
+    const col = (s) => s >= 1e6 ? "#16a34a" : (s <= -1e6 ? "#dc2626" : "#64748b");
+    function staticMap(url) {
+      if (url.startsWith("/api/nhl-gm-picks")) return "api/gm-picks/" + url.split("tenure=")[1] + ".json";
+      if (url.startsWith("/api/nhl-prospects")) {
+        const tm = (url.split("team=")[1] || "").slice(0,3);
+        return tm ? "api/prospects/" + tm + ".json" : "api/prospects/league.json";
+      }
+      if (url.startsWith("/api/nhl-gm")) return "api/nhl-gm.json";
+      if (url.startsWith("/api/nhl-market")) {
+        if (url.includes("name=")) return null;   // per-player lookup needs the server
+        const q = new URLSearchParams(url.split("?")[1] || "");
+        return `api/market-${q.get("kind") || "best"}-${q.get("group") || "skater"}.json`;
+      }
+      if (url.startsWith("/api/nhl-assets")) {
+        const q = new URLSearchParams(url.split("?")[1] || "");
+        return `api/assets-${q.get("kind") || "acquisition"}-${q.get("group") || "all"}.json`;
+      }
+      if (url.startsWith("/api/nhl-roster")) {
+        const tm = (url.split("team=")[1] || "").slice(0, 3);
+        return tm ? `api/roster/${tm}.json` : "api/roster/index.json";
+      }
+      if (url.startsWith("/api/gm-bundle")) return "api/gm-bundle.json";
+      return null;   // server-only tool
+    }
+    async function getJSON(url) {
+      if (window.STATIC) {
+        const mapped = staticMap(url);
+        if (!mapped) return {available:false, note:"This tool needs the local server — run start-phone.ps1 at home."};
+        url = mapped;
+      }
+      try { return await (await fetch(url)).json(); } catch { return {available:false, note:"Request failed."}; }
+    }
+    async function postJSON(url, body) {
+      try {
+        return await (await fetch(url, {method:"POST", headers:{"Content-Type":"application/json"},
+          body:JSON.stringify(body)})).json();
+      } catch { return {ok:false, note:"Request failed."}; }
+    }
+    // The GM tools (evaluator, target finder, lineup impact) now run client-side
+    // off the baked gm-bundle.json via gm-tools.js, so they work in static mode
+    // too -- only Ask / SQL / the cap optimizer still need the live warehouse.
+    let _GMB = null;
+    async function gmBundle() {
+      if (!_GMB) _GMB = await getJSON("/api/gm-bundle");
+      return (_GMB && _GMB.players) ? _GMB : null;
+    }
+    if (window.STATIC) addEventListener("DOMContentLoaded", () => {
+      for (const tab of ["trades", "cap"]) document.querySelector(`[data-tab="${tab}"]`)?.remove();
+    });
+
+    // ----- Draft capital: future-pick ownership inventory -----
+    let _pkInit = false;
+    async function initPicks() {
+      const B = await gmBundle();
+      if (!B || !B.picksByTeam) {
+        $("pk-body").innerHTML = `<div class="lp-rec-empty">Pick inventory unavailable.</div>`; return;
+      }
+      if (!_pkInit) {
+        const teams = Object.keys(B.picksByTeam).sort();
+        $("pk-team").innerHTML = teams.map(t => `<option${t === "BUF" ? " selected" : ""}>${t}</option>`).join("");
+        $("pk-team").onchange = () => renderPicks(B);
+        _pkInit = true;
+      }
+      renderPicks(B);
+    }
+    function renderPicks(B) {
+      const team = $("pk-team").value;
+      const h = (B.picksByTeam || {})[team] || { owned: [], acquired: [], tradedAway: [] };
+      const M = (v) => v == null ? "" : "$" + (v / 1e6).toFixed(1) + "M";
+      const ord = (r) => ({ 1: "1st", 2: "2nd", 3: "3rd" }[r] || r + "th");
+      const conf = (c) => c === "high" ? ""
+        : `<span title="${c === 'low' ? 'ambiguous trade chain — verify' : 'computed from our trade history'}" ` +
+          `style="font-size:9.5px; color:${c === 'low' ? '#f59e0b' : 'var(--faint)'}; border:1px solid var(--line); ` +
+          `border-radius:5px; padding:0 4px; margin-left:6px; vertical-align:middle;">${c}</span>`;
+      const pill = (p, mode) => {
+        const color = mode === "traded" ? "#fda4ab" : mode === "acquired" ? "#6ee7c8" : "var(--ink-strong)";
+        const who = mode === "acquired" ? ` <span style="color:var(--faint)">(from ${p.originalTeam})</span>`
+          : mode === "traded" ? ` <span style="color:var(--faint)">&rarr; ${p.owner}</span>` : "";
+        const cond = p.conditional ? ` <span style="color:var(--faint); font-size:10px;">cond.</span>` : "";
+        return `<div style="display:flex; justify-content:space-between; gap:8px; align-items:center; ` +
+          `border:1px solid var(--line); border-radius:8px; padding:7px 10px; background:var(--panel-raised);">` +
+          `<span style="color:${color}; font-weight:650;">${p.year} ${ord(p.round)}${who}${cond}${conf(p.confidence)}</span>` +
+          `<span style="color:var(--muted); font-size:12px; white-space:nowrap;">${M(p.value)}</span></div>`;
+      };
+      const sumVal = (arr) => arr.reduce((a, p) => a + (p.value || 0), 0);
+      const col = (title, arr, mode, empty) =>
+        `<div class="fo-card" style="flex:1; min-width:230px;">` +
+        `<div style="font-size:11px; font-weight:800; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); ` +
+        `display:flex; justify-content:space-between; align-items:baseline;">` +
+        `<span>${title}</span><span style="color:var(--faint); font-weight:600;">${arr.length}${arr.length ? " · " + M(sumVal(arr)) : ""}</span></div>` +
+        `<div style="display:flex; flex-direction:column; gap:6px; margin-top:9px;">` +
+        (arr.length ? arr.map(p => pill(p, mode)).join("") : `<div style="color:var(--faint); font-size:12px;">${empty}</div>`) +
+        `</div></div>`;
+      $("pk-body").innerHTML =
+        `<div style="display:flex; gap:12px; flex-wrap:wrap; align-items:flex-start;">` +
+        col("Owned", h.owned, "owned", "No picks owned.") +
+        col("Acquired", h.acquired, "acquired", "None acquired.") +
+        col("Traded away", h.tradedAway, "traded", "None traded away.") + `</div>`;
+      $("pk-caveat").innerHTML =
+        "Future-pick ownership (2027–2029) derived from our trade history. Each pick is tagged " +
+        "<b>derived</b> (computed chain) or <b>low</b> (ambiguous) — a picks-only trade we haven't " +
+        "ingested could be missed; conditional picks may not convey. Values are draft-slot expected value.";
+    }
+
+    // ----- Championship DNA: how a team's shape matches the 16-champion blueprint -----
+    const DNA_ORDER = ["offense", "defense", "powerPlay", "penaltyKill", "goaltending",
+                       "fwdSize", "defSize", "speed", "physicality"];
+    let _dnaInit = false;
+    async function initDna() {
+      const B = await gmBundle();
+      if (!B || !B.championDna || !B.championDna.teams) {
+        $("dna-body").innerHTML = `<div class="lp-rec-empty">Championship DNA unavailable.</div>`; return;
+      }
+      if (!_dnaInit) {
+        const teams = Object.keys(B.championDna.teams).sort();
+        $("dna-team").innerHTML = teams.map(t => `<option${t === "BUF" ? " selected" : ""}>${t}</option>`).join("");
+        $("dna-team").onchange = () => renderDna(B);
+        _dnaInit = true;
+      }
+      renderDna(B);
+    }
+    function _dnaRow(g) {
+      const pc = (v) => Math.max(0, Math.min(100, v * 100));
+      const inband = g.value >= g.q1, dot = inband ? "#6ee7c8" : "#fda4ab";
+      return `<div style="display:flex; align-items:center; gap:9px; margin:5px 0;">` +
+        `<div style="width:92px; font-size:11px; color:var(--muted); text-align:right; flex:0 0 auto;">${g.label}</div>` +
+        `<div style="flex:1; position:relative; height:13px; background:var(--panel); border:1px solid var(--line); border-radius:7px; min-width:80px;">` +
+          `<div style="position:absolute; left:${pc(g.q1)}%; width:${pc(g.q3) - pc(g.q1)}%; top:0; bottom:0; background:color-mix(in srgb, var(--ice,#38bdf8) 24%, transparent); border-radius:6px;"></div>` +
+          `<div style="position:absolute; left:${pc(g.median)}%; top:-2px; bottom:-2px; width:2px; background:var(--ice-bright,#38bdf8);"></div>` +
+          `<div style="position:absolute; left:calc(${pc(g.value)}% - 5px); top:0; width:10px; height:10px; border-radius:50%; background:${dot}; border:1.5px solid #06121f;"></div>` +
+        `</div>` +
+        `<div style="width:30px; font-size:11px; color:${dot}; text-align:right; flex:0 0 auto;">${Math.round(pc(g.value))}</div></div>`;
+    }
+    function renderDna(B) {
+      const dna = B.championDna, team = $("dna-team").value, td = dna.teams[team];
+      if (!td) { $("dna-body").innerHTML = "No data for " + team + "."; return; }
+      const byDim = {}; (td.gaps || []).forEach(g => { byDim[g.dim] = g; });
+      const sim = Math.round((td.similarity || 0) * 100);
+      // thresholds anchored to where actual champions score (~85-89% match)
+      const verdict = sim >= 82 ? ["Built like a champion", "#6ee7c8"]
+        : sim >= 72 ? ["Contender shape", "#7dd3fc"]
+        : sim >= 62 ? ["On the bubble", "#fcd34d"] : ["Reshaping needed", "#fda4ab"];
+      let html =
+        `<div class="fo-card" style="display:flex; gap:20px; align-items:center; flex-wrap:wrap; margin-bottom:14px;">` +
+        `<div><div style="font-size:38px; font-weight:800; color:${verdict[1]}; line-height:1;">${sim}` +
+        `<span style="font-size:17px; color:var(--muted); font-weight:600;">% match</span></div>` +
+        `<div style="font-size:12px; color:var(--muted); margin-top:4px;">#${td.rank} of ${dna.nTeams} closest to the champion blueprint</div></div>` +
+        `<div style="font-size:16px; font-weight:700; color:${verdict[1]};">${verdict[0]}</div></div>`;
+      html += `<div class="fo-card" style="margin-bottom:14px;">` +
+        `<div style="font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin-bottom:9px;">` +
+        `Your shape vs the 16-champion blueprint <span style="color:var(--faint); text-transform:none; letter-spacing:0;">— shaded = champion middle-50%, line = median, dot = you</span></div>`;
+      DNA_ORDER.forEach(d => { if (byDim[d]) html += _dnaRow(byDim[d]); });
+      html += `</div>`;
+      // REALITY CHECK: how little separated champions from the team they beat (survivorship)
+      const vr = (dna.blueprint || {}).vsRunnerUp;
+      if (vr && vr.nFinals && vr.championMedianSim != null) {
+        html += `<div class="fo-card" style="margin-bottom:14px; border-left:3px solid var(--ice-bright,#38bdf8);">` +
+          `<div style="font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted);">Reality check — vs the teams they beat</div>` +
+          `<div style="font-size:12.5px; color:var(--ink); margin-top:5px; line-height:1.6;">` +
+          `In ${vr.nFinals} Finals the champion was the closer blueprint match <b>${vr.championHigher}/${vr.nFinals}</b> times ` +
+          `(median <b>${Math.round(vr.championMedianSim * 100)}%</b> vs the team it beat at <b>${Math.round(vr.runnerUpMedianSim * 100)}%</b>). ` +
+          `The blueprint gets a roster to the door — margins and variance decide the last step, so read your match as a <i>contender threshold</i>, not a guarantee.</div></div>`;
+      }
+      // CONSTRUCTION DNA: how this roster is BUILT vs how champions were (traits)
+      const bt = ((dna.blueprint || {}).champion || {}).traits || {}, tt = td.traits || {};
+      const pctf = (v) => Math.round(v * 100) + "%", agef = (v) => (+v).toFixed(1), numf = (v) => "" + v;
+      const traitRow = (label, key, fmt) => {
+        const cc = bt[key], you = tt[key];
+        if (!cc || you == null) return "";
+        return `<div style="display:flex; justify-content:space-between; gap:10px; font-size:12.5px; padding:5px 0; border-bottom:1px solid var(--line);">` +
+          `<span style="color:var(--muted);">${label}</span>` +
+          `<span><b style="color:var(--ink-strong);">${fmt(you)}</b> <span style="color:var(--faint);">vs champ ${fmt(cc.median)} (${fmt(cc.q1)}–${fmt(cc.q3)})</span></span></div>`;
+      };
+      const ctr = traitRow("Built through own draft", "homegrownShare", pctf) +
+        traitRow("Top-3 share of team WAR", "starConcentration", pctf) +
+        traitRow("Value from defense", "dWarShare", pctf) +
+        traitRow("Stars (2+ WAR)", "starCount", numf) +
+        traitRow("Mean age (TOI-weighted)", "meanAge", agef);
+      if (ctr) html += `<div class="fo-card" style="margin-bottom:14px;">` +
+        `<div style="font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin-bottom:5px;">How you're built vs champions</div>${ctr}</div>`;
+      // biggest gaps
+      const gaps = (td.gaps || []).filter(g => g.deficit > 0).slice(0, 3);
+      const gapTxt = gaps.map(g => `<b>${g.label}</b> (${Math.round(g.value * 100)}th vs champions' ${Math.round(g.median * 100)}th)`).join(" · ");
+      html += `<div class="fo-card" style="margin-bottom:14px;">` +
+        `<div style="font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted);">Biggest gaps</div>` +
+        `<div style="font-size:13px; color:var(--ink); margin-top:5px; line-height:1.6;">${gaps.length ? gapTxt : "No dimension below the champion median — this roster already fits the blueprint."}</div></div>`;
+      // THE MOVE: skater-fillable gaps only -- goaltending has no skater move, so if it's the
+      // top gap, flag a goalie priority and prescribe for the biggest SKATER gap instead.
+      const goaliePri = gaps.length && gaps[0].dim === "goaltending";
+      const moveGap = gaps.find(g => g.dim !== "goaltending");
+      let moveHtml = "";
+      if (moveGap && window.GM && GM.recommendMoves) {
+        let items = [];
+        try { items = ((GM.recommendMoves(B, team) || {}).items || []).filter(it => (it.why || []).includes(moveGap.label)); } catch (e) { items = []; }
+        const top = items.slice(0, 3);
+        if (top.length) {
+          const card = (it, hero) => {
+            const cost = it.kind === "fa"
+              ? (it.projAav ? "sign ~" + M(it.projAav) + (it.projTerm ? " ×" + it.projTerm + "y" : "") : "UFA")
+              : (it.acqPicks ? "~" + it.acqPicks : (it.compCost ? M(it.compCost) : "trade"));
+            return `<div style="border:1px solid ${hero ? verdict[1] : "var(--line)"}; border-radius:10px; padding:${hero ? "12px 14px" : "8px 11px"}; background:var(--panel-raised); margin-top:7px;">` +
+              `<div style="display:flex; justify-content:space-between; gap:8px; align-items:baseline;">` +
+              `<b style="font-size:${hero ? "16px" : "13px"};">${plink(it.name)}</b>` +
+              `<span style="font-size:11px; color:var(--muted); white-space:nowrap;">${it.kind === "fa" ? "sign" : "trade"} · ${cost}</span></div>` +
+              `<div style="font-size:11.5px; color:var(--muted); margin-top:3px;">${it.pos || ""}${it.tier ? " · " + it.tier : ""} · fills ${(it.why || []).join(", ")}</div></div>`;
+          };
+          moveHtml = card(top[0], true) + top.slice(1).map(it => card(it, false)).join("");
+        }
+      }
+      if (goaliePri || moveHtml) {
+        const goalieNote = goaliePri
+          ? `<div style="font-size:12.5px; color:var(--ink); line-height:1.6; margin-top:4px;">Your most champion-defining shortfall is <b>goaltending</b> — the highest-value fix, but our move finder covers skaters, so that's a goalie-market call.${moveHtml ? " The skater move below closes your next gap (" + moveGap.label + ")." : ""}</div>`
+          : "";
+        const hd = (moveGap && !goaliePri) ? " — close your " + moveGap.label + " gap" : "";
+        html += `<div class="fo-card"><div style="font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--ice-bright);">The move${hd}</div>${goalieNote}${moveHtml}</div>`;
+      }
+      // HOW A CHAMPION WAS BUILT: drill into any champion's actual roster
+      const cr = (dna.blueprint || {}).championRosters || [];
+      if (cr.length) {
+        window.__dnaCR = cr;
+        const opts = cr.map((r, i) => `<option value="${i}">${("" + r.season).slice(0, 4)}-${("" + r.season).slice(6)} ${r.team}</option>`).join("");
+        html += `<div class="fo-card" style="margin-top:14px;">` +
+          `<div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">` +
+          `<span style="font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted);">See how a champion was built</span>` +
+          `<select onchange="dnaShowChamp(this.value)" style="padding:4px 8px; border-radius:7px; border:1px solid var(--line-strong); background:var(--panel); color:inherit; font-size:12px;">${opts}</select></div>` +
+          `<div id="dna-champ-roster" style="margin-top:9px;"></div></div>`;
+      }
+      $("dna-body").innerHTML = html;
+      if (cr.length) dnaShowChamp(0);
+      $("dna-caveat").innerHTML =
+        "Descriptive, not a recipe. The blueprint is the median + middle-50% of 16 Cup champions " +
+        "(2010-11→2025-26), each rated within its own season (era-neutral). n=16 and goaltending/" +
+        "playoff variance are large — read the band, not a single number. We profile WINNERS " +
+        "(survivorship): the teams they beat scored nearly as well, so a high match is a contender " +
+        "threshold, not a guarantee. “The move” reuses the trade/needs recommender, pointed at " +
+        "your most champion-defining shortfall.";
+    }
+    window.dnaShowChamp = function (i) {
+      const r = (window.__dnaCR || [])[+i]; if (!r) return;
+      const lab = ("" + r.season).slice(0, 4) + "-" + ("" + r.season).slice(6);
+      const row = (n, meta, war) => `<div style="display:flex; justify-content:space-between; font-size:12px; padding:2px 0;">` +
+        `<span>${plink(n)} <span style="color:var(--faint)">${meta}</span></span>` +
+        `<span style="color:var(--muted); white-space:nowrap;">${war} WAR</span></div>`;
+      const players = (r.players || []).map(p => row(p.name, (p.pos || "") + (p.age ? " · " + p.age : ""), p.war)).join("");
+      const g = r.goalie ? `<div style="border-top:1px solid var(--line); margin-top:4px; padding-top:3px;">${row(r.goalie.name, "G", r.goalie.war)}</div>` : "";
+      $("dna-champ-roster").innerHTML = `<div style="font-size:10.5px; color:var(--ice-bright); margin-bottom:4px;">${lab} ${r.team} — core skaters by WAR${r.goalie ? " + starter" : ""}</div>${players}${g}`;
+    };
+    function table(cols, rows) {
+      return `<table class="fo"><thead><tr>${cols.map(c=>`<th>${c.h}</th>`).join("")}</tr></thead><tbody>` +
+        rows.map(r=>`<tr>${cols.map(c=>`<td>${c.f ? c.f(r) : (r[c.k] ?? "—")}</td>`).join("")}</tr>`).join("") +
+        `</tbody></table>`;
+    }
+    // Click any player name -> their card. Normalizes a "Last, First" name to
+    // "First Last" so the link resolves regardless of source format.
+    const plink = (name) => {
+      if (!name) return "—";
+      const q = name.includes(", ") ? name.split(", ").reverse().join(" ") : name;
+      return `<a href="player.html?name=${encodeURIComponent(q)}" style="color:inherit; text-decoration:none; border-bottom:1px dotted var(--line-strong);">${name}</a>`;
+    };
+
+    // tabs
+    document.querySelectorAll(".fo-tabs button").forEach(b => b.onclick = () => {
+      document.querySelectorAll(".fo-tabs button").forEach(x => x.classList.toggle("on", x === b));
+      document.querySelectorAll(".fo-panel").forEach(p => p.classList.toggle("on", p.id === "p-" + b.dataset.tab));
+      if (b.dataset.tab === "gm") loadGm();
+      if (b.dataset.tab === "prospects") loadProspects();
+      if (b.dataset.tab === "roster") initRoster();
+      if (b.dataset.tab === "lines") loadLines();
+      if (b.dataset.tab === "evaluator") initEval();
+      if (b.dataset.tab === "picks") initPicks();
+      if (b.dataset.tab === "dna") initDna();
+    });
+
+    // ----- Roster: the summer toolkit -----
+
+    let rosterTeams = null;
+    async function initRoster() {
+      if (rosterTeams) return;
+      const d = await getJSON("/api/nhl-roster");
+      if (!d.available) { $("ro-skaters").textContent = d.note || "Unavailable."; return; }
+      rosterTeams = d.teams || [];
+      $("ro-team").innerHTML = rosterTeams.map(t => `<option${t === "BUF" ? " selected" : ""}>${t}</option>`).join("");
+      $("ro-team").onchange = loadRoster;
+      loadRoster();
+    }
+    async function loadRoster() {
+      const team = $("ro-team").value;
+      $("ro-skaters").textContent = "Loading…";
+      const d = await getJSON("/api/nhl-roster?team=" + team);
+      if (!d.available) { $("ro-skaters").textContent = d.note || "Unavailable."; return; }
+      const s = d.summary;
+      const card = (k, v, sub) =>
+        `<div style="border:1px solid var(--line); border-radius:8px; padding:10px 12px; background:var(--panel-raised);">` +
+        `<div style="font-size:10.5px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--muted);">${k}</div>` +
+        `<div style="font-size:20px; font-weight:750; color:var(--ink-strong); margin-top:3px;">${v}</div>` +
+        (sub ? `<div style="font-size:11.5px; color:var(--muted); margin-top:2px;">${sub}</div>` : "") + `</div>`;
+      const grpTxt = (g) => `#${s.groups[g].rank}/32 · ${S(s.groups[g].war)} WAR`;
+      $("ro-summary").innerHTML =
+        card("Roster WAR (latest)", S(s.rosterWarLatest), `${seasonLab(d.season)} minutes`) +
+        card("Cap committed next yr", M(s.capCommittedNext),
+          [s.deadCapNext ? `+ ${M(s.deadCapNext)} dead cap` : "",
+           s.missingContracts ? `${s.missingContracts} without contracts` : ""].filter(Boolean).join(" · ")) +
+        card("Avg age (TOI-wtd)", s.avgAgeToiWeighted ?? "—") +
+        card("Forwards", grpTxt("F"), s.weakestGroup === "F" ? "weakest group" : "") +
+        card("Defense", grpTxt("D"), s.weakestGroup === "D" ? "weakest group" : "") +
+        card("Goalies", grpTxt("G"), s.weakestGroup === "G" ? "weakest group" : "") +
+        (s.speed ? card("Team speed", s.speed.mph + " mph", `#${s.speed.rank}/${s.speed.teams} · avg top gear, TOI-wtd (EDGE)`) : "");
+      renderTeamNeeds(s.teamNeeds);
+      const cols = [
+        { h: "Player", k: "name", f: r => `<a href="player.html?name=${encodeURIComponent(r.name)}" style="color:var(--ink-strong); font-weight:650; text-decoration:none;">${r.name}</a>` },
+        { h: "Pos", k: "pos" }, { h: "Age", k: "age" }, { h: "TOI", k: "toi" },
+        { h: "WAR", k: "warLatest", f: r => S(r.warLatest) },
+        { h: "Cap", k: "capHit", f: r => M(r.capHit) },
+        { h: "Signed thru", k: "controlYears", f: r => {
+            const c = r.controlYears != null ? r.controlYears : r.yearsRemaining;
+            if (c == null) return "—";
+            const last = Math.floor(d.season / 10000) + c;   // played season + future seasons
+            return String(last).slice(2) + "-" + String(last + 1).slice(2);
+          } },
+        { h: "Expiry", k: "expiry", f: r => {
+            if (!r.expiry) return "—";
+            const c = r.controlYears != null ? r.controlYears : (r.yearsRemaining || 0);
+            const fa = Math.floor(d.season / 10000) + c + 1;   // hits the market the season after
+            return `${r.expiry} '${String(fa).slice(2)}`;
+          } },
+        { h: "Surplus", k: "surplus", f: r => `<span style="color:${col(r.surplus ?? 0)}">${M(r.surplus)}</span>` },
+        { h: "Trade value", k: "tradeValueDollars", f: r => `<span style="color:${col(r.tradeValueDollars ?? 0)}">${M(r.tradeValueDollars)}</span>` },
+        { h: "Price", k: "acqCostWar7", f: r => r.acqPicks || "—" },
+        { h: "Speed", k: "speedPct", f: r => r.speedPct != null ? Math.round(r.speedPct) + "%" : "—" },
+      ];
+      roSort.cols = cols; roSort.skaters = d.skaters; roSort.goalies = d.goalies;
+      renderRosterTables();
+      const strip = (title, rows, f) =>
+        `<div style="border:1px solid var(--line); border-radius:8px; padding:10px 12px; background:var(--panel);">` +
+        `<div style="font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); margin-bottom:6px;">${title}</div>` +
+        (rows.length ? rows.map(f).join("") : `<div class="mut" style="font-size:12px">none</div>`) + `</div>`;
+      const pairLine = (p) =>
+        `<div style="font-size:13px; padding:2px 0;">${plink(p.a)} + ${plink(p.b)} ` +
+        `<b class="${p.chemNet60 >= 0 ? "pos" : "neg"}">${p.chemNet60 >= 0 ? "+" : ""}${p.chemNet60}</b>` +
+        `<span class="mut"> xG/60 vs model (${Math.round(p.toi)} min)</span></div>`;
+      // free-agent year a row hits the market (same math as the Expiry column)
+      const faYr = (r) => "'" + String(Math.floor(d.season / 10000) +
+        (r.controlYears != null ? r.controlYears : (r.yearsRemaining || 0)) + 1).slice(2);
+      $("ro-strips").innerHTML =
+        strip("Expiring decisions", d.expiring, r => `<div style="font-size:13px; padding:2px 0;">${plink(r.name)} <span class="mut">(${r.pos} · ${r.expiry || "?"} ${faYr(r)} · ${M(r.capHit)})</span></div>`) +
+        strip("RFAs to qualify", d.rfas, r => `<div style="font-size:13px; padding:2px 0;">${plink(r.name)} <span class="mut">(${r.pos} · ${r.expiry || "RFA"} ${faYr(r)})</span></div>`) +
+        strip("Hardest contracts to move", d.toxic, r => `<div style="font-size:13px; padding:2px 0;">${plink(r.name)} <span class="mut">${M(r.capHit)} cap · ~${M(r.marketDollars)} trade value</span> <span class="mut">(${r.yearsRemaining} yr${r.yearsRemaining === 1 ? "" : "s"})</span>${r.freshExtension ? ` <span style="color:var(--ice); font-size:11px;">new extension — model hasn't seen the future it priced</span>` : ""}</div>`) +
+        (d.chemistry ? strip("Pairs that beat the model (descriptive — not a stable skill)",
+                             d.chemistry.best, pairLine) +
+                       strip("Pairs the model says underperformed", d.chemistry.worst, pairLine) : "") +
+        strip("Pipeline (drafting-team attribution)", d.prospects, p => `<div style="font-size:13px; padding:2px 0;">${p.player_name} <span class="mut">(${p.position || "?"} · ${p.draft_year} #${p.overall_pick})</span> <b class="pos">${p.grade_war7}</b></div>`);
+    }
+    function seasonLab(sid) { return String(sid).slice(2, 4) + "-" + String(sid).slice(6); }
+    // team needs / strengths vs the league (bottom and top dimensions)
+    function renderTeamNeeds(tn) {
+      const el = $("ro-needs"); if (!el) return;
+      if (!tn || (!tn.needs.length && !tn.strengths.length)) { el.innerHTML = ""; return; }
+      const chip = (x, kind) => `<span class="tn-chip ${kind}">${x.label} <span class="mut">#${x.rank}</span></span>`;
+      const grp = (lab, arr, kind) => arr.length
+        ? `<div><span class="tn-lab">${lab}</span>${arr.map(x => chip(x, kind)).join(" ")}</div>` : "";
+      el.innerHTML = `<div style="display:flex; flex-wrap:wrap; gap:8px 22px; align-items:center;">` +
+        grp("Needs", tn.needs, "need") + grp("Strengths", tn.strengths, "strong") +
+        `<span class="mut" style="font-size:10.5px">league-relative, all 32 teams</span></div>`;
+    }
+
+    /* roster table sorting: click a header to sort, click again to flip.
+       Nulls always sink to the bottom regardless of direction. */
+    const roSort = { cols: null, skaters: [], goalies: [], key: "toi", dir: -1 };
+    function rosterSorted(rows) {
+      const { key, dir } = roSort;
+      return [...rows].sort((a, b) => {
+        const x = a[key], y = b[key];
+        if (x == null && y == null) return 0;
+        if (x == null) return 1;
+        if (y == null) return -1;
+        return (typeof x === "string" ? x.localeCompare(y) : x - y) * dir;
+      });
+    }
+    function renderRosterTables() {
+      const cols = roSort.cols;
+      const sortable = (html) => html.replace(/<th>([^<]+)<\/th>/g, (m, h) => {
+        const c = cols.find(c => c.h === h);
+        const mark = c && c.k === roSort.key ? (roSort.dir < 0 ? " ↓" : " ↑") : "";
+        return c && c.k ? `<th style="cursor:pointer" data-sort="${c.k}">${h}${mark}</th>` : m;
+      });
+      $("ro-skaters").innerHTML = sortable(table(cols, rosterSorted(roSort.skaters)));
+      $("ro-goalies").innerHTML = roSort.goalies.length
+        ? `<h3 style="margin:6px 0">Goalies</h3><div class="fo-scroll">` +
+          sortable(table(cols.filter(c => c.h !== "Speed"), rosterSorted(roSort.goalies))) + `</div>` : "";
+      document.querySelectorAll("#ro-skaters th[data-sort], #ro-goalies th[data-sort]").forEach(th => {
+        th.onclick = () => {
+          const k = th.dataset.sort;
+          roSort.dir = roSort.key === k ? -roSort.dir : -1;
+          roSort.key = k;
+          renderRosterTables();
+        };
+      });
+    }
+    if (document.querySelector('[data-tab="roster"].on')) addEventListener("DOMContentLoaded", initRoster);
+
+    // ----- Line Deck: drag-and-drop lineup builder -----
+    // Slot layout: 4 forward lines (L-C-R), 3 D-pairs (LD-RD), 1 goalie row (Starter, Backup).
+    const LP_FWD = [["L","C","R"],["L","C","R"],["L","C","R"],["L","C","R"]];
+    const LP_DEF = [["LD","RD"],["LD","RD"],["LD","RD"]];
+    // Team primary colors (mirrors player.html) — drives the deck's accent theming.
+    const LP_TEAM_COLORS = {
+      ANA:"#F47A38", ARI:"#A9431E", BOS:"#FFB81C", BUF:"#2A6EBB", CGY:"#D2001C", CAR:"#CE1126",
+      CHI:"#E3263A", COL:"#A32638", CBJ:"#2E5DAA", DAL:"#00A04B", DET:"#E51A2B", EDM:"#FF5A1F",
+      FLA:"#E03A3E", LAK:"#AAB0B4", MIN:"#2EA84F", MTL:"#C8102E", NSH:"#FFB81C", NJD:"#E0203A",
+      NYI:"#F26722", NYR:"#2161D6", OTT:"#D6313C", PHI:"#FA4616", PIT:"#FCB514", SJS:"#00A7B5",
+      SEA:"#6CB4C9", STL:"#2A78C2", TBL:"#2E78D8", TOR:"#1B4FA0", VAN:"#1F8A4C", VGK:"#C0A15B",
+      WPG:"#3A6BB0", WSH:"#C8102E", UTA:"#71AFE5" };
+    const lpTeamColor = (t) => LP_TEAM_COLORS[(t || "").toUpperCase()] || "#7dd3fc";
+    // NHL upper limit by season start-year (mirrors SEASON_CAP in nhl_trade_comps.py).
+    const LP_CAP = { 2023: 83.5e6, 2024: 88.0e6, 2025: 95.5e6, 2026: 104.0e6, 2027: 113.5e6 };
+    const LP = { team: null, season: null, seasonStart: 2026, pool: {}, skaters: [], goalies: [], chem: {}, deadCap: {}, slots: {}, sel: null,
+                 moves: {}, customFA: {}, teamStrength: {}, lastPlaced: null,
+                 recs: null, recFilter: { kind: "all", tier: "all" },
+                 recMode: "fill", willing: {}, bundle: null };   // moves: _k -> {type,label,deadBySeason}
+    const lpIsMovedOut = (p) => !!LP.moves[p._k];
+    // simplified NHL buyout: cap hit ~ (ratio/2)*AAV for 2x the remaining seasons,
+    // ratio 2/3 if age>=26 else 1/3. Salary~AAV, signing bonuses not modeled.
+    function lpBuyoutMove(p) {
+      const yrsAfterNow = lpControl(p) || 0;                 // future seasons (2026-27 on)
+      const aav = p.capHit || 0;
+      if (yrsAfterNow < 1 || !aav) return null;
+      const ratio = (p.age == null || p.age >= 26) ? 2 / 3 : 1 / 3;
+      const annual = Math.round((ratio / 2) * aav);
+      const deadBySeason = {};
+      for (let i = 0; i < 2 * yrsAfterNow; i++) deadBySeason[2026 + i] = annual;
+      return { type: "buyout", label: "buyout", annual, years: 2 * yrsAfterNow, deadBySeason };
+    }
+    function lpTradeMove(p, retainPct) {
+      const deadBySeason = {};
+      if (retainPct > 0) {
+        const aav = p.capHit || 0, signedThrough = lpSignedThrough(p);
+        for (let y = 2026; y <= (signedThrough ?? 2025); y++) deadBySeason[y] = Math.round(retainPct * aav);
+      }
+      return { type: "trade", label: retainPct > 0 ? `traded · retain ${Math.round(retainPct * 100)}%` : "traded", deadBySeason };
+    }
+    // sim dead cap added to a given season-start year across all applied moves
+    function lpSimDead(seasonStart) {
+      let t = 0;
+      for (const k in LP.moves) t += (LP.moves[k].deadBySeason[seasonStart] || 0);
+      return t;
+    }
+    const lpFaMid = (p) => (LP.customFA[p._k] && LP.customFA[p._k].aavMid) || (p.faProj && p.faProj.aavMid) || 0;
+    const lpDataStart = () => (LP.season ? Math.floor(LP.season / 10000) : 2025);   // latest played season's start year
+    // The cap picture for the SELECTED season (the season selector drives this).
+    function lpSeasonInfo() {
+      const s = LP.seasonStart;
+      const cap = LP_CAP[s] ?? LP_CAP[Math.max(...Object.keys(LP_CAP).map(Number))];
+      return { cap, start: s, label: s + "-" + String(s + 1).slice(2), seasonId: s * 10000 + (s + 1) };
+    }
+    // A player is "signed for" the selected season if his current deal reaches it;
+    // otherwise he's a pending FA (and carries a projected contract).
+    // future seasons under contract: prefer the drift-proof controlYears (absolute
+    // contract end); fall back to the now-future-only yearsRemaining.
+    const lpControl = (p) => p.controlYears != null ? p.controlYears : p.yearsRemaining;
+    // last covered season's start year = the just-played season + future seasons
+    const lpSignedThrough = (p) => { const c = lpControl(p); return c != null ? lpDataStart() + c : null; };
+    function lpIsSigned(p) {
+      const t = lpSignedThrough(p);
+      if (t != null) return t >= LP.seasonStart;
+      return !(p.faProj && p.faProj.seasonStart <= LP.seasonStart);   // no contract on file -> keep unless projected as FA
+    }
+    const lpIsFA = (p) => !lpIsSigned(p) && p.faProj && p.faProj.seasonStart <= LP.seasonStart;
+    const lpEffCap = (p) => lpIsSigned(p) ? (p.capHit || 0) : lpFaMid(p);
+
+    function lpSlotIds() {
+      const ids = [];
+      LP_FWD.forEach((line, i) => line.forEach(pos => ids.push("f" + i + pos)));
+      LP_DEF.forEach((pair, i) => pair.forEach(pos => ids.push("d" + i + pos)));
+      ids.push("gS", "gB");
+      return ids;
+    }
+    const lpWar = (p) => p ? (p.valueWar ?? p.warLatest ?? 0) : 0;
+    const lpCk = (a, b) => { const x = "i" + a, y = "i" + b; return x < y ? x + "|" + y : y + "|" + x; };
+    const lpAccent = (id) => { const h = ((Number(id) || 7) * 47) % 360; return `hsl(${h} 42% 36%)`; };
+
+    let lpInit = false;
+    async function loadLines() {
+      if (!lpInit) {
+        if (!rosterTeams || !Object.keys(LP.teamStrength).length) {
+          const d0 = await getJSON("/api/nhl-roster");
+          rosterTeams = (d0 && d0.teams) || rosterTeams || [];
+          LP.teamStrength = (d0 && d0.teamStrength) || {};
+        }
+        $("lp-team").innerHTML = rosterTeams.map(t => `<option${t === "BUF" ? " selected" : ""}>${t}</option>`).join("");
+        $("lp-team").onchange = () => loadLineTeam($("lp-team").value);
+        document.querySelectorAll("#lp-season button").forEach(b => b.onclick = () => {
+          LP.seasonStart = Number(b.dataset.s);
+          document.querySelectorAll("#lp-season button").forEach(x => x.classList.toggle("on", x === b));
+          if (LP.team) lpApplySeason();
+        });
+        document.addEventListener("click", e => {
+          const m = $("lp-menu");
+          if (m && m.classList.contains("on") && !m.contains(e.target) && !e.target.classList.contains("lp-act")) lpCloseMenu();
+        });
+        lpInit = true;
+      }
+      if (!LP.team) await loadLineTeam($("lp-team").value);
+    }
+    // Re-partition the roster for the selected season and rebuild the best lineup
+    // from players who are actually signed (FAs drop to the sidebar as decisions).
+    function lpApplySeason() { LP.sel = null; autoFillLines(); renderLines(); }
+
+    async function loadLineTeam(team) {
+      $("lp-deck").innerHTML = `<p class="lp-empty-note">Loading ${team}…</p>`;
+      $("lp-bench").innerHTML = "";
+      const d = await getJSON("/api/nhl-roster?team=" + team);
+      if (!d || !d.available) { $("lp-deck").innerHTML = `<p class="lp-empty-note">${(d && d.note) || "Unavailable."}</p>`; return; }
+      LP.team = team; LP.season = d.season;
+      const _tc = lpTeamColor(team);
+      const _panel = $("p-lines"); if (_panel) { _panel.style.setProperty("--team", _tc); }
+      LP.skaters = (d.skaters || []).slice();
+      LP.goalies = (d.goalies || []).slice();
+      LP.deadCap = d.deadCap || {};
+      LP.moves = {}; LP.customFA = {};        // simulated moves are per-team
+      LP.pool = {}; LP.chem = {};
+      [...LP.skaters, ...LP.goalies].forEach(p => { p._k = p.id != null ? "i" + p.id : "n:" + p.name; LP.pool[p._k] = p; });
+      if (d.chemistry) [...(d.chemistry.best || []), ...(d.chemistry.worst || [])].forEach(p => {
+        if (p.aId != null && p.bId != null) LP.chem[lpCk(p.aId, p.bId)] = p.chemNet60;
+      });
+      LP.sel = null;
+      LP.willing = {};   // Move-assets selections are per-team
+      autoFillLines();
+      renderLines();
+      lpRenderRecs();   // suggest moves for the holes this roster has (async, non-blocking)
+    }
+
+    const lpIsDef = (p) => p.pos === "D";
+    function autoFillLines() {
+      lpSlotIds().forEach(id => LP.slots[id] = null);
+      // only players signed for the selected season (and not traded/bought out) fill the deck
+      const signed = LP.skaters.filter(p => lpIsSigned(p) && !lpIsMovedOut(p));
+      const fwd = signed.filter(p => !lpIsDef(p)).sort((a, b) => lpWar(b) - lpWar(a));
+      const def = signed.filter(lpIsDef).sort((a, b) => lpWar(b) - lpWar(a));
+      const goal = LP.goalies.filter(p => lpIsSigned(p) && !lpIsMovedOut(p)).sort((a, b) => lpWar(b) - lpWar(a));
+      const used = new Set();
+      const take = (pred) => { const p = fwd.find(x => !used.has(x._k) && (!pred || pred(x))); if (p) used.add(p._k); return p ? p._k : null; };
+      // centres first (best available C per line, fall back to any forward), then wings preferring their side
+      for (let i = 0; i < 4; i++) LP.slots["f" + i + "C"] = take(x => x.pos === "C") || take();
+      for (let i = 0; i < 4; i++) { LP.slots["f" + i + "L"] = take(x => x.pos === "L") || take(); LP.slots["f" + i + "R"] = take(x => x.pos === "R") || take(); }
+      // D pairs seated by handedness when known (LD left, RD right), best-on-best
+      const dUsed = new Set();
+      const takeD = (side) => {
+        let p = def.find(x => !dUsed.has(x._k) && x.side === side) || def.find(x => !dUsed.has(x._k));
+        if (p) dUsed.add(p._k);
+        return p ? p._k : null;
+      };
+      for (let i = 0; i < 3; i++) { LP.slots["d" + i + "LD"] = takeD("L"); LP.slots["d" + i + "RD"] = takeD("R"); }
+      if (goal[0]) LP.slots["gS"] = goal[0]._k;
+      if (goal[1]) LP.slots["gB"] = goal[1]._k;
+    }
+
+    function lpMug(p) {
+      const init = (p.name || "?").split(/\s+/).map(w => w[0]).slice(0, 2).join("").toUpperCase();
+      const img = window.IC_HEADSHOTS && p.id != null && LP.team
+        ? `<img src="https://assets.nhle.com/mugs/nhl/${LP.season}/${LP.team}/${p.id}.png" alt="" onerror="this.remove()">` : "";
+      return `<span class="lp-mug" style="--accent:${lpAccent(p.id)}"><span class="init">${init}</span>${img}</span>`;
+    }
+
+    // ---- Recommended moves: read the team's holes, suggest fits (trades + FAs) ----
+    function lpRecMug(it) {
+      const init = (it.name || "?").split(/\s+/).map(w => w[0]).slice(0, 2).join("").toUpperCase();
+      const img = window.IC_HEADSHOTS && it.id != null && it.team
+        ? `<img src="https://assets.nhle.com/mugs/nhl/${LP.season}/${it.team}/${it.id}.png" alt="" onerror="this.remove()">` : "";
+      return `<span class="lp-mug" style="--accent:${lpAccent(it.id)}"><span class="init">${init}</span>${img}</span>`;
+    }
+    function lpRecCard(it) {
+      const tierLab = { big: "Big fish", mid: "Middle", depth: "Depth" }[it.tier] || "";
+      // the caliber tag earns its space only in the mixed view; when the user has
+      // filtered to one caliber it's redundant -- drop it and give the name room
+      const tag = (LP.recFilter.tier === "all") ? `<span class="lp-rc-tag ${it.tier}">${tierLab}</span>` : "";
+      const why = (it.why && it.why.length) ? "fills " + it.why.slice(0, 2).join(" · ")
+        : (it.tier === "big" ? "elite talent · off-need"
+          : (it.fit >= 0.8 ? "fits multiple needs" : "depth fit"));   // strong all-round fit, no single standout dim
+      let cost, csub, costLine = "";
+      if (it.kind === "trade") {
+        const avail = Math.round((it.movability || 0) * 100) + "% avail";
+        if (it.tier === "big" && it.compCost) {
+          // a star's REAL cost: what players like him actually fetched (comps).
+          const thin = it.compCost.thin ? ` <span class="lp-rc-thin">comps thin · ask runs higher</span>` : "";
+          costLine = `<span class="lp-rc-costline">cost ≈ <b>${it.compCost.headline}</b>${thin}</span>`;
+          cost = Math.round((it.movability || 0) * 100) + "%"; csub = "available";
+        } else if (it.tier === "big") {
+          // no comps on file: the single-pick value is a FLOOR, not the ask
+          cost = (it.acqPicks ? it.acqPicks.replace("~ ", "~") : "—") + "+"; csub = "value floor · " + avail;
+        } else {
+          cost = it.acqPicks ? it.acqPicks.replace("~ ", "~") : "—"; csub = "trade · " + avail;
+        }
+      } else {
+        cost = it.projAav ? "$" + (it.projAav / 1e6).toFixed(1) + "M×" + it.projTerm + "y" : "—";
+        csub = it.faKind === "re-sign" ? "re-sign" : "sign · UFA";
+      }
+      const meta = it.pos + (it.team ? " · " + it.team : "");
+      // RAPM compresses scorers; when the market pays far above our WAR value, say so
+      const under = it.underModeled
+        ? `<span class="lp-rc-under">↑ market pays ~$${(it.marketAav / 1e6).toFixed(0)}M — above our WAR value; we compress stars, weigh both</span>` : "";
+      return `<a class="lp-rc${(costLine || under) ? " lp-rc-tall" : ""}" href="player.html?name=${encodeURIComponent(it.name)}">` +
+        lpRecMug(it) +
+        `<span class="lp-rc-main"><span class="lp-rc-name">${tag}<b>${it.name}</b></span>` +
+        `<span class="lp-rc-line"><span class="m">${meta}</span> · ${why}</span>${costLine}${under}</span>` +
+        `<span class="lp-rc-right"><span class="lp-rc-cost">${cost}</span><span class="lp-rc-csub">${csub}</span></span></a>`;
+    }
+    function lpDrawRecs() {
+      const host = $("lp-rec-list"); if (!host) return;
+      const f = LP.recFilter, all = (LP.recs && LP.recs.items) || [];
+      let rows = all.filter(it => (f.kind === "all" || it.kind === f.kind) && (f.tier === "all" || it.tier === f.tier));
+      if (f.tier === "big") rows = rows.slice().sort((a, b) => (b.valueWar || 0) - (a.valueWar || 0) || (b.movability || 0) - (a.movability || 0));
+      rows = rows.slice(0, 24);
+      if (!rows.length) {
+        const what = f.kind === "fa" ? "free-agent" : f.kind === "trade" ? "trade" : "";
+        host.innerHTML = `<div class="lp-rec-empty">No ${f.tier === "all" ? "" : f.tier + " "}${what} fits for these needs — try another filter.</div>`;
+        return;
+      }
+      host.innerHTML = rows.map(lpRecCard).join("");
+    }
+    async function lpRenderRecs() {
+      const box = $("lp-rec"); if (!box) return;
+      if (!LP.team) { box.hidden = true; return; }
+      box.hidden = false;
+      $("lp-rec-list").innerHTML = `<div class="lp-rec-empty">Reading your roster…</div>`;
+      let BDL = null;
+      try { BDL = await gmBundle(); } catch (e) { BDL = null; }
+      if (!BDL || !window.GM || !GM.recommendMoves) {
+        $("lp-rec-list").innerHTML = `<div class="lp-rec-empty">Recommendations need the GM data bundle.</div>`;
+        return;
+      }
+      LP.bundle = BDL;   // reused by Move-assets mode (picker + deal finder)
+      LP.recs = GM.recommendMoves(BDL, LP.team);
+      const needs = (LP.recs && LP.recs.needs) || [];
+      $("lp-rec-needs").innerHTML = needs.length
+        ? `Biggest needs: <b>${needs.join("</b> · <b>")}</b> — here's who fits.`
+        : `A balanced roster — these are upgrades and depth.`;
+      lpDrawRecs();
+      if (LP.recMode === "move") lpRenderPicker();
+    }
+
+    // ---- Move-assets mode: mark who you'd trade -> realistic 1-for-1 deals ----
+    function lpRenderPicker() {
+      const host = $("lp-move-picker"); if (!host) return;
+      const B = LP.bundle;
+      if (!B || !B.rosters || !B.rosters[LP.team]) { host.innerHTML = `<div class="lp-rec-empty">Roster data loading…</div>`; return; }
+      const players = (B.rosters[LP.team] || []).map(id => ({ id, p: B.players[id] }))
+        .filter(x => x.p && x.p.feats).sort((a, b) => (b.p.vw || 0) - (a.p.vw || 0));
+      host.innerHTML = players.map(({ id, p }) =>
+        `<button class="lp-pick${LP.willing[id] ? " on" : ""}" type="button" data-id="${id}">${p.name} <span class="pp">${p.pos || ""}</span></button>`).join("")
+        || `<div class="lp-rec-empty">No tradeable skaters rated for ${LP.team}.</div>`;
+      lpUpdateMoveCount();
+    }
+    function lpUpdateMoveCount() {
+      const n = Object.keys(LP.willing).filter(k => LP.willing[k]).length;
+      const el = $("lp-move-count"); if (el) el.textContent = n ? `· ${n} selected` : "";
+    }
+    function lpRunDeals() {
+      const host = $("lp-move-list"); if (!host) return;
+      const ids = Object.keys(LP.willing).filter(k => LP.willing[k]).map(Number);
+      if (!ids.length) { host.innerHTML = `<div class="lp-rec-empty">Mark one or more players above to see deals.</div>`; return; }
+      if (!LP.bundle || !window.GM || !GM.findDeals) { host.innerHTML = `<div class="lp-rec-empty">Deal finder needs the GM bundle.</div>`; return; }
+      const deals = (GM.findDeals(LP.bundle, LP.team, ids) || {}).deals || [];
+      host.innerHTML = deals.length ? deals.map(lpDealCard).join("")
+        : `<div class="lp-rec-empty">No clean fit for those assets — a partner that needs them and returns one of your needs. Try adding another player to package.</div>`;
+    }
+    const lpM = v => v == null ? "—" : (v < 0 ? "−$" : "$") + (Math.abs(v) / 1e6).toFixed(1) + "M";
+    function lpDealCard(d, i) {
+      const fillsMine = (d.fillsMine && d.fillsMine.length) ? "fills your " + d.fillsMine.slice(0, 2).join(" · ") : "fits your needs";
+      let bal;
+      if (d.verdict === "fair") bal = `<span class="lp-deal-bal fair">fair swap</span>`;
+      else if (d.addBy === LP.team) bal = `<span class="lp-deal-bal add">you add ~a ${d.addRound || "pick"}</span>`;
+      else bal = `<span class="lp-deal-bal add">${d.partner} adds ~a ${d.addRound || "pick"}</span>`;
+      const sendNames = d.send.map(s => `<b>${s.name}</b>`).join(" + ") || "—";
+      const pkg = d.isPackage ? `<span class="lp-deal-pkg">package</span>` : "";
+      return `<div class="lp-deal" data-i="${i}">` +
+        `<button type="button" class="lp-deal-head" aria-expanded="false">` +
+          `<span class="lp-deal-row"><span class="lp-deal-send">Send ${sendNames}</span>` +
+          `<span class="lp-deal-arrow">→</span>` +
+          `<span class="lp-deal-get"><b>${d.getLead.name}</b> <span class="tm">${d.getLead.pos} · ${d.partner}</span></span>` +
+          `${pkg}<span class="lp-deal-chev">▸</span></span>` +
+          `<span class="lp-deal-sub">${fillsMine} · ${bal}</span>` +
+        `</button><div class="lp-deal-detail" hidden>${lpDealDetail(d)}</div></div>`;
+    }
+    // The full trade, opened from a card: every piece each side moves with its $ value,
+    // the pick that balances a lopsided swap, and the verdict — the whole deal, not the headline.
+    function lpDealDetail(d) {
+      const rows = arr => arr.map(a =>
+        `<div class="lp-dd-row"><a href="player.html?name=${encodeURIComponent(a.name)}">${a.name}</a>` +
+        `<span class="lp-dd-v">${lpM(a.value)}</span></div>`).join("");
+      const pickRow = d.addBy ? `<div class="lp-dd-row pick"><span>~ a ${d.addRound || "mid"}-round pick</span><span class="lp-dd-v">balancer</span></div>` : "";
+      const sendExtra = d.addBy === LP.team ? pickRow : "";
+      const getExtra = (d.addBy && d.addBy !== LP.team) ? pickRow : "";
+      const verdict = d.verdict === "fair"
+        ? "Fair as drawn — within a pick's worth of even."
+        : `Favours ${d.favors === LP.team ? "you" : d.partner} by ${lpM(Math.abs(d.marginDollars))}` +
+          (d.addRound ? `; ~a ${d.addRound}-round pick squares it.` : ".");
+      // our model's separate opinion: market math says what it'd TAKE; this says
+      // whether WE think you win it on value (the edge between model and market)
+      const model = d.modelFavors === LP.team
+        ? `<b style="color:#6ee7c8">Our model likes it for you</b> — you'd gain value the market doesn't fully price.`
+        : d.modelFavors === d.partner
+        ? `<b style="color:#fbbf24">Our model is cooler</b> — by our value you'd give a bit more than you get.`
+        : `Our model agrees — about even on value.`;
+      return `<div class="lp-dd-grid">` +
+        `<div><div class="lp-dd-h">You send</div>${rows(d.send)}${sendExtra}</div>` +
+        `<div><div class="lp-dd-h">You get</div>${rows(d.get)}${getExtra}</div></div>` +
+        `<div class="lp-dd-foot"><b>Market:</b> ${verdict}<span class="lp-dd-model">${model}</span>` +
+        `<span class="lp-dd-fill">${d.partner} fills: ${(d.fillsTheirs && d.fillsTheirs.length) ? d.fillsTheirs.slice(0, 2).join(" · ") : "a roster need"}</span></div>`;
+    }
+    function lpSetRecMode(m) {
+      LP.recMode = m;
+      [...$("lp-rec-mode").children].forEach(x => x.classList.toggle("on", x.dataset.m === m));
+      $("lp-rec-fill").hidden = m !== "fill";
+      $("lp-rec-move").hidden = m !== "move";
+      if (m === "move") { lpRenderPicker(); lpRunDeals(); }
+    }
+    (function lpWireRecs() {
+      const k = $("lp-rec-kind"), t = $("lp-rec-tier"), md = $("lp-rec-mode"), pk = $("lp-move-picker");
+      if (k) k.addEventListener("click", e => { const b = e.target.closest("button[data-k]"); if (!b) return;
+        LP.recFilter.kind = b.dataset.k; [...k.children].forEach(x => x.classList.toggle("on", x === b)); lpDrawRecs(); });
+      if (t) t.addEventListener("click", e => { const b = e.target.closest("button[data-t]"); if (!b) return;
+        LP.recFilter.tier = b.dataset.t; [...t.children].forEach(x => x.classList.toggle("on", x === b)); lpDrawRecs(); });
+      if (md) md.addEventListener("click", e => { const b = e.target.closest("button[data-m]"); if (!b) return; lpSetRecMode(b.dataset.m); });
+      if (pk) pk.addEventListener("click", e => { const b = e.target.closest("button[data-id]"); if (!b) return;
+        const id = b.dataset.id; LP.willing[id] = !LP.willing[id]; b.classList.toggle("on", !!LP.willing[id]);
+        lpUpdateMoveCount(); lpRunDeals(); });
+      // tap a deal to open the full trade; the player links inside still work
+      const ml = $("lp-move-list");
+      if (ml) ml.addEventListener("click", e => {
+        const head = e.target.closest(".lp-deal-head"); if (!head) return;
+        const det = head.parentElement.querySelector(".lp-deal-detail"); if (!det) return;
+        const open = det.hidden; det.hidden = !open;
+        head.setAttribute("aria-expanded", open ? "true" : "false");
+        const chev = head.querySelector(".lp-deal-chev"); if (chev) chev.textContent = open ? "▾" : "▸";
+      });
+    })();
+
+    function lpChip(p, from) {
+      const fa = lpIsFA(p);
+      const cap = lpEffCap(p);
+      const capTxt = cap ? "$" + (cap / 1e6).toFixed(1) + "M" : "—";
+      const tag = fa ? ` <span class="lp-projtag">proj</span>` : "";
+      return `<div class="lp-chip${fa ? " lp-fa" : ""}${LP.sel === p._k ? " sel" : ""}" draggable="true" data-pid="${p._k}" data-from="${from || "bench"}">` +
+        lpMug(p) +
+        `<span class="lp-meta"><span class="lp-name">${p.name}</span>` +
+        `<span class="lp-sub"><span class="lp-pos">${p.pos}</span> <span class="${lpWar(p) >= 0 ? "w-pos" : "w-neg"}">${lpWar(p) >= 0 ? "+" : ""}${lpWar(p).toFixed(2)}</span> · ${capTxt}${tag}</span></span>` +
+        `<button class="lp-act" type="button" data-act="${p._k}" aria-label="moves">⋯</button></div>`;
+    }
+    // richer chip for the free-agent sidebar: status badge, projected range, comps
+    function lpFaChip(p) {
+      const f = p.faProj;
+      const badge = `<span class="lp-stbadge ${f.status === "RFA" ? "rfa" : "ufa"}">${f.status}</span>`;
+      const comps = (f.comps || []).slice(0, 2).map(c => c.name).join(", ");
+      const title = (f.comps || []).map(c => `${c.name} $${(c.aav / 1e6).toFixed(1)}M/${c.term}y (${c.year})`).join("\n");
+      return `<div class="lp-chip lp-fa" draggable="true" data-pid="${p._k}" data-from="fa" title="Comps:\n${title}">` +
+        lpMug(p) +
+        `<span class="lp-meta"><span class="lp-name">${p.name}${badge}</span>` +
+        `<span class="lp-sub">mid <span class="lp-famid">$${(lpFaMid(p) / 1e6).toFixed(1)}M</span> · ${f.capPctMid}% · ${(LP.customFA[p._k] && LP.customFA[p._k].term) || f.term}yr ` +
+        `<span class="mut">($${(f.aavLow / 1e6).toFixed(1)}–${(f.aavHigh / 1e6).toFixed(1)}M)</span>` +
+        (LP.customFA[p._k] ? ` <span class="lp-projtag">custom</span>` : "") +
+        (comps ? `<span class="lp-facomps">~ ${comps}</span>` : "") + `</span></span>` +
+        `<button class="lp-act" type="button" data-act="${p._k}" aria-label="moves">⋯</button></div>`;
+    }
+    function lpSlot(sid, ph) {
+      const p = LP.slots[sid] != null ? LP.pool[LP.slots[sid]] : null;
+      return p ? `<div class="lp-slot" data-slot="${sid}">${lpChip(p, sid)}</div>`
+               : `<div class="lp-slot empty" data-slot="${sid}"><span class="ph">${ph}</span></div>`;
+    }
+    function lpUnitChem(slotIds) {
+      const ks = slotIds.map(s => LP.slots[s]).filter(Boolean);
+      let sum = 0, found = 0;
+      for (let i = 0; i < ks.length; i++) for (let j = i + 1; j < ks.length; j++) {
+        const key = ks[i] < ks[j] ? ks[i] + "|" + ks[j] : ks[j] + "|" + ks[i];
+        if (LP.chem[key] != null) { sum += LP.chem[key]; found++; }
+      }
+      return found ? sum : null;
+    }
+    function lpLineRow(label, slotIds, phs, kind) {
+      const players = slotIds.map(s => LP.pool[LP.slots[s]]).filter(Boolean);
+      const war = players.reduce((t, p) => t + lpWar(p), 0);
+      const cap = players.reduce((t, p) => t + lpEffCap(p), 0);
+      const chem = lpUnitChem(slotIds);
+      return `<div class="lp-line"><div class="lp-label">${label}</div>` +
+        `<div class="lp-slots ${kind}">${slotIds.map((s, i) => lpSlot(s, phs[i])).join("")}</div>` +
+        `<div class="lp-linetot"><span class="w">${war >= 0 ? "+" : ""}${war.toFixed(2)}</span>` +
+        `<span class="c">$${(cap / 1e6).toFixed(1)}M</span>` +
+        (chem != null ? `<span class="lp-chem ${chem >= 0 ? "pos" : "neg"}">${chem >= 0 ? "+" : ""}${chem.toFixed(2)} chem</span>` : "") +
+        `</div></div>`;
+    }
+    // a position group's combined WAR + cap, shown in its section header
+    function lpGroupTot(slotIdSets) {
+      let war = 0, cap = 0;
+      slotIdSets.flat().forEach(s => { const p = LP.pool[LP.slots[s]]; if (p) { war += lpWar(p); cap += lpEffCap(p); } });
+      return { war, cap };
+    }
+    function lpGroupHead(name, slotIdSets) {
+      const { war, cap } = lpGroupTot(slotIdSets);
+      return `<div class="lp-group-head"><span class="lp-group-name">${name}</span>` +
+        `<span class="lp-group-tot"><b>${war >= 0 ? "+" : ""}${war.toFixed(1)}</b> WAR · $${(cap / 1e6).toFixed(1)}M</span></div>`;
+    }
+    function renderLines() {
+      const fwdSets = LP_FWD.map((line, i) => line.map(pos => "f" + i + pos));
+      const defSets = LP_DEF.map((pair, i) => pair.map(pos => "d" + i + pos));
+      const golSets = [["gS", "gB"]];
+      let html = `<div class="lp-group">` + lpGroupHead("Forwards", fwdSets) +
+        LP_FWD.map((line, i) => lpLineRow("L" + (i + 1), fwdSets[i], line, "f")).join("") + `</div>`;
+      html += `<div class="lp-group">` + lpGroupHead("Defense", defSets) +
+        LP_DEF.map((pair, i) => lpLineRow("D" + (i + 1), defSets[i], pair, "d")).join("") + `</div>`;
+      html += `<div class="lp-group">` + lpGroupHead("Goalies", golSets) +
+        lpLineRow("G", ["gS", "gB"], ["START", "BACKUP"], "g") + `</div>`;
+      $("lp-deck").innerHTML = html;
+      const placed = new Set(Object.values(LP.slots).filter(Boolean));
+      const roster = [...LP.skaters, ...LP.goalies].filter(p => !lpIsMovedOut(p));
+      // bench = SIGNED players not dressed; FA sidebar = pending FAs not yet re-signed
+      const bench = roster.filter(p => !placed.has(p._k) && lpIsSigned(p)).sort((a, b) => lpWar(b) - lpWar(a));
+      $("lp-bench").innerHTML = bench.length ? bench.map(p => lpChip(p, "bench")).join("")
+        : `<p class="lp-empty-note">Everyone signed is in the lineup.</p>`;
+      lpRenderFAs(roster, placed);
+      lpUpdateTotals();
+      lpWireDnD();
+      lpUpdatePickbar();
+      if (LP.lastPlaced) {
+        const el = document.querySelector(`#lp-deck .lp-chip[data-pid="${CSS.escape(LP.lastPlaced)}"]`);
+        if (el) el.classList.add("justplaced");
+        LP.lastPlaced = null;
+      }
+    }
+    // tap-to-move affordance: a sticky hint + glowing empty slots while a player is held
+    function lpUpdatePickbar() {
+      const bar = $("lp-pickbar"), deck = $("lp-deck");
+      if (deck) deck.classList.toggle("picking", !!LP.sel);
+      if (!bar) return;
+      const p = LP.sel ? LP.pool[LP.sel] : null;
+      if (p) {
+        $("lp-pickbar-txt").innerHTML = `Moving <b>${p.name}</b> — tap a slot to place, or tap a teammate to swap`;
+        bar.hidden = false;
+      } else { bar.hidden = true; }
+    }
+    function lpRenderFAs(roster, placed) {
+      const info = lpSeasonInfo();
+      $("lp-fa-head").textContent = `Free agents — ${info.label}`;
+      const fas = roster.filter(p => !placed.has(p._k) && lpIsFA(p))
+        .sort((a, b) => lpFaMid(b) - lpFaMid(a));
+      $("lp-fas").innerHTML = fas.length ? fas.map(lpFaChip).join("")
+        : `<p class="lp-empty-note">No pending free agents this season — everyone's signed.</p>`;
+    }
+    function lpUpdateTotals() {
+      let war = 0, committed = 0, projected = 0;
+      Object.values(LP.slots).forEach(k => {
+        const p = k != null ? LP.pool[k] : null; if (!p) return;
+        war += lpWar(p);
+        if (lpIsSigned(p)) committed += (p.capHit || 0);
+        else projected += lpFaMid(p);
+      });
+      const info = lpSeasonInfo();
+      const M = (v) => "$" + (v / 1e6).toFixed(1) + "M";
+      const deadBlk = LP.deadCap[String(info.seasonId)] || null;
+      const simDead = lpSimDead(info.start);
+      const dead = ((deadBlk && deadBlk.total) || 0) + simDead;
+      const used = committed + dead + projected;
+      const space = info.cap - used;
+      lpTween($("lp-war"), war, v => (v >= 0 ? "+" : "") + v.toFixed(1));
+      lpTween($("lp-cap"), used, v => "$" + (v / 1e6).toFixed(1) + "M");
+      // breakdown: signed (hard) + dead + projected re-signings (estimated)
+      const parts = [`${M(committed)} signed`];
+      if (dead > 0) parts.push(`${M(dead)} dead`);
+      if (projected > 0) parts.push(`<span style="color:#f59e0b">${M(projected)} re-signings</span>`);
+      $("lp-breakdown").innerHTML = parts.join(" · ");
+      const spaceEl = $("lp-space");
+      if (spaceEl._v != null && Math.abs(spaceEl._v - space) > 1e5) { spaceEl.classList.remove("lp-space-flash"); void spaceEl.offsetWidth; spaceEl.classList.add("lp-space-flash"); }
+      lpTween(spaceEl, space, v => (v < 0 ? "-$" : "$") + (Math.abs(v) / 1e6).toFixed(1) + "M");
+      spaceEl.style.color = space < 0 ? "#f87171" : "var(--ink-strong)";
+      $("lp-capnote").textContent = `${space < 0 ? "over" : "under"} the ${info.label} cap · ${(used / info.cap * 100).toFixed(0)}% used`;
+      $("lp-capnote").style.color = space < 0 ? "#f87171" : "var(--muted)";
+      lpRenderGauge(committed, dead, projected, info.cap);
+      lpRenderGrade(war, space < 0);
+      lpRenderDead(info, deadBlk);
+      lpRenderSim(info);
+      lpRenderImpact();
+    }
+    // Composition shift: how the players you've moved out reshape the team on
+    // skating / size / physicality / scoring / defense (vs the current roster).
+    let lpImpSeq = 0;
+    async function lpRenderImpact() {
+      const el = $("lp-impact"); if (!el) return;
+      const placed = new Set(Object.values(LP.slots).filter(Boolean));
+      const movedOut = Object.keys(LP.moves).map(k => LP.pool[k] && LP.pool[k].id).filter(x => x != null);
+      // a pending UFA you don't keep (not dressed = re-signed) walks, and his
+      // skating/size/etc. leave with him; benched SIGNED players stay (still under
+      // contract). Matches the deck's cap model, which only counts dressed players.
+      const walking = LP.skaters.filter(p => p.id != null && lpIsFA(p) && !placed.has(p._k)).map(p => p.id);
+      const removed = [...new Set([...movedOut, ...walking])];
+      if (!removed.length) { el.innerHTML = ""; return; }
+      const seq = ++lpImpSeq;
+      const BDL = await gmBundle();
+      if (seq !== lpImpSeq) return;                 // superseded by a newer move
+      const imp = BDL ? GM.impact(BDL, LP.team, { remove: removed }) : null;
+      if (!imp || !imp.ok || !imp.dims) { el.innerHTML = ""; return; }
+      const chips = Object.values(imp.dims)
+        .filter(x => x.beforeRank != null && x.afterRank != null &&
+                     (x.afterRank !== x.beforeRank || Math.abs(x.deltaPct || 0) >= 0.02))
+        .map(x => { const up = (x.deltaPct || 0) > 0;
+          return `<span style="font-size:11px;padding:3px 8px;border-radius:999px;border:1px solid var(--line);` +
+            `background:var(--panel-raised);color:${up ? '#16a34a' : '#dc2626'}">${x.label} ` +
+            `#${x.beforeRank}→#${x.afterRank} ${up ? '▲' : '▼'}</span>`; }).join("");
+      el.innerHTML = chips
+        ? `<div style="font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:10px 0 5px">Composition shift vs current roster</div>` +
+          `<div style="display:flex;flex-wrap:wrap;gap:6px">${chips}</div>` : "";
+    }
+    // smooth count-up/down so cap numbers tick like a scoreboard
+    function lpTween(el, to, fmt) {
+      const from = el._v == null ? to : el._v;
+      el._v = to;
+      if (from === to) { el.textContent = fmt(to); return; }
+      const t0 = performance.now(), dur = 420;
+      (function step(t) {
+        const p = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - p, 3);
+        if (el._v !== to) return;                 // superseded by a newer value
+        el.textContent = fmt(from + (to - from) * e);
+        if (p < 1) requestAnimationFrame(step);
+      })(performance.now());
+    }
+    function lpRenderGauge(committed, dead, projected, cap) {
+      const g = $("lp-gauge"); if (!g) return;
+      const pct = (v) => Math.max(0, Math.min(100, v / cap * 100));
+      const c = pct(committed), d = pct(dead), p = pct(projected);
+      g.classList.toggle("over", committed + dead + projected > cap + 1);
+      g.innerHTML =
+        `<div class="seg s-committed" style="left:0;width:${c}%"></div>` +
+        `<div class="seg s-dead" style="left:${c}%;width:${d}%"></div>` +
+        `<div class="seg s-proj" style="left:${Math.min(100, c + d)}%;width:${p}%"></div>`;
+    }
+    const LP_GRADE_COLORS = { A: ["#4ade80", "rgba(74,222,128,.10)"], B: ["#7dd3fc", "rgba(125,211,252,.10)"],
+                              C: ["#fbbf24", "rgba(251,191,36,.10)"], D: ["#f87171", "rgba(248,113,113,.10)"],
+                              F: ["#f87171", "rgba(248,113,113,.10)"] };
+    function lpRenderGrade(lineupWar, overCap) {
+      const box = $("lp-grade"), gEl = $("lp-grade-g"), rEl = $("lp-grade-r");
+      const vals = Object.entries(LP.teamStrength || {});
+      if (overCap) {
+        box.style.setProperty("--grade-c", "#f87171"); box.style.setProperty("--grade-bg", "rgba(248,113,113,.12)");
+        gEl.textContent = "✗"; rEl.textContent = "over the cap"; return;
+      }
+      if (!vals.length) { gEl.textContent = "—"; rEl.textContent = ""; return; }
+      const others = vals.filter(([t]) => t !== LP.team).map(([, w]) => w);
+      const rank = others.filter(w => w > lineupWar).length + 1;
+      const n = others.length + 1;
+      const pctile = (n - rank) / (n - 1);
+      const letter = rank === 1 ? "A+" : pctile >= 0.88 ? "A" : pctile >= 0.78 ? "A-"
+        : pctile >= 0.66 ? "B+" : pctile >= 0.54 ? "B" : pctile >= 0.42 ? "B-"
+        : pctile >= 0.30 ? "C+" : pctile >= 0.18 ? "C" : pctile >= 0.07 ? "D" : "F";
+      const [c, bg] = LP_GRADE_COLORS[letter[0]] || LP_GRADE_COLORS.C;
+      box.style.setProperty("--grade-c", c); box.style.setProperty("--grade-bg", bg);
+      const ord = (k) => k + (["th", "st", "nd", "rd"][(k % 100 - k % 10 != 10) * (k % 10 < 4 ? k % 10 : 0)] || "th");
+      if (gEl.textContent !== letter && gEl.textContent !== "—") { box.classList.remove("bump"); void box.offsetWidth; box.classList.add("bump"); }
+      gEl.textContent = letter;
+      rEl.textContent = `${ord(rank)} of ${n} · ${lineupWar.toFixed(1)} WAR`;
+    }
+    function lpRenderSim(info) {
+      const el = $("lp-sim"); if (!el) return;
+      const ks = Object.keys(LP.moves);
+      if (!ks.length) { el.innerHTML = ""; return; }
+      const chips = ks.map(k => {
+        const p = LP.pool[k], m = LP.moves[k];
+        const hit = m.deadBySeason[info.start] || 0;
+        const eff = hit ? ` · ${info.label} <b>$${(hit / 1e6).toFixed(2)}M</b>` : ` · no ${info.label} hit`;
+        return `<span class="lp-simchip" data-undo="${k}" title="Click to undo">${p ? p.name : k} <span class="mut">(${m.label})</span>${eff}<span class="x">✕</span></span>`;
+      }).join("");
+      el.innerHTML = `<div class="lp-sec-h" style="color:#f59e0b">Simulated moves <span class="mut" style="font-weight:600;text-transform:none;letter-spacing:0">— estimated; click a move to undo</span></div><div class="lp-deadrow">${chips}</div>`;
+      el.querySelectorAll(".lp-simchip").forEach(c => c.onclick = () => lpUndoMove(c.dataset.undo));
+    }
+    function lpRenderDead(ceil, blk) {
+      const el = $("lp-dead");
+      if (!el) return;
+      if (!blk || !blk.items || !blk.items.length) { el.innerHTML = ""; return; }
+      const KIND = { buyout: "buyout", retained: "retained salary", buried: "buried" };
+      el.innerHTML = `<div class="lp-sec-h">Dead cap — ${ceil.label} ($${(blk.total / 1e6).toFixed(1)}M owed to players not on the roster)</div>` +
+        `<div class="lp-deadrow">` + blk.items.map(it => {
+          const nm = it.id
+            ? `<a href="player.html?name=${encodeURIComponent(it.name)}" style="color:inherit;text-decoration:none;border-bottom:1px dotted var(--line-strong)">${it.name}</a>`
+            : it.name;
+          return `<span class="lp-deadchip">${nm} <span class="mut">· ${KIND[it.kind] || it.kind}</span> <b>$${(it.capHit / 1e6).toFixed(2)}M</b></span>`;
+        }).join("") + `</div>`;
+    }
+
+    // ----- move simulator: buy out / trade / custom re-sign, with cap ripple -----
+    function lpOpenMenu(k, anchor) {
+      const p = LP.pool[k]; if (!p) return;
+      const menu = $("lp-menu");
+      let html = `<div class="mh">${p.name}</div>`;
+      if (lpIsMovedOut(p)) {
+        html += `<button data-do="undo">↩ Undo ${LP.moves[k].label}</button>`;
+      } else if (lpIsFA(p)) {
+        html += `<div class="mh" style="font-weight:600;color:var(--muted)">Re-sign (proj mid $${(lpFaMid(p) / 1e6).toFixed(1)}M)</div>` +
+          `<div class="row"><input id="lp-caav" type="number" step="0.1" value="${(lpFaMid(p) / 1e6).toFixed(1)}" aria-label="AAV $M">` +
+          `<input id="lp-cterm" type="number" value="${(LP.customFA[k] && LP.customFA[k].term) || p.faProj.term}" style="width:46px" aria-label="years"><button data-do="customfa">Set</button></div>` +
+          (LP.customFA[k] ? `<button data-do="resetfa">Reset to projection</button>` : "");
+      } else {
+        if (p.tradeFit && p.tradeFit.length) {
+          const teams = p.tradeFit.map(f => {
+            const room = f.room != null ? "$" + (f.room / 1e6).toFixed(0) + "M" : "?";
+            return `<span style="color:${f.fitsCap ? "var(--ink-strong)" : "var(--muted)"}">${f.team} <span class="mut">(${room})</span></span>`;
+          }).join(", ");
+          const why = [...new Set(p.tradeFit.flatMap(f => f.why))].slice(0, 3).join(", ").toLowerCase();
+          html += `<div class="mh" style="font-weight:600;color:var(--ice-bright);white-space:normal;line-height:1.4">Trade fits: ${teams}` +
+            (why ? `<br><span class="mut" style="font-weight:500">need ${why} · ($ = their 26-27 room)</span>` : "") + `</div>`;
+        }
+        const bo = lpBuyoutMove(p);
+        if (bo) html += `<button class="danger" data-do="buyout">Buy out <span class="mut">~$${(bo.annual / 1e6).toFixed(2)}M × ${bo.years}yr</span></button>`;
+        html += `<button class="danger" data-do="trade0">Trade away</button>` +
+          `<button class="danger" data-do="trade50">Trade · retain 50%</button>`;
+      }
+      menu.innerHTML = html;
+      const r = anchor.getBoundingClientRect();
+      menu.style.left = Math.max(8, Math.min(r.left, window.innerWidth - 196)) + "px";
+      menu.style.top = Math.min(r.bottom + 4, window.innerHeight - 160) + "px";
+      menu.classList.add("on");
+      menu.querySelectorAll("button[data-do]").forEach(btn =>
+        btn.onclick = (e) => { e.stopPropagation(); lpMenuAction(k, btn.dataset.do); });
+    }
+    function lpCloseMenu() { $("lp-menu").classList.remove("on"); }
+    function lpMenuAction(k, act) {
+      const p = LP.pool[k];
+      if (act === "undo" || act === "resetfa") { delete LP.moves[k]; delete LP.customFA[k]; }
+      else if (act === "buyout") { const m = lpBuyoutMove(p); if (m) LP.moves[k] = m; }
+      else if (act === "trade0") LP.moves[k] = lpTradeMove(p, 0);
+      else if (act === "trade50") LP.moves[k] = lpTradeMove(p, 0.5);
+      else if (act === "customfa") {
+        const aav = Math.round((parseFloat(($("lp-caav") || {}).value) || 0) * 1e6) || lpFaMid(p);
+        const term = parseInt(($("lp-cterm") || {}).value) || (p.faProj && p.faProj.term) || 1;
+        LP.customFA[k] = { aavMid: aav, term };
+      }
+      if (LP.moves[k]) for (const s in LP.slots) if (LP.slots[s] === k) LP.slots[s] = null;  // moved player leaves the ice
+      lpCloseMenu(); renderLines();
+    }
+    function lpUndoMove(k) { delete LP.moves[k]; lpCloseMenu(); renderLines(); }
+
+    // placement: drag-drop on desktop, tap-then-tap on touch. The source slot is
+    // derived from the slot map (not the drag's "from") so swaps work either way.
+    function lpPlace(k, from, target) {
+      if (!k || !LP.slots.hasOwnProperty(target) || LP.slots[target] === k) { LP.sel = null; renderLines(); return; }
+      let src = null;
+      for (const s in LP.slots) if (LP.slots[s] === k) { src = s; break; }
+      const occupant = LP.slots[target];
+      if (src) LP.slots[src] = null;
+      LP.slots[target] = k;
+      if (occupant && occupant !== k && src) LP.slots[src] = occupant; // swap into the vacated slot
+      LP.sel = null; LP.lastPlaced = k; renderLines();                 // (bench-sourced bumps just go to bench)
+    }
+    function lpBench(k) { if (!k) return; for (const s in LP.slots) if (LP.slots[s] === k) LP.slots[s] = null; LP.sel = null; renderLines(); }
+    function lpSelect(k) {
+      LP.sel = LP.sel === k ? null : k;
+      document.querySelectorAll("#p-lines .lp-chip").forEach(c => c.classList.toggle("sel", c.dataset.pid === LP.sel));
+      lpUpdatePickbar();
+    }
+    function lpWireDnD() {
+      document.querySelectorAll("#p-lines .lp-chip").forEach(chip => {
+        chip.addEventListener("dragstart", e => { e.dataTransfer.setData("text/plain", chip.dataset.pid + "~" + chip.dataset.from); e.dataTransfer.effectAllowed = "move"; chip.classList.add("dragging"); });
+        chip.addEventListener("dragend", () => chip.classList.remove("dragging"));
+        chip.addEventListener("click", e => {
+          e.stopPropagation();
+          const k = chip.dataset.pid, slot = chip.dataset.from;
+          // a player is already held and this is a different one sitting in a slot → swap them
+          if (LP.sel && LP.sel !== k && slot && LP.slots.hasOwnProperty(slot)) { lpPlace(LP.sel, "?", slot); return; }
+          lpSelect(k);
+        });
+      });
+      document.querySelectorAll("#p-lines .lp-act").forEach(b => {
+        b.draggable = false;
+        b.addEventListener("mousedown", e => e.stopPropagation());
+        b.addEventListener("click", e => { e.stopPropagation(); e.preventDefault(); lpOpenMenu(b.dataset.act, b); });
+      });
+      document.querySelectorAll("#p-lines .lp-slot").forEach(slot => {
+        slot.addEventListener("dragover", e => { e.preventDefault(); slot.classList.add("over"); });
+        slot.addEventListener("dragleave", () => slot.classList.remove("over"));
+        slot.addEventListener("drop", e => { e.preventDefault(); slot.classList.remove("over"); const [k, from] = e.dataTransfer.getData("text/plain").split("~"); lpPlace(k, from, slot.dataset.slot); });
+        slot.addEventListener("click", e => { if (LP.sel) { e.stopPropagation(); lpPlace(LP.sel, "?", slot.dataset.slot); } });
+      });
+      [["lp-bench"], ["lp-fas"]].forEach(([id]) => {
+        const zone = $(id); if (!zone) return;
+        zone.ondragover = e => { e.preventDefault(); zone.classList.add("over"); };
+        zone.ondragleave = () => zone.classList.remove("over");
+        zone.ondrop = e => { e.preventDefault(); zone.classList.remove("over"); const [k] = e.dataTransfer.getData("text/plain").split("~"); lpBench(k); };
+        zone.onclick = () => { if (LP.sel) lpBench(LP.sel); };
+      });
+    }
+    function lpAuto() { if (!LP.team) return; autoFillLines(); LP.sel = null; renderLines(); }
+    function lpClear() { lpSlotIds().forEach(id => LP.slots[id] = null); LP.sel = null; renderLines(); }
+
+    // ----- Contracts: single player -----
+
+    let gmData = null;
+    const gmFilters = { active: "all", era: "all", min: 20 };
+
+    function gmEraOverlap(first, last, era) {
+      if (era === "all" || first == null) return true;
+      const lo = Number(era), hi = era === "2020" ? 9999 : lo + 4;
+      return first <= hi && last >= lo;
+    }
+
+    function renderGm() {
+      const d = gmData;
+      if (!d) return;
+      const f = gmFilters;
+      const sign = (v, dp=2) => v == null ? "—" : `<span class="${v >= 0 ? 'pos' : 'neg'}">${v >= 0 ? '+' : ''}${Number(v).toFixed(dp)}</span>`;
+      const tbl = (heads, rows) => rows.length
+        ? `<table class="fo"><thead><tr>${heads.map(h => `<th>${h}</th>`).join("")}</tr></thead><tbody>${rows.join("")}</tbody></table>`
+        : `<p class="fo-note">Nothing matches these filters.</p>`;
+      const keep = (r, first, last, n) =>
+        (f.active === "all" || r.active) && n >= f.min && gmEraOverlap(first, last, f.era);
+      // the record's team, plus "· now <team>" when the GM has since moved
+      const teamCell = (recordTeam, currentTeam) =>
+        (currentTeam && currentTeam !== recordTeam)
+          ? `${recordTeam} <span class="mut">· now ${currentTeam}</span>` : (recordTeam || "—");
+
+      const draft = d.drafting.filter(r => f.era !== "2020"
+        && keep(r, r.first_draft, r.last_draft, r.picks));
+      document.getElementById("gm-draft").innerHTML = tbl(
+        ["GM", "Team", "Picks", "Total over exp.", "Per pick", "Excl best"],
+        draft.map(r => `<tr class="gm-row" data-tenure="${r.tenure_id}" style="cursor:pointer">` +
+          `<td>${r.gm_full_name}${r.active ? " ●" : ""} <span class="mut">▸</span></td><td>${teamCell(r.team_name, r.current_team)}</td>` +
+          `<td>${r.picks}</td><td>${sign(r.war7_over_expected, 1)}</td>` +
+          `<td>${sign(r.per_pick_over_expected)}</td><td><b>${sign(r.per_pick_excl_best)}</b></td></tr>`));
+      document.querySelectorAll("#gm-draft .gm-row").forEach(row => row.onclick = () => toggleGmPicks(row));
+
+      const signing = d.signing.filter(r => keep(r, r.first_year, r.last_year, r.contract_seasons));
+      document.getElementById("gm-signing").innerHTML = tbl(
+        ["GM", "Deals", "Seasons", "Cap committed", "Realized surplus", "Per season"],
+        signing.map(r => `<tr><td>${r.signed_by_gm}${r.active ? " ●" : ""}${r.current_team ? ` <span class="mut">· ${r.current_team}</span>` : ""}</td><td>${r.deals}</td>` +
+          `<td>${r.contract_seasons}</td><td>$${r.cap_committed_m}M</td>` +
+          `<td>${sign(r.realized_surplus_m, 1)}M</td><td><b>${sign(r.surplus_m_per_season)}M</b></td></tr>`));
+
+      const trading = (d.trading || []).filter(r => (f.active === "all" || r.active) && r.trades >= Math.max(8, f.min / 3));
+      document.getElementById("gm-trading").innerHTML = tbl(
+        ["GM", "Team", "Trades", "Net WAR 3y", "Net WAR 7y*", "Age Δ", "Pick-leg deals"],
+        trading.map(r => `<tr><td>${r.gm_full_name}${r.active ? " ●" : ""}</td><td>${teamCell(r.team_name, r.current_team)}</td>` +
+          `<td>${r.trades}</td><td>${sign(r.net_war3, 1)}</td>` +
+          `<td><b>${r.net_war7_complete != null ? sign(r.net_war7_complete, 1) : "—"}</b>` +
+          `<span class="mut"> /${r.trades_with_war7}</span></td>` +
+          `<td>${r.avg_age_delta != null ? sign(r.avg_age_delta, 1) + "y" : "—"}</td>` +
+          `<td>${r.deals_with_pick_legs}</td></tr>`));
+
+      const activeNames = new Set(
+        d.drafting.filter(r => r.active).map(r => r.gm_full_name)
+          .concat(d.signing.filter(r => r.active).map(r => r.signed_by_gm)));
+      const profs = d.profiles.regimes.filter(r =>
+        (f.active === "all" || activeNames.has(r.gm)) && r.picks >= f.min).slice(0, 30);
+      document.getElementById("gm-profile").innerHTML = tbl(
+        ["GM", "Team", "Picks", "Height Δ", "Overage Δ", "Europe Δ", "D Δ", "G Δ"],
+        profs.map(r => `<tr><td>${r.gm}</td><td>${r.team}</td><td>${r.picks}</td>` +
+          `<td>${sign(r.height_delta_in)}"</td><td>${sign(r.pct_overage_delta, 1)}%</td>` +
+          `<td>${sign(r.pct_europe_delta, 1)}%</td><td>${sign(r.pct_d_delta, 1)}%</td>` +
+          `<td>${sign(r.pct_g_delta, 1)}%</td></tr>`));
+    }
+
+
+    async function toggleGmPicks(row) {
+      const next = row.nextElementSibling;
+      if (next && next.classList.contains("gm-detail")) { next.remove(); return; }
+      document.querySelectorAll(".gm-detail").forEach(e => e.remove());
+      const cols = row.children.length;
+      const detail = document.createElement("tr");
+      detail.className = "gm-detail";
+      detail.innerHTML = `<td colspan="${cols}" class="mut">Loading picks…</td>`;
+      row.after(detail);
+      const d = await getJSON("/api/nhl-gm-picks?tenure=" + row.dataset.tenure);
+      if (!d.available) { detail.firstChild.textContent = d.note || "Unavailable."; return; }
+      const sign = (v) => v == null ? "—" : `<span class="${v >= 0 ? 'pos' : 'neg'}">${v >= 0 ? '+' : ''}${Number(v).toFixed(1)}</span>`;
+      const rows = d.picks.map(k =>
+        `<tr><td>${k.draft_year} #${k.overall_pick}</td><td>${k.player_name || "—"}</td>` +
+        `<td>${k.position || ""}</td><td>${k.war7.toFixed(1)}</td>` +
+        `<td>${k.expected_war7?.toFixed(1) ?? "—"}</td><td><b>${sign(k.war7_over_expected)}</b></td></tr>`).join("");
+      detail.innerHTML = `<td colspan="${cols}" style="padding:0">` +
+        `<div class="fo-scroll" style="margin:6px 0 10px"><table class="fo">` +
+        `<thead><tr><th>Pick</th><th>Player</th><th>Pos</th><th>WAR7</th><th>Expected</th><th>Over</th></tr></thead>` +
+        `<tbody>${rows}</tbody></table></div></td>`;
+    }
+
+
+    let prLoaded = false;
+    async function loadProspects() {
+      const team = $("pr-team").value;
+      const d = await getJSON("/api/nhl-prospects" + (team ? "?team=" + team : ""));
+      if (!d.available) { $("pr-out").textContent = d.note || "Unavailable."; return; }
+      const S2 = (v) => `<b class="${v >= 1 ? "pos" : "mut"}">${v.toFixed(2)}</b>`;
+      if (team && d.players.length) {
+        $("pr-out").innerHTML = `<table class="fo"><thead><tr><th>Prospect</th><th>Pos</th>` +
+          `<th>Drafted</th><th>Age</th><th>Retention</th><th>Grade</th></tr></thead><tbody>` +
+          d.players.map(r => `<tr><td>${r.player_name}</td><td>${r.position||""}</td>` +
+            `<td>${r.draft_year} #${r.overall_pick}</td><td>${r.age}</td>` +
+            `<td>${Math.round(r.retention*100)}%</td><td>${S2(r.grade_war7)}</td></tr>`).join("") +
+          `</tbody></table>`;
+      } else {
+        $("pr-out").innerHTML = `<table class="fo"><thead><tr><th>#</th><th>Team</th>` +
+          `<th>Prospects</th><th>Pipeline WAR</th></tr></thead><tbody>` +
+          d.pipelines.map((r, i) => `<tr style="cursor:pointer" onclick="$('pr-team').value='${r.team_code}';loadProspects()">` +
+            `<td>${i+1}</td><td><b>${r.team_code}</b></td><td>${r.prospects}</td>` +
+            `<td>${S2(r.pipeline_war7)}</td></tr>`).join("") + `</tbody></table>`;
+        if (!prLoaded) {
+          prLoaded = true;
+          $("pr-team").innerHTML += d.pipelines.map(r =>
+            `<option value="${r.team_code}">${r.team_code}</option>`).join("");
+        }
+      }
+    }
+    document.getElementById("pr-team") && ($("pr-team").onchange = loadProspects);
+
+    async function loadGm() {
+      if (gmData) return;
+      const d = await getJSON("/api/nhl-gm");
+      if (!d.available) {
+        document.getElementById("gm-draft").textContent = d.note || "Unavailable.";
+        return;
+      }
+      gmData = d;
+      renderGm();
+    }
+    document.getElementById("gm-active-seg").querySelectorAll("button").forEach(b => b.onclick = () => {
+      document.querySelectorAll("#gm-active-seg button").forEach(x => x.classList.toggle("on", x === b));
+      gmFilters.active = b.dataset.v; renderGm();
+    });
+    document.getElementById("gm-era").onchange = (e) => { gmFilters.era = e.target.value; renderGm(); };
+    document.getElementById("gm-min").oninput = (e) => { gmFilters.min = Number(e.target.value) || 1; renderGm(); };
+
+    async function lookupPlayer(e) {
+      if (e) e.preventDefault();
+      const name = $("c-name").value.trim(); if (!name) return;
+      const box = $("c-player"); box.innerHTML = "Loading…";
+      const d = await getJSON("/api/nhl-market?name=" + encodeURIComponent(name));
+      if (!d.available) { box.innerHTML = `<p class="fo-note">${d.note || "Not found."}</p>`; return; }
+      const c = col(d.surplus);
+      const pj = d.projection;
+      box.innerHTML = `<div class="fo-big">${d.player} <span class="mut" style="font-size:1rem">${d.position||""}${d.age?", "+d.age:""}</span></div>
+        <span class="verdict" style="background:${c}22;color:${c}">${d.verdict}</span>
+        <div class="fo-kv" style="margin-top:12px">
+          <div><div class="k">Cap hit</div><div class="v">${M(d.capHit)}${d.yearsRemaining?` <span class="mut" style="font-size:.8rem">${d.yearsRemaining}y ${d.expiryStatus||""}</span>`:""}</div></div>
+          <div><div class="k">Production value</div><div class="v">${M(d.productionValue)}</div></div>
+          <div><div class="k">Surplus (today)</div><div class="v" style="color:${c}">${M(d.surplus)}</div></div>
+          ${pj?`<div><div class="k">Projected / yr</div><div class="v" style="color:${col(pj.avgProjectedSurplus)}">${M(pj.avgProjectedSurplus)} <span class="mut" style="font-size:.7rem">${pj.verdict}</span></div></div>`:""}
+        </div>
+        ${pj?`<p class="fo-note">Aged forward over ${pj.yearsRemaining} year(s): WAR ${S(d.valueWar)} → ${S(pj.projectedWar[pj.projectedWar.length-1])} by the final year (${pj.projectedWar.map(w=>w.toFixed(1)).join(" → ")}).</p>`:""}
+        ${d.flag?`<p class="fo-note">⚠ ${d.flag}</p>`:""}`;
+    }
+
+    // ----- Contracts: leaderboards (three lenses: surplus / trade value / toxic) -----
+    let cLens = "surplus", cKind = "best", cGroup = "skater";
+    function wireSeg(id, set) {
+      $(id).querySelectorAll("button").forEach(b => b.onclick = () => {
+        $(id).querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
+        set(b); loadBoard();
+      });
+    }
+    wireSeg("c-lens", b => {
+      cLens = b.dataset.l;
+      $("c-kind").style.display = cLens === "surplus" ? "" : "none";
+    });
+    wireSeg("c-kind", b => cKind = b.dataset.k);
+    wireSeg("c-group", b => cGroup = b.dataset.g);
+    async function loadBoard() {
+      if (cLens !== "surplus") return loadAssetBoard();
+      const box = $("c-board"); box.innerHTML = "Loading…";
+      const d = await getJSON(`/api/nhl-market?kind=${cKind}&group=${cGroup}&limit=20`);
+      if (!d.available || !d.contracts.length) { box.innerHTML = `<p class="fo-note">${d.note||"No data."}</p>`; return; }
+      box.innerHTML = clBoard(d.contracts);
+    }
+    // Ranked list: the surplus is the hero (right), the contract math reads beneath
+    // the name. Replaces a 7-col table that clipped Surplus/Verdict off mobile.
+    function clBoard(rows) {
+      return `<div class="cl">` + rows.map((r, i) => {
+        const c = col(r.surplus), pm = r.surplus > 0 ? "+" : "";
+        return `<div class="cl-row" style="border-left-color:${c}">
+          <div class="cl-rank">${i + 1}</div>
+          <div class="cl-main">
+            <div class="cl-name">${plink(r.full_name)}${r.position ? `<span class="cl-pos">${r.position}</span>` : ""}</div>
+            <div class="cl-sub">${M(r.cap_hit)} cap · ${M(r.production_value)} value</div>
+          </div>
+          <div class="cl-hero" style="color:${c}"><span class="v">${pm}${M(r.surplus)}</span>${r.verdict ? `<span class="vd">${r.verdict}</span>` : ""}</div>
+        </div>`;
+      }).join("") + `</div>`;
+    }
+    async function loadAssetBoard() {
+      const box = $("c-board"); box.innerHTML = "Loading…";
+      const d = await getJSON(`/api/nhl-assets?kind=${cLens}&group=${cGroup}&limit=20`);
+      if (!d.available || !d.rows || !d.rows.length) {
+        box.innerHTML = `<p class="fo-note">${d.note || "Asset values not built yet — run nhl_asset_value.py."}</p>`;
+        return;
+      }
+      box.innerHTML = avBoard(d.rows) + ((d.meta && d.meta.calibration) ? `<p class="fo-note">${d.meta.calibration}</p>` : "");
+    }
+    // Dual value: what he's WORTH (model: acq pick price) vs what he'd FETCH (market:
+    // the comp-anchored package of a real comparable deal). The gap is the insight;
+    // the left accent is tinted by it. Elite/rarely-traded = a flagged floor.
+    function avBoard(rows) {
+      const last = a => (a || []).map(n => n.split(/\s+/).slice(-1)[0]);
+      const pkgText = pk => { if (!pk) return null; const p = last(pk.players).concat(pk.picks || []); return p.length ? p.join(" + ") : null; };
+      return `<div class="cl">` + rows.map((r, i) => {
+        const mw = r.marketWar7, aw = r.acqCostWar7;
+        const gap = (mw != null && aw != null) ? mw - aw : 0;
+        const c = gap > 0.25 ? "#16a34a" : (gap < -0.25 ? "#d97706" : "#64748b");
+        const pkt = pkgText(r.marketPackage), via = r.marketPackage && r.marketPackage.via;
+        // elite producers price off the MODEL (no clean comp); everyone else off real comps
+        const fetch = r.marketModeled
+          ? `<b style="color:${c}">modeled estimate</b> <span class="mut">· production · age · control</span>`
+          : (pkt
+            ? `est. package <b style="color:${c}">≈ ${pkt}</b>${via ? ` <span class="mut">· via ${via.split(/\s+/).slice(-1)[0]} '${(r.marketPackage.viaSeason || "").slice(2)}</span>` : ""}`
+            : (mw != null ? `est. value ~${mw.toFixed(1)} WAR7` : ""));
+        const flag = r.marketModeled
+          ? ` <span class="av-floor" title="Elite producer — players this good almost never trade, so there's no clean comp. Modeled from production, age and years of control.">modeled</span>`
+          : "";
+        return `<div class="cl-row" style="border-left-color:${c}">
+          <div class="cl-rank">${i + 1}</div>
+          <div class="cl-main">
+            <div class="cl-name">${plink(r.player)}${r.pos ? `<span class="cl-pos">${r.pos}</span>` : ""}<span class="mut" style="font-size:.7rem;font-weight:500">${r.age ? Math.round(r.age) : ""}${r.assetClass ? " · " + r.assetClass : ""}</span></div>
+            <div class="av-sub">worth <b>${r.acqPicks || "—"}</b> (two-way) · ${fetch}${flag}</div>
+          </div>
+          <div class="cl-hero" style="color:${c}"><span class="v">${mw != null ? mw.toFixed(1) : "—"}</span><span class="vd">market·WAR7</span></div>
+        </div>`;
+      }).join("") + `</div>`;
+    }
+
+    // ----- Trades -----
+    async function runTrade() {
+      const give = $("t-give").value.split(",").map(s=>s.trim()).filter(Boolean);
+      const get = $("t-get").value.split(",").map(s=>s.trim()).filter(Boolean);
+      const box = $("t-out");
+      if (!give.length && !get.length && !$("t-pgive").value.trim() && !$("t-pget").value.trim()) {
+        box.innerHTML = `<p class="fo-note">Add players or picks to at least one side.</p>`; return; }
+      box.innerHTML = "Evaluating…";
+      const pg = $("t-pgive").value.trim(), pr = $("t-pget").value.trim();
+      const d = await getJSON(`/api/nhl-trade?give=${encodeURIComponent(give.join(","))}&get=${encodeURIComponent(get.join(","))}` +
+        (pg ? `&picks_give=${encodeURIComponent(pg)}` : "") + (pr ? `&picks_get=${encodeURIComponent(pr)}` : ""));
+      if (!d.available) { box.innerHTML = `<p class="fo-note">${d.note||"WAR not built."}</p>`; return; }
+      const side = (arr) => table([
+        {h:"Player", f:r=>r.found?r.name:`<span class="neg">${r.query} (not found)</span>`},
+        {h:"WAR", f:r=>r.found?S(r.war):"—"},
+        {h:"Cap hit", f:r=>M(r.capHit)},
+        {h:"Surplus", f:r=>r.surplus==null?"—":`<span style="color:${col(r.surplus)}">${M(r.surplus)}</span>`},
+      ], arr);
+      const c = col(d.netSurplus);
+      box.innerHTML = `
+        <div class="fo-kv" style="margin:10px 0">
+          <div><div class="k">Net player WAR</div><div class="v">${S(d.netWar)}</div></div>
+          ${(d.picksGive.length || d.picksGet.length) ? `<div><div class="k">Net pick value</div><div class="v">${S(d.picksNetWar7)} <span class="mut" style="font-size:.7rem">ex-ante WAR7</span></div></div>
+          <div><div class="k">Combined</div><div class="v"><b>${S(d.netWarWithPicks)}</b></div></div>` : ""}
+          <div><div class="k">Net cap</div><div class="v">${M(d.netCapHit)} <span class="mut" style="font-size:.7rem">${d.capVerdict}</span></div></div>
+          <div><div class="k">Net surplus</div><div class="v" style="color:${c}">${M(d.netSurplus)}</div></div>
+          <div><div class="k">Verdict</div><div class="v" style="font-size:1rem">${d.verdict}</div></div>
+        </div>
+        <div class="fo-row" style="align-items:flex-start">
+          <div style="flex:1"><div class="k mut" style="font-size:.72rem;text-transform:uppercase">You send — ${S(d.giveTotalWar)} WAR, ${M(d.giveCapHit)}</div>${side(d.give)}</div>
+          <div style="flex:1"><div class="k mut" style="font-size:.72rem;text-transform:uppercase">You receive — ${S(d.getTotalWar)} WAR, ${M(d.getCapHit)}</div>${side(d.get)}</div>
+        </div>
+        ${(d.picksGive.length || d.picksGet.length) ? `<div class="fo-row" style="align-items:flex-start">
+          <div style="flex:1">${pickTable(d.picksGive, "Picks you send")}</div>
+          <div style="flex:1">${pickTable(d.picksGet, "Picks you receive")}</div></div>` : ""}
+        <p class="fo-note">${d.note||""} Picks are valued at decision time (no double counting with the draft
+        board): projected slot for in-season 1sts, round priors otherwise.</p>`;
+    }
+    function pickTable(picks, label) {
+      if (!picks.length) return "";
+      const rows = picks.map(k =>
+        `<tr><td>${k.year} R${k.round}${k.owner ? " (" + k.owner + ")" : ""}</td>` +
+        `<td>${k.slotEstimate ? "~#" + k.slotEstimate : "—"}</td>` +
+        `<td>+${k.estWar7}</td><td class="mut">${k.method}</td></tr>`).join("");
+      return `<div class="k mut" style="font-size:.72rem;text-transform:uppercase">${label}</div>` +
+        `<table class="fo"><thead><tr><th>Pick</th><th>Proj. slot</th><th>WAR7</th><th>basis</th></tr></thead><tbody>${rows}</tbody></table>`;
+    }
+
+    // ----- Trade evaluator (build-a-trade) -----
+    let evReady = false;
+    const evDeal = { A:{team:null, sends:[]}, B:{team:null, sends:[]} };
+    const evRosters = {};   // team -> [players]
+
+    async function initEval() {
+      if (evReady) return;
+      const d = await getJSON("/api/nhl-roster");
+      if (!d.available) { $("ev-grid").textContent = d.note || "Unavailable."; return; }
+      const teams = d.teams || [];
+      const dfltA = teams.includes("BUF") ? "BUF" : teams[0];
+      const dfltB = teams.find(t => t !== dfltA) || teams[1];
+      $("ev-a").innerHTML = teams.map(t => `<option${t===dfltA?" selected":""}>${t}</option>`).join("");
+      $("ev-b").innerHTML = teams.map(t => `<option${t===dfltB?" selected":""}>${t}</option>`).join("");
+      $("ev-a").onchange = () => loadEvalTeam("A");
+      $("ev-b").onchange = () => loadEvalTeam("B");
+      evReady = true;
+      await Promise.all([loadEvalTeam("A"), loadEvalTeam("B")]);
+    }
+    async function loadEvalTeam(side) {
+      const team = $(side === "A" ? "ev-a" : "ev-b").value;
+      evDeal[side].team = team;
+      evDeal[side].sends = [];                  // team changed -> reset that side
+      $("ev-out").innerHTML = "";
+      if (!evRosters[team]) {
+        const d = await getJSON("/api/nhl-roster?team=" + team);
+        evRosters[team] = (d.skaters || []).concat(d.goalies || []);
+      }
+      renderEval();
+      loadTradeIdeas();
+    }
+    async function loadTradeIdeas() {
+      const A = evDeal.A.team, B = evDeal.B.team;
+      if (!A || !B || A === B) { $("ev-ideas").innerHTML = ""; return; }
+      $("ev-ideas").innerHTML = `<div class="mut" style="font-size:12px;margin:6px 0">Finding realistic fits…</div>`;
+      const BDL = await gmBundle();
+      if (!BDL) { $("ev-ideas").innerHTML = ""; return; }
+      const fa = GM.findTargets(BDL, A, B), fb = GM.findTargets(BDL, B, A);
+      const col = (acq, partner, d) => {
+        const head = `<div class="ev-ideas-head">${partner} fits for ${acq}${d.needs && d.needs.length ? ` <span class="mut">· needs ${d.needs.slice(0,2).join(", ")}</span>` : ""}</div>`;
+        if (!d.available || !d.targets || !d.targets.length)
+          return `<div class="ev-ideas-col">${head}<div class="mut" style="font-size:12px">no clear fit</div></div>`;
+        const items = d.targets.slice(0, 5).map(t =>
+          `<button class="ev-idea" onclick="evAddTarget('${partner}',${t.id})">` +
+          `<span>${t.name} <span class="mut">${t.pos || ""}</span>${t.why.length ? `<div class="why">fills ${t.why.join(" · ")}</div>` : ""}</span>` +
+          `<span class="ev-move">${Math.round(t.movability * 100)}% avail</span></button>`).join("");
+        return `<div class="ev-ideas-col">${head}${items}</div>`;
+      };
+      $("ev-ideas").innerHTML = `<div class="ev-ideas-grid">${col(A, B, fa)}${col(B, A, fb)}</div>`;
+    }
+    function evAddTarget(partnerTeam, id) {
+      evAdd((evDeal.A.team === partnerTeam) ? "A" : "B", id);
+    }
+    function evChip(side, i, a) {
+      if (a.kind === "pick") return `<div class="ev-chip"><div class="ev-chip-top"><span>${a.year} Round ${a.round}</span>` +
+        `<button onclick="evRemove('${side}',${i})" aria-label="remove">×</button></div><div class="ev-chip-sub">draft pick</div></div>`;
+      return `<div class="ev-chip"><div class="ev-chip-top"><span>${a.name}</span>` +
+        `<button onclick="evRemove('${side}',${i})" aria-label="remove">×</button></div>` +
+        `<div class="ev-chip-sub">${a.pos||""} · ${M(a.capHit)} · <span style="color:${col(a.tradeValueDollars??0)}">${M(a.tradeValueDollars)}</span></div>` +
+        `<div class="ev-retain"><span class="mut">retain</span>` +
+        `<input type="range" min="0" max="50" step="5" value="${a.retain||0}" oninput="evRetain('${side}',${i},this.value)"><b>${a.retain||0}%</b></div></div>`;
+    }
+    function evColumn(side) {
+      const D = evDeal[side], team = D.team;
+      const pool = (evRosters[team]||[]).filter(p => !D.sends.some(s => s.kind==="player" && s.id===p.id));
+      const sends = D.sends.map((a,i) => evChip(side,i,a)).join("");
+      return `<div class="ev-col"><div class="ev-col-head">${team} <span class="mut">sends →</span></div>` +
+        `<div class="ev-lane">${sends || `<div class="mut" style="font-size:12px; padding:6px">tap players below</div>`}` +
+        `<button class="ev-addpick" onclick="evAddPick('${side}')">+ pick</button></div>` +
+        `<div class="ev-pool">${pool.map(p =>
+          `<button class="ev-pl" onclick="evAdd('${side}',${p.id})"><span>${p.name} <span class="mut">${p.pos||""}</span></span>` +
+          `<span>${M(p.capHit)} · <span style="color:${col(p.tradeValueDollars??0)}">${M(p.tradeValueDollars)}</span></span></button>`).join("")}</div></div>`;
+    }
+    function renderEval() {
+      if (!evDeal.A.team || !evDeal.B.team) return;
+      $("ev-grid").innerHTML = evColumn("A") + evColumn("B");
+    }
+    function evAdd(side, id) {
+      const p = (evRosters[evDeal[side].team]||[]).find(x => x.id===id);
+      if (p) evDeal[side].sends.push({kind:"player", id:p.id, name:p.name, pos:p.pos,
+        capHit:p.capHit, tradeValueDollars:p.tradeValueDollars, retain:0});
+      renderEval();
+    }
+    function evAddPick(side) { evDeal[side].sends.push({kind:"pick", year:2027, round:4}); renderEval(); }
+    function evRemove(side, i) { evDeal[side].sends.splice(i,1); renderEval(); }
+    function evRetain(side, i, v) { evDeal[side].sends[i].retain = +v; renderEval(); }
+    function clearDeal() { evDeal.A.sends = []; evDeal.B.sends = []; $("ev-out").innerHTML = ""; renderEval(); }
+    function evPayload() {
+      const A = evDeal.A, B = evDeal.B, assets = [];
+      const map = (s, from, to) => s.kind==="player"
+        ? {from, to, kind:"player", player_id:s.id, retain_pct:s.retain||0}
+        : {from, to, kind:"pick", year:s.year, round:s.round};
+      for (const s of A.sends) assets.push(map(s, A.team, B.team));
+      for (const s of B.sends) assets.push(map(s, B.team, A.team));
+      return {teams:[A.team, B.team], assets};
+    }
+    async function runEval() {
+      const p = evPayload();
+      if (!p.assets.length) { $("ev-out").innerHTML = `<p class="fo-note">Add at least one player or pick.</p>`; return; }
+      if (p.teams[0] === p.teams[1]) { $("ev-out").innerHTML = `<p class="fo-note">Pick two different teams.</p>`; return; }
+      $("ev-out").innerHTML = "Evaluating…";
+      const BDL = await gmBundle();
+      const d = BDL ? GM.evaluateTrade(BDL, p) : {ok:false, note:"Could not load data."};
+      if (!d.ok) { $("ev-out").innerHTML = `<p class="fo-note">${d.note||"Could not evaluate."}</p>`; return; }
+      renderEvalResult(d);
+      renderTradeInsights(p);
+    }
+    // Server bonus: the per-player WHY behind the gap + a roster sweetener to close
+    // it. Degrades silently on the static site (no local server to ask).
+    async function renderTradeInsights(p) {
+      let enr;
+      try { enr = await postJSON("/api/nhl-trade-eval", p); } catch (e) { return; }
+      if (!enr || !enr.fairness) return;
+      let html = "";
+      const nar = enr.narrative;
+      if (nar && nar.paragraph) html += `<div class="ti-narrative">${nar.paragraph}</div>`;
+      if (nar && (nar.whoSaysNo || []).length)
+        html += nar.whoSaysNo.map(w => `<div class="ti-whosays"><b>${w.team} balks?</b> ${w.line}</div>`).join("");
+      const ps = (enr.reason && enr.reason.players) || [];
+      if (ps.length) html += `<div><div class="ti-h">Why the gap</div>` +
+        ps.map(b => `<div class="ti-why"><b>${b.name}</b>${b.pos ? ` <span class="mut">${b.pos}</span>` : ""} · ` +
+          `<b>$${b.marketM}M</b>${b.line ? ` — ${b.line}` : ""}</div>`).join("") + `</div>`;
+      const sw = enr.sweetener;
+      if (sw && (sw.options || []).length) html += `<div><div class="ti-h">To close it, ${sw.addBy} adds ~$${sw.gapM}M</div>` +
+        `<div class="ti-opts">` + sw.options.map(o => `<span class="ti-opt ${o.type}">${o.label}</span>`).join("") +
+        `</div><div class="mut" style="font-size:11px;margin-top:5px">a pick, or a comparable piece off their roster — any one closes the gap</div></div>`;
+      const el = $("ev-out");
+      if (html && el) el.insertAdjacentHTML("beforeend", `<div class="ti-wrap">${html}</div>`);
+    }
+    const evFitLabel = (x) => x > 0.5 ? "fills needs" : (x < -0.5 ? "opens a hole" : "neutral");
+    function renderEvalResult(d) {
+      const tA = evDeal.A.team, tB = evDeal.B.team;
+      const fav = d.fairness.favors, margin = d.fairness.marginDollars || 0;
+      const fairColor = d.fairness.verdict === "fair" ? "var(--pos)" : "#b45309";
+      const off = Math.min(46, margin/8e6*46);
+      const left = (fav === tA) ? 50 - off : 50 + off;
+      const teamCard = (t) => {
+        const L = d.teams[t];
+        const room = L.roomAfter==null ? "—" : M(L.roomAfter);
+        return `<div class="ev-res-col"><div class="ev-res-team">${t}</div>` +
+          `<div class="ev-kv"><span>Cap room</span><b>${M(L.roomBefore)} → ${room}</b></div>` +
+          `<div class="ev-kv"><span>Value</span><b style="color:${col(L.valueDelta)}">${L.valueDelta>=0?"+":""}${M(L.valueDelta)}</b></div>` +
+          `<div class="ev-kv"><span>Fit</span><b>${evFitLabel(L.fitDelta)}</b></div>` +
+          (L.deadCapAdded ? `<div class="ev-kv mut"><span>Dead cap kept</span><b>${M(L.deadCapAdded)}</b></div>` : "") + `</div>`;
+      };
+      const flags = (d.legality.flags||[]).map(f => `<span class="ev-flag ${f.level}">${f.msg}</span>`).join("");
+      $("ev-out").innerHTML =
+        `<div class="ev-meter-wrap"><div class="ev-meter-top"><span class="mut">Fairness</span>` +
+        `<span style="color:${fairColor}; font-weight:700">${d.fairness.verdict==="fair" ? "fair deal" : "favours "+fav}</span></div>` +
+        `<div class="ev-meter"><div class="ev-needle" style="left:${left}%"></div></div>` +
+        `<div class="ev-meter-lab"><span>${tA} wins</span><span>even</span><span>${tB} wins</span></div></div>` +
+        `<div class="ev-res-grid">${teamCard(tA)}${teamCard(tB)}</div>` +
+        `<div class="ev-note">${d.fairness.note}</div>` +
+        `<div class="ev-flags">${flags}<span class="ev-flag">confidence: ${d.confidence}</span></div>`;
+      renderTeamImpacts();
+    }
+    async function renderTeamImpacts() {
+      const tA = evDeal.A.team, tB = evDeal.B.team;
+      const pids = (sends) => sends.filter(s => s.kind === "player").map(s => s.id);
+      // each team ends up: minus the players it sends, plus the players it receives
+      const change = { [tA]: { remove: pids(evDeal.A.sends), add: pids(evDeal.B.sends) },
+                       [tB]: { remove: pids(evDeal.B.sends), add: pids(evDeal.A.sends) } };
+      const cols = document.querySelectorAll("#ev-out .ev-res-col");
+      const order = [tA, tB];
+      const BDL = await gmBundle(); if (!BDL) return;
+      for (let i = 0; i < cols.length; i++) {
+        const t = order[i], chg = change[t];
+        if (!chg || (!chg.remove.length && !chg.add.length)) continue;
+        const imp = GM.impact(BDL, t, { remove: chg.remove, add: chg.add });
+        if (!imp.ok || !imp.dims) continue;
+        const rows = Object.values(imp.dims)
+          .filter(x => x.beforeRank != null && x.afterRank != null &&
+                       (x.afterRank !== x.beforeRank || Math.abs(x.deltaPct || 0) >= 0.02))
+          .map(x => {
+            const up = (x.deltaPct || 0) > 0;
+            return `<div class="ev-imp-row"><span>${x.label}</span>` +
+              `<span class="${up ? 'ev-up' : 'ev-dn'}">#${x.beforeRank} → #${x.afterRank} ${up ? '▲' : '▼'}</span></div>`;
+          }).join("");
+        if (rows) cols[i].insertAdjacentHTML("beforeend",
+          `<div class="ev-impact"><div class="mut" style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px">Composition shift</div>${rows}</div>`);
+      }
+    }
+
+    // ----- Cap optimizer -----
+    async function runOpt() {
+      const b = $("o-budget").value || "40";
+      const f = $("o-fwd").value, dn = $("o-def").value;
+      let url = `/api/nhl-cap?budget=${encodeURIComponent(b)}`;
+      if (f && dn) url += `&forwards=${f}&defense=${dn}`;
+      const box = $("o-out"); box.innerHTML = "Optimizing…";
+      const d = await getJSON(url);
+      if (!d.available || !d.roster) { box.innerHTML = `<p class="fo-note">${d.note||"Not built."}</p>`; return; }
+      const shape = d.forwards ? ` — ${d.forwards}F / ${d.defense}D buildable` : "";
+      box.innerHTML = `<div class="fo-kv" style="margin:8px 0">
+          <div><div class="k">Players</div><div class="v">${d.count}${shape}</div></div>
+          <div><div class="k">Total WAR</div><div class="v">${S(d.totalWar)}</div></div>
+          <div><div class="k">Cap used</div><div class="v">${M(d.totalCap)} <span class="mut" style="font-size:.7rem">${M(d.capRemaining)} left</span></div></div>
+          <div><div class="k">Surplus</div><div class="v" style="color:${col(d.totalSurplus)}">${M(d.totalSurplus)}</div></div>
+        </div>` + table([
+          {h:"Player", f:r=>r.name}, {h:"Pos", f:r=>`<span class="mut">${r.position||""}</span>`},
+          {h:"WAR", f:r=>S(r.valueWar)}, {h:"Cap hit", f:r=>M(r.capHit)},
+          {h:"Surplus", f:r=>`<span style="color:${col(r.surplus)}">${M(r.surplus)}</span>`},
+        ], d.roster) + `<p class="fo-note">${d.note||""}</p>`;
+    }
+    async function runCapEff() {
+      const box = $("o-out"); box.innerHTML = "Loading team cap efficiency…";
+      const d = await getJSON("/api/nhl-cap?mode=teams");
+      if (!d.available || !d.teams) { box.innerHTML = `<p class="fo-note">${d.note||"Not built."}</p>`; return; }
+      box.innerHTML = table([
+        {h:"Team", f:r=>r.team_name}, {h:"Skaters", k:"players"},
+        {h:"Committed cap", f:r=>M(r.committed_cap)}, {h:"WAR", f:r=>S(r.total_war)},
+        {h:"$/WAR", f:r=>M(r.capPerWar)}, {h:"Surplus", f:r=>`<span style="color:${col(r.total_surplus)}">${M(r.total_surplus)}</span>`},
+      ], d.teams) + `<p class="fo-note">${d.note||""}</p>`;
+    }
+
+    // init
+    loadBoard();
+    const initName = new URLSearchParams(location.search).get("name");
+    if (initName) { $("c-name").value = initName; lookupPlayer(); }
+  </script>
+    <script src="./player-modal.js"></script>
+</body>
+</html>

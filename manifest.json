@@ -1,0 +1,22 @@
+{
+  "name": "Icenomics \u2014 NHL Analytics",
+  "short_name": "Icenomics",
+  "description": "Open, reproducible, honest hockey analytics \u2014 WAR, market value, GM ratings.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0b1018",
+  "theme_color": "#0b1018",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "./apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ]
+}

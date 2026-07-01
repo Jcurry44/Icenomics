@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>window.STATIC=1</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reliability — Icenomics</title>
+  <meta property="og:title" content="Reliability — Icenomics">
+  <meta property="og:description" content="Every metric ships with its own calibration and reliability report. How to read the numbers, and where they stop.">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary">
+    <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#0b1018">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Icenomics">
+  <link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<link rel="stylesheet" href="./styles.css?v=20260617-mobilenav">
+  <style>
+    .rel-wrap { max-width: 980px; margin: 0 auto; padding: 24px; }
+    .rel-card { overflow-x: auto; -webkit-overflow-scrolling: touch; background: var(--panel, #15171c); border: 1px solid var(--border, #2a2d34);
+                border-radius: 10px; padding: 18px 20px; margin: 16px 0; }
+    .rel-card h2 { margin: 0 0 4px; font-size: 1.05rem; }
+    .rel-note { color: var(--muted, #9aa0aa); font-size: 0.85rem; margin: 4px 0 12px; }
+    .rel-kv { display: flex; flex-wrap: wrap; gap: 18px; margin: 8px 0; }
+    .rel-kv div { min-width: 150px; }
+    .rel-kv .k { color: var(--muted, #9aa0aa); font-size: 0.75rem; text-transform: uppercase; letter-spacing: .04em; }
+    .rel-kv .v { font-size: 1.25rem; font-weight: 600; }
+    .rel-good { color: #4ade80; }
+    table.rel { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-top: 8px; }
+    table.rel th, table.rel td { text-align: right; padding: 4px 8px; border-bottom: 1px solid var(--border, #2a2d34); }
+    table.rel th:first-child, table.rel td:first-child { text-align: left; }
+    .rel-head { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+    .rel-head a { color: var(--muted, #9aa0aa); font-size: 0.85rem; }
+    .rel-lead { color: var(--muted, #9aa0aa); margin: 4px 0 18px; }
+      @media (max-width: 680px) { .rel-wrap { padding: 14px 12px; } }
+  </style>
+</head>
+<body>
+  <div class="rel-wrap">
+    <div class="rel-head">
+      <a class="bl-brand" href="./index.html"><span class="bl-mark">IC</span> Icenomics</a>
+      <nav style="display:flex; gap:12px; flex-wrap:wrap; align-items:center; font-size:12.5px; font-weight:600;"><a href="./index.html" style="color:var(--muted); text-decoration:none;">Home</a> <a href="./player.html" style="color:var(--muted); text-decoration:none;">Players</a> <a href="./leaders.html" style="color:var(--muted); text-decoration:none;">Leaders</a> <a href="./standings.html" style="color:var(--muted); text-decoration:none;">Projections</a> <a href="./front-office.html" style="color:var(--muted); text-decoration:none;">Front office</a> <a href="./fa-board.html" style="color:var(--muted); text-decoration:none;">Free agents</a> <a href="./draft-board.html" style="color:var(--muted); text-decoration:none;">Draft board</a> <a href="./transactions.html" style="color:var(--muted); text-decoration:none;">Transactions</a> <span style="color:var(--ice-bright);">Reliability</span> <input type="search" placeholder="Find a player…" aria-label="Find a player" style="min-height:30px; padding:0 10px; font-size:12.5px; width:160px;" onkeydown="if(event.key==='Enter'&&this.value.trim())location.href='player.html?name='+encodeURIComponent(this.value.trim())"></nav>
+    </div>
+    <p class="rel-lead" id="north-star">Every metric ships with its own calibration / reliability report.</p>
+
+    <div class="rel-card" id="vs-market" style="display:none; background:linear-gradient(165deg, rgba(56,189,248,.10), var(--panel,#15171c) 66%); border-color:rgba(125,211,252,.28);">
+      <div class="rel-head"><h2 style="margin:0;">Against the betting market</h2><span class="rel-note" id="vm-window" style="margin:0;"></span></div>
+      <p class="rel-note" id="vm-summary" style="font-size:.92rem; line-height:1.6; margin:8px 0 16px;"></p>
+      <div id="vm-tiles" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(132px,1fr)); gap:12px; margin-bottom:16px;"></div>
+      <table class="rel" id="vm-table" style="max-width:520px;">
+        <thead><tr><th>Head-to-head</th><th>Log-loss</th><th>Accuracy</th><th>Brier</th></tr></thead>
+        <tbody id="vm-rows"></tbody>
+      </table>
+      <p class="rel-note" id="vm-robust" style="font-size:.82rem; margin:10px 0 0; color:var(--faint,#5d6b7e);"></p>
+      <p class="rel-note" id="vm-note" style="font-size:.82rem; margin:8px 0 0; color:var(--faint,#5d6b7e);"></p>
+    </div>
+    <script>
+    (function () {
+      var pct = function (v) { return (100 * v).toFixed(1) + "%"; };
+      var ll = function (v) { return v.toFixed(4); };
+      function tile(label, big, sub, accent) {
+        return '<div style="border:1px solid var(--line,rgba(148,184,255,.12));border-radius:12px;padding:13px 14px;'
+          + 'background:linear-gradient(160deg,rgba(56,189,248,.06),transparent 72%);">'
+          + '<div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted,#8b98ab);">' + label + '</div>'
+          + '<div style="font-size:20px;font-weight:750;letter-spacing:-.01em;color:' + (accent || 'var(--ice-bright,#7dd3fc)') + ';margin:4px 0 2px;">' + big + '</div>'
+          + '<div style="font-size:11px;color:var(--faint,#5d6b7e);">' + (sub || "") + '</div></div>';
+      }
+      function render(cal) {
+        var m = cal && cal.market;
+        if (!m || !m.available || !m.primary) { hide(); return; }
+        var p = m.primary;
+        document.getElementById("vm-window").textContent = p.games.toLocaleString() + " games · " + p.season;
+        document.getElementById("vm-summary").textContent = m.summary || "";
+        document.getElementById("vm-tiles").innerHTML =
+          tile("Verdict", "Market-grade", "a half-step behind the close", "#4ade80")
+          + tile("Closing-line value", pct(p.clv), "on the correct side of Vegas")
+          + tile("Behind the market", "+" + p.delta_logloss_mll.toFixed(1) + " mll", "log-loss gap (≈1 SE)")
+          + tile("Sample", p.games.toLocaleString(), "fully out of sample");
+        var mkTd = function (v, best) {
+          return '<td style="' + (best ? 'color:#7dd3fc;font-weight:650;' : '') + '">' + v + '</td>';
+        };
+        document.getElementById("vm-rows").innerHTML =
+          '<tr><td style="font-weight:600;">Our model</td>' + mkTd(ll(p.our.logloss)) + mkTd(pct(p.our.acc)) + mkTd(p.our.brier.toFixed(4)) + '</tr>'
+          + '<tr><td style="font-weight:600;">Vegas closing line</td>' + mkTd(ll(p.market.logloss), true) + mkTd(pct(p.market.acc), true) + mkTd(p.market.brier.toFixed(4), true) + '</tr>';
+        var s = m.samples || [];
+        if (s.length >= 2) {
+          document.getElementById("vm-robust").textContent =
+            "Holds across sample sizes: " + s.map(function (x) {
+              return ll(x.our_logloss) + " vs " + ll(x.market_logloss) + " at " + x.games.toLocaleString() + " games";
+            }).join("; ") + ".";
+        }
+        document.getElementById("vm-note").textContent = m.note || "";
+        document.getElementById("vs-market").style.display = "";
+      }
+      function hide() { var t = document.getElementById("vs-market"); if (t) t.style.display = "none"; }
+      var urls = window.STATIC ? ["api/calibration.json"] : ["/api/nhl-calibration", "api/calibration.json"];
+      (function next(i) {
+        if (i >= urls.length) { hide(); return; }
+        fetch(urls[i] + "?v=" + Date.now(), { cache: "no-store" }).then(function (r) { if (!r.ok) throw 0; return r.json(); }).then(render).catch(function () { next(i + 1); });
+      })(0);
+    })();
+    </script>
+
+    <div class="rel-card" id="data-build">
+      <div class="rel-head"><h2 style="margin:0;">Data &amp; build</h2><span class="rel-note" id="db-fresh" style="margin:0;"></span></div>
+      <p class="rel-note">What the warehouse holds, how fresh it is, and where it stops. Every figure is an estimate built on the public sources below — original models, attributed inputs.</p>
+      <div class="rel-kv" id="db-counts"></div>
+      <div id="db-sources" style="margin-top:16px;"></div>
+      <div id="db-gaps" style="margin-top:16px;"></div>
+    </div>
+    <script>
+    (function () {
+      fetch("data-manifest.json").then(function (r) { return r.ok ? r.json() : null; }).then(function (m) {
+        var card = document.getElementById("data-build");
+        if (!m) { if (card) card.style.display = "none"; return; }
+        var f = m.freshness || {}, fresh = [];
+        if (f.gamesThrough) fresh.push("Games through " + f.gamesThrough);
+        if (f.transactionsThrough) fresh.push("Transactions through " + f.transactionsThrough);
+        document.getElementById("db-fresh").textContent = fresh.join(" · ");
+        document.getElementById("db-counts").innerHTML = (m.counts || []).map(function (c) {
+          return '<div><div class="k">' + c.label + '</div><div class="v">' + c.rows.toLocaleString() + '</div></div>';
+        }).join("");
+        document.getElementById("db-sources").innerHTML =
+          '<div class="k" style="margin-bottom:6px;">Sources</div>' + (m.sources || []).map(function (s) {
+            return '<div style="font-size:.85rem; margin:3px 0; color:var(--muted,#9aa0aa);"><b style="color:var(--text,#e8eaed); font-weight:600;">'
+              + s.name + '</b> — ' + s.provides + '</div>';
+          }).join("");
+        document.getElementById("db-gaps").innerHTML =
+          '<div class="k" style="margin-bottom:6px;">Known gaps</div>' + (m.knownGaps || []).map(function (g) {
+            return '<div style="font-size:.85rem; margin:3px 0; color:var(--muted,#9aa0aa);">• ' + g + '</div>';
+          }).join("");
+      }).catch(function () { var c = document.getElementById("data-build"); if (c) c.style.display = "none"; });
+    })();
+    </script>
+
+    <div class="rel-card" id="model-validation">
+      <h2>Model validation</h2>
+      <p class="rel-note" style="font-size:.9rem; margin:8px 0 14px;">How the newer models hold up out of sample — and, just as important, what we tested and chose <i>not</i> to ship.</p>
+      <div id="mv-grid" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(218px,1fr)); gap:12px;"></div>
+      <div style="margin-top:16px;">
+        <div class="k" style="margin-bottom:6px;">Tested and not shipped</div>
+        <div id="mv-nulls"></div>
+      </div>
+    </div>
+    <script>
+    (function () {
+      var VALS = [
+        { title: "Finishing estimate", headline: "0.16 → 0.30", n: 4419,
+          detail: "Out-of-sample next-season finishing correlation — empirical-Bayes shrinkage plus a shot-speed prior nearly doubles the raw signal." },
+        { title: "Deal Grader — luck vs skill", headline: "−0.23 vs flat", n: 1817,
+          detail: "On real signed contracts, a lucky walk year sheds 0.23 goals/60 the next season; a player's finishing skill doesn't fade. The grade fades luck, not scorers." },
+        { title: "Contract value model", headline: "r = 0.53", n: 1710,
+          detail: "Walk-3-year WAR plus age predicts post-signing WAR out of sample; older players deliver less (−0.025 WAR per year)." },
+        { title: "Goalie reads", headline: "stable vs noise", n: 154,
+          detail: "Split-half reliable: rebound control (0.80), in-tight (0.65), set shots (0.54). The unstable cuts — off-the-rush, point shots, deflections — are not shown." }
+      ];
+      var NULLS = [
+        "Deadline tax: trades return only ~+0.04 WAR over value in March — noise. No timing factor in the model.",
+        "Value portability: box stats travel BETTER than our isolated RAPM across a team change (0.90 vs 0.78) — so no RAPM-based fit engine.",
+        "Right-shot-D, center, and pure-defense trade premiums: all null across 545 acquisitions. Not modeled.",
+        "Junior shot-quality doesn't beat points-per-game at projecting NHL outcomes — not built.",
+        "Goalie-adjusted xG would collapse GSAx (the goalie metric itself) — xG kept neutral by design."
+      ];
+      document.getElementById("mv-grid").innerHTML = VALS.map(function (m) {
+        return '<div style="border:1px solid var(--line,rgba(148,184,255,.12));border-radius:12px;padding:14px 15px;'
+          + 'background:linear-gradient(160deg,rgba(56,189,248,.06),transparent 72%);">'
+          + '<div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted,#8b98ab);">' + m.title + '</div>'
+          + '<div style="font-size:18px;font-weight:750;letter-spacing:-.01em;color:var(--ice-bright,#7dd3fc);margin:5px 0 6px;">' + m.headline + '</div>'
+          + '<div style="font-size:12px;line-height:1.5;color:var(--muted,#8b98ab);">' + m.detail + '</div>'
+          + '<div style="font-size:10.5px;color:var(--faint,#5d6b7e);margin-top:7px;">n = ' + m.n.toLocaleString() + '</div>'
+          + '</div>';
+      }).join("");
+      document.getElementById("mv-nulls").innerHTML = NULLS.map(function (g) {
+        return '<div style="font-size:.85rem; margin:4px 0; color:var(--muted,#9aa0aa);">• ' + g + '</div>';
+      }).join("");
+    })();
+    </script>
+
+    <div class="rel-card" id="track-record">
+      <h2>Track record</h2>
+      <p class="rel-note" style="font-size:.9rem; margin:8px 0 14px;">The honest test of a model is out of sample. Here is how ours hold up — including what we tested and chose <i>not</i> to ship.</p>
+      <div id="tr-grid" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(218px,1fr)); gap:12px;"></div>
+    </div>
+    <script>
+    (function () {
+      function render(s) {
+        if (!s || !s.available || !s.metrics || !s.metrics.length) { hide(); return; }
+        var host = document.getElementById("tr-grid"); if (!host) return;
+        host.innerHTML = s.metrics.map(function (m) {
+          return '<div style="border:1px solid var(--line,rgba(148,184,255,.12));border-radius:12px;padding:14px 15px;'
+            + 'background:linear-gradient(160deg,rgba(56,189,248,.06),transparent 72%);">'
+            + '<div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted,#8b98ab);">' + m.title + '</div>'
+            + '<div style="font-size:18px;font-weight:750;letter-spacing:-.01em;color:var(--ice-bright,#7dd3fc);margin:5px 0 6px;">' + m.headline + '</div>'
+            + '<div style="font-size:12px;line-height:1.5;color:var(--muted,#8b98ab);">' + (m.detail || "") + '</div>'
+            + (m.n ? '<div style="font-size:10.5px;color:var(--faint,#5d6b7e);margin-top:7px;">n = ' + m.n.toLocaleString() + '</div>' : "")
+            + '</div>';
+        }).join("");
+        document.getElementById("track-record").style.display = "";
+      }
+      function hide() { var t = document.getElementById("track-record"); if (t) t.style.display = "none"; }
+      var urls = window.STATIC ? ["api/calibration.json"] : ["/api/nhl-calibration", "api/calibration.json"];
+      (function next(i) {
+        if (i >= urls.length) { hide(); return; }
+        fetch(urls[i] + "?v=" + Date.now(), { cache: "no-store" }).then(function (r) { if (!r.ok) throw 0; return r.json(); }).then(render).catch(function () { next(i + 1); });
+      })(0);
+    })();
+    </script>
+
+    <div class="rel-card" id="contract-report-card" style="display:none;">
+      <h2>Contract projections — graded against reality</h2>
+      <p class="rel-note" style="font-size:.9rem; margin:8px 0 14px;">For every real signing we re-project the deal using <i>only</i> comps signed in earlier years (no hindsight), then compare to what the player actually got. This is the comparable-signings projector behind the cap simulator, held to account.</p>
+      <div id="crc-stats" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px;"></div>
+      <div id="crc-seg" style="margin-top:14px;"></div>
+      <div id="crc-live" style="margin-top:16px;"></div>
+    </div>
+    <script>
+    (function () {
+      var M = function (v) { return v == null ? "—" : "$" + (v / 1e6).toFixed(2) + "M"; };
+      var tile = function (label, big, sub) {
+        return '<div style="border:1px solid var(--line,rgba(148,184,255,.12));border-radius:12px;padding:13px 14px;'
+          + 'background:linear-gradient(160deg,rgba(56,189,248,.06),transparent 72%);">'
+          + '<div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted,#8b98ab);">' + label + '</div>'
+          + '<div style="font-size:21px;font-weight:750;letter-spacing:-.01em;color:var(--ice-bright,#7dd3fc);margin:4px 0 2px;">' + big + '</div>'
+          + '<div style="font-size:11px;color:var(--faint,#5d6b7e);">' + (sub || "") + '</div></div>';
+      };
+      function render(s) {
+        if (!s || !s.available || !s.backtest) return;
+        var o = s.backtest.overall;
+        document.getElementById("crc-stats").innerHTML =
+          tile("Median miss", M(o.medErr), "half our calls land closer")
+          + tile("Within $1M", o.within1m + "%", "of " + o.n.toLocaleString() + " signings")
+          + tile("Our range caught", o.band + "%", "actual inside the band")
+          + tile("Rank accuracy", o.rho.toFixed(2), "proj vs actual (Spearman)");
+        var seg = s.backtest.byGroup || {}, st = s.backtest.byStatus || {}, sc = s.backtest.byScenario || {};
+        var row = function (lab, a) { return a ? ('<tr><td>' + lab + '</td><td>' + a.n.toLocaleString()
+          + '</td><td>' + M(a.medErr) + '</td><td>' + a.within1m + '%</td></tr>') : ''; };
+        document.getElementById("crc-seg").innerHTML =
+          '<table class="rel"><thead><tr><th>Segment</th><th>n</th><th>Median miss</th><th>Within $1M</th></tr></thead><tbody>'
+          + row("Bridge (2–3yr)", sc.bridge) + row("Long-term (5yr+)", sc.longTerm)
+          + row("UFA", st.UFA) + row("RFA", st.RFA)
+          + row("Forwards", seg.F) + row("Defense", seg.D) + row("Goalies", seg.G)
+          + '</tbody></table>'
+          + '<p class="rel-note" style="font-size:.82rem;margin:8px 0 0;color:var(--faint);">Each deal is graded against the path it actually took — a short bridge or a long-term commitment — not one blended number. Long-term deals are the hardest call (and were far noisier when blended), where the money and the miss both live. Forwards calibrate best; goalies hardest.</p>';
+        var L = s.live || {};
+        var live = '<div style="font-size:13px;color:var(--ink-strong);font-weight:650;margin-bottom:6px;">Live calls — locked before signing</div>'
+          + '<div style="font-size:12.5px;color:var(--muted);">' + (L.pending || 0) + ' locked &amp; pending · ' + (L.resolved || 0) + ' resolved</div>';
+        if (L.recent && L.recent.length) {
+          live += '<table class="rel" style="margin-top:8px;"><thead><tr><th>Player</th><th>We projected</th><th>Signed</th><th></th></tr></thead><tbody>'
+            + L.recent.map(function (r) {
+                var ok = r.inBand ? '<span style="color:#4ade80">✓</span>' : '<span style="color:#f87171">✗</span>';
+                return '<tr><td>' + r.name + '</td><td>' + M(r.projMid) + ' ×' + r.projTerm
+                  + '</td><td>' + M(r.actualAav) + ' ×' + r.actualTerm + '</td><td>' + ok + '</td></tr>';
+              }).join('')
+            + '</tbody></table>';
+        } else {
+          live += '<p class="rel-note" style="font-size:.82rem;margin:6px 0 0;color:var(--faint);">Resolved calls appear here as free agents sign — the pending class is locked now and grades through the off-season.</p>';
+        }
+        document.getElementById("crc-live").innerHTML = live;
+        document.getElementById("contract-report-card").style.display = "";
+      }
+      var urls = window.STATIC ? ["api/contract-track-record.json"] : ["/api/contract-track-record", "api/contract-track-record.json"];
+      (function next(i) {
+        if (i >= urls.length) return;
+        fetch(urls[i] + "?v=" + Date.now(), { cache: "no-store" }).then(function (r) { if (!r.ok) throw 0; return r.json(); }).then(render).catch(function () { next(i + 1); });
+      })(0);
+    })();
+    </script>
+
+    <div class="rel-card" id="how-to-read">
+      <h2>How to read these numbers</h2>
+      <p class="rel-note" style="font-size:.9rem; line-height:1.65; margin:10px 0 0;">
+        <b style="color:var(--ink-strong)">WAR</b> (wins above replacement) claims each player adds a
+        measurable number of wins. The test of that claim is external:
+        <b style="color:var(--ink-strong)">sum every player's WAR per team and compare the totals to the
+        team's actual goal differential</b>. The correlation between those two lists is the
+        <b style="color:var(--ink-strong)">r</b> you see quoted — 0 means no relationship, 1 means perfect
+        lockstep. At <b style="color:var(--ink-strong)">r ≈ 0.85</b> (r² ≈ 0.72), about 72% of the gap
+        between good and bad teams is explained purely by adding up our individual player ratings.
+        The remaining ~28% is honest residue: goalie streaks, shooting luck, injuries, and noise.
+      </p>
+      <p class="rel-note" style="font-size:.9rem; line-height:1.65;">
+        Why it matters: the model never sees the standings — it only sees shots and shifts. When its
+        player sums independently reproduce the standings, the units are real wins, not vibes. That is
+        what licenses pricing a win on the cap market (<b style="color:var(--ink-strong)">$5.25M per
+        WAR</b>, fit through the league-minimum floor) and grading GMs against it. One honest footnote:
+        the fit is 0.88–0.91 in recent seasons but 0.65–0.82 in the early 2010s — same model, noisier
+        old shot data, weaker fit. That pattern is itself evidence the validation measures something
+        real rather than being tuned to flatter.
+      </p>
+    </div>
+
+    <div id="report">Loading…</div>
+  </div>
+  <script>
+    const fmt = (v) => (v === null || v === undefined) ? "—" : v;
+    function card(title, note, bodyHtml) {
+      return `<div class="rel-card"><h2>${title}</h2>${note ? `<p class="rel-note">${note}</p>` : ""}${bodyHtml}</div>`;
+    }
+    function kv(pairs) {
+      return `<div class="rel-kv">${pairs.map(([k, v]) => `<div><div class="k">${k}</div><div class="v">${fmt(v)}</div></div>`).join("")}</div>`;
+    }
+    function table(headers, rows) {
+      const head = headers.map((h) => `<th>${h}</th>`).join("");
+      const body = rows.map((r) => `<tr>${r.map((c) => `<td>${fmt(c)}</td>`).join("")}</tr>`).join("");
+      return `<table class="rel"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
+    }
+    async function load() {
+      let r;
+      try {
+        r = await (await fetch((window.STATIC ? "api/reliability.json" : "/api/reliability") + "?v=" + Date.now(), { cache: "no-store" })).json();
+      } catch (e) {
+        document.getElementById("report").textContent = "Could not load /api/reliability.";
+        return;
+      }
+      if (r.meta && r.meta.northStar) document.getElementById("north-star").textContent = r.meta.northStar;
+      const out = [];
+      const xg = r.xg || {};
+      if (xg.available) {
+        let body = kv([
+          ["Shots", xg.shots != null ? xg.shots.toLocaleString() : "—"],
+          ["Goals", xg.goals != null ? xg.goals.toLocaleString() : "—"],
+          ["Global bias", xg.global_bias_pct != null ? xg.global_bias_pct + "%" : "—"],
+          ["Worst season bias", xg.worst_season_bias_pct != null ? xg.worst_season_bias_pct + "%" : "—"],
+        ]);
+        if (xg.season_offsets && xg.season_offsets.length) {
+          body += table(["Season", "Offset", "Goals", "xG (recal)"],
+            xg.season_offsets.map((s) => [s.season, s.offset, s.goals, s.xg_after]));
+        }
+        out.push(card("Expected goals — era-recalibrated", "Per-season recalibration: total xG = total goals within every season.", body));
+      }
+      const wv = (r.warValidation && r.warValidation.concurrentValidity) || {};
+      if (wv.available) {
+        const st = (r.warValidation.yearOverYearStability) || {};
+        out.push(card("WAR validation — does it predict the standings?", wv.note,
+          kv([["Team WAR vs goal diff (r)", wv.corr_total_war_goal_diff],
+              ["Variance explained (r²)", wv.r_squared_total],
+              ["Skaters only (r)", wv.corr_skater_war_goal_diff],
+              ["Goalies only (r)", wv.corr_goalie_war_goal_diff],
+              ["Year-over-year (r)", st.corr_year_over_year != null ? st.corr_year_over_year : "—"]])));
+      }
+      const f = r.finishing || {};
+      if (f.available) {
+        out.push(card("Finishing — shooting-talent stabilization", f.note,
+          kv([["Stabilization (shots)", f.stabilization_shots], ["True-talent SD / 100 shots", f.true_talent_sd_per_100_shots]])));
+      }
+      const rb = r.rebound || {};
+      if (rb.available) {
+        out.push(card("Goalie rebound control — era confound", rb.note,
+          kv([["2009-17 reb / 100 saves", rb.old_era_rebounds_per_100_saves], ["2022-25 reb / 100 saves", rb.new_era_rebounds_per_100_saves]])));
+      }
+      const sc = r.scoreEffects || {};
+      if (sc.available) {
+        out.push(card("Score effects", sc.note,
+          table(["Score state", "Shots", "Mean xG"], sc.by_state.map((s) => [s.state, s.shots.toLocaleString(), s.mean_xg]))));
+      }
+      const oi = r.onIce || {};
+      if (oi.available) {
+        out.push(card("On-ice coverage", oi.note,
+          table(["Season", "Games", "Shift rows"], oi.coverage.map((c) => [c.season, c.games.toLocaleString(), c.shift_rows.toLocaleString()]))));
+      }
+      document.getElementById("report").innerHTML = out.join("") || "No reliability sections available.";
+    }
+    load();
+  </script>
+    <script src="./player-modal.js"></script>
+</body>
+</html>
