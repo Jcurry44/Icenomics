@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>window.STATIC=1;window.BUILD_ID="cfa3fc9-20260723T172316Z"</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Leaders — Icenomics</title>
+  <meta property="og:title" content="NHL Leaders — Icenomics">
+  <meta property="og:description" content="WAR leaderboards by season range, component, position, and phase — plus player and team skill boards.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://jcurry44.github.io/Icenomics/og-card.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#0b1018">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <link rel="apple-touch-icon" href="./apple-touch-icon.png">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./styles.css?v=20260617-mobilenav">
+  <style>
+    .ld-wrap { max-width: 880px; margin: 0 auto; padding: 26px 18px 60px; }
+    .ld-top { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 14px; }
+    .ld-top h2 { margin: 0; font-size: 20px; color: var(--ink-strong); }
+    .ld-top a { color: var(--muted); font-size: 13px; text-decoration: none; font-weight: 600; }
+    .ld-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; align-items: center; }
+    .ld-chip { min-height: 36px; padding: 0 12px; font-size: 12.5px; font-weight: 700;
+      border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--muted); }
+    .ld-chip.on { background: var(--ice); border-color: var(--ice); color: #06121f; }
+    .ld-lab { font-size: 11px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
+      color: var(--faint); margin-right: 2px; }
+    select.ld-sel { max-width: 150px; min-height: 36px; }
+    .ld-note { color: var(--muted); font-size: 12.5px; line-height: 1.55; margin-top: 12px; }
+    /* Ranked leaderboard: ONE designed list at every width (the bare desktop
+       table retired 2026-07-06). Rank medals for the podium, identity line
+       (team chip · pos · age · style tag from the DNA cloud), context sub,
+       and a team-color value bar — the card's visual language. */
+    .lb-cards { display: block; text-align: left; }
+    .lb-card { display: grid; grid-template-columns: 26px 44px 1fr minmax(100px, 190px); gap: 12px;
+      align-items: center; padding: 11px 10px; border-bottom: 1px solid var(--line); cursor: pointer;
+      border-radius: 10px; transition: background .12s ease; }
+    .lb-card:last-child { border-bottom: 0; }
+    .lb-card:hover, .lb-card:active { background: rgba(56,189,248,.06); }
+    .lb-card.p1 { background: linear-gradient(90deg, rgba(245,200,76,.07), transparent 55%); }
+    .lb-card.p2 { background: linear-gradient(90deg, rgba(200,211,224,.06), transparent 55%); }
+    .lb-card.p3 { background: linear-gradient(90deg, rgba(217,151,90,.06), transparent 55%); }
+    .lb-rank { font-size: 12.5px; font-weight: 800; color: var(--faint); text-align: center;
+      font-variant-numeric: tabular-nums; }
+    .lb-rank.m1, .lb-rank.m2, .lb-rank.m3 { width: 23px; height: 23px; line-height: 23px;
+      border-radius: 50%; margin: 0 auto; color: #0b1220; font-size: 12px; }
+    .lb-rank.m1 { background: #f5c84c; box-shadow: 0 0 11px rgba(245,200,76,.4); }
+    .lb-rank.m2 { background: #c8d3e0; }
+    .lb-rank.m3 { background: #d9975a; }
+    .lb-mug { width: 38px; height: 38px; border-radius: 50%; position: relative; overflow: hidden;
+      display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 12.5px;
+      letter-spacing: .02em; color: var(--ink-strong); background: rgba(74,95,128,.18);
+      border: 2px solid #4a5f80; }
+    .lb-mug img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .lb-name { font-size: 15px; font-weight: 750; color: var(--ink-strong); line-height: 1.3; }
+    .lb-pos { font-size: 10.5px; font-weight: 700; color: var(--faint); margin-left: 7px; letter-spacing: .04em; }
+    .lb-team { font-size: 9.5px; font-weight: 800; letter-spacing: .06em; padding: 2px 7px;
+      border-radius: 99px; border: 1px solid; margin-left: 7px; vertical-align: 1px; }
+    .lb-style { font-size: 9.5px; color: var(--muted); border: 1px solid var(--line); background: var(--panel);
+      border-radius: 99px; padding: 2px 8px; margin-left: 7px; vertical-align: 1px; white-space: nowrap; }
+    .lb-sub { font-size: 11.5px; color: var(--muted); margin-top: 3px; font-variant-numeric: tabular-nums; }
+    .lb-val { text-align: right; min-width: 78px; }
+    .lb-num { font-size: 17px; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+    .lb-rate { font-size: 10.5px; color: var(--faint); margin-top: 1px; font-variant-numeric: tabular-nums; }
+    .lb-bar { height: 4px; border-radius: 3px; background: var(--line); margin-top: 7px; overflow: hidden; }
+    .lb-bar > span { display: block; height: 100%; border-radius: 3px;
+      background: linear-gradient(90deg, #38bdf8, #2dd4a7); }
+    .lb-mug .rk { display: none; }
+    .lb-name .nm { min-width: 0; }
+    .lb-pos, .lb-team, .lb-style { white-space: nowrap; }
+    /* Mobile: content-first. Filters collapse to compact swipeable strips (the
+       site nav's own pattern) so players appear ON the first screen; rank
+       becomes a badge on the mug; names get one line with ellipsis. */
+    @media (max-width: 680px) {
+      .ld-wrap { padding: 14px 12px; }
+      .ld-lab { display: none; }
+      .ld-row { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch;
+        scrollbar-width: none; margin-bottom: 7px; }
+      .ld-row::-webkit-scrollbar { display: none; }
+      .ld-chip { min-height: 34px; font-size: 12px; padding: 0 12px; flex: 0 0 auto; }
+      select.ld-sel { min-height: 34px; max-width: 108px; font-size: 12px; flex: 0 0 auto; }
+      .lb-style { display: none; }
+      /* NAMES WIN (user catch 2026-07-06: every name truncated to "Steven …"
+         because the value cell out-competed the 1fr column) — the value cell
+         is hard-capped and the name column gets true flex priority. */
+      .lb-card { grid-template-columns: 42px minmax(0, 1fr) 84px; gap: 9px; padding: 10px 2px; }
+      .lb-val { min-width: 0; }
+      .lb-rate { font-size: 9.5px; white-space: nowrap; }
+      .lb-bar { max-width: 84px; }
+      .lb-rank { display: none; }
+      .lb-mug { width: 38px; height: 38px; font-size: 11px; overflow: visible; }
+      .lb-mug img { border-radius: 50%; }
+      .lb-mug .rk { display: flex; position: absolute; top: -6px; left: -7px; width: 17px;
+        height: 17px; border-radius: 50%; align-items: center; justify-content: center;
+        font-size: 9.5px; font-weight: 800; color: var(--faint);
+        background: var(--panel-raised, #101a29); border: 1px solid var(--line); z-index: 2; }
+      .lb-mug .rk.m1 { background: #f5c84c; color: #0b1220; border-color: #f5c84c; }
+      .lb-mug .rk.m2 { background: #c8d3e0; color: #0b1220; border-color: #c8d3e0; }
+      .lb-mug .rk.m3 { background: #d9975a; color: #0b1220; border-color: #d9975a; }
+      /* the NAME owns its whole line — chips wrap beneath it, never beside */
+      .lb-name { display: flex; flex-wrap: wrap; align-items: center; gap: 3px 7px; font-size: 14px; }
+      .lb-name .nm { flex: 1 1 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .lb-pos, .lb-team { margin-left: 0; }
+      .lb-sub { font-size: 10.5px; }
+      .lb-val { min-width: 64px; }
+      .lb-num { font-size: 15.5px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="ld-wrap">
+    <div class="ld-top">
+      <a class="bl-brand" href="./index.html"><span class="bl-mark">IC</span> Icenomics</a>
+      <nav style="display:flex; gap:12px; flex-wrap:wrap; align-items:center; font-size:12.5px; font-weight:600;"><a href="./index.html" style="color:var(--muted); text-decoration:none;">Home</a> <a href="./player.html" style="color:var(--muted); text-decoration:none;">Players</a> <a href="./games.html" style="color:var(--muted); text-decoration:none;">Games</a> <a href="./standings.html" style="color:var(--muted); text-decoration:none;">Projections</a> <a href="./fa-board.html" style="color:var(--muted); text-decoration:none;">Free agents</a> <a href="./deal-grader.html" style="color:var(--muted); text-decoration:none;">Deal Grader</a> <a href="./front-office.html" style="color:var(--muted); text-decoration:none;">Front office</a> <a href="./draft-board.html" style="color:var(--muted); text-decoration:none;">Draft board</a> <span style="color:var(--ice-bright);">Leaders</span> <a href="./transactions.html" style="color:var(--muted); text-decoration:none;">Transactions</a> <a href="./offseason.html" style="color:var(--muted); text-decoration:none;">Offseason</a> <a href="./book.html" style="color:var(--muted); text-decoration:none;">Open Book</a> <a href="./reliability.html" style="color:var(--muted); text-decoration:none;">Reliability</a> <input type="search" placeholder="Find a player…" aria-label="Find a player" style="min-height:30px; padding:0 10px; font-size:12.5px; width:160px;" onkeydown="if(event.key==='Enter'&&this.value.trim())location.href='player.html?name='+encodeURIComponent(this.value.trim())"></nav>
+    </div>
+
+    <div class="ld-row"><span class="ld-lab">Board</span>
+      <button class="ld-chip on" data-g="board" data-v="value">Value</button>
+      <button class="ld-chip" data-g="board" data-v="skills">Player skills</button>
+      <button class="ld-chip" data-g="board" data-v="teams">Team skills</button>
+    </div>
+    <div class="ld-row" id="phase-row"><span class="ld-lab">Phase</span>
+      <button class="ld-chip on" data-g="phase" data-v="rs">Regular season</button>
+      <button class="ld-chip" data-g="phase" data-v="po">Playoffs</button>
+    </div>
+    <div class="ld-row" id="comp-row"><span class="ld-lab">Component</span>
+      <button class="ld-chip on" data-g="component" data-v="total">Total WAR</button>
+      <button class="ld-chip" data-g="component" data-v="ev">EV WAR</button>
+      <button class="ld-chip" data-g="component" data-v="pp">PP offense</button>
+      <button class="ld-chip" data-g="component" data-v="pk">PK defense</button>
+    </div>
+    <div class="ld-row" id="skill-row" style="display:none"><span class="ld-lab">Skill</span>
+      <button class="ld-chip on" data-g="skill" data-v="speed">Top speed</button>
+      <button class="ld-chip" data-g="skill" data-v="bursts60">Speed bursts</button>
+      <button class="ld-chip" data-g="skill" data-v="primary_assists60">Playmaking</button>
+      <button class="ld-chip" data-g="skill" data-v="rush_xg60">Rush offense</button>
+      <button class="ld-chip" data-g="skill" data-v="hits60">Physicality</button>
+      <button class="ld-chip" data-g="skill" data-v="blocks60">Shot blocking</button>
+      <button class="ld-chip" data-g="skill" data-v="takeaways60">Puck stripping</button>
+      <button class="ld-chip" data-g="skill" data-v="giveaways60">Puck security</button>
+    </div>
+    <div class="ld-row"><span class="ld-lab" id="pos-lab">Position</span>
+      <button class="ld-chip on" data-g="pos" data-v="all">All skaters</button>
+      <button class="ld-chip" data-g="pos" data-v="F">Forwards</button>
+      <button class="ld-chip" data-g="pos" data-v="D">Defense</button>
+      <span class="ld-lab" style="margin-left:10px">Seasons</span>
+      <select class="ld-sel" id="sel-from"></select>
+      <span style="color:var(--faint); font-size:12px">to</span>
+      <select class="ld-sel" id="sel-to"></select>
+    </div>
+
+    <div class="tool-panel" style="margin-top:14px;">
+      <div class="panel-heading"><h3 id="board-title">Total WAR — 2010-present</h3>
+        <span id="board-sub"></span></div>
+      <div class="table-wrap"><div id="board" class="pc-loading" style="padding:24px; color:var(--muted); text-align:center;">Loading…</div></div>
+    </div>
+    <p class="ld-note">Value boards come from the validated WAR stack (team-summed WAR vs standings:
+      see the <a href="./reliability.html#how-to-read" style="color:var(--ice)">reliability page</a>).
+      PP/PK are TOI-weighted special-teams RAPM. Playoff boards rank by average within-run score —
+      performance in those runs, not a talent estimate. Skill boards are scouting shape, not value:
+      per-60 rates from the play-by-play (hits/takeaways/giveaways carry arena-scorer bias) and
+      NHL EDGE tracking for speed (2021-22 onward). Team skills are roster aggregates, TOI-weighted
+      by minutes actually played for the club. Click a player to open their card.</p>
+  </div>
+
+<script>
+"use strict";
+const state = { board: "value", phase: "rs", component: "total", skill: "speed",
+                pos: "all", from: null, to: null };
+let seasons = [];
+
+const SKILL_LABELS = {
+  speed: ["Top speed", "max skating speed, mph (NHL EDGE)"],
+  bursts60: ["Speed bursts", "22+ mph bursts per 60 (NHL EDGE)"],
+  primary_assists60: ["Playmaking", "primary assists per 60"],
+  rush_xg60: ["Rush offense", "xG created off the rush per 60"],
+  hits60: ["Physicality", "hits per 60"],
+  blocks60: ["Shot blocking", "blocked shots per 60"],
+  takeaways60: ["Puck stripping", "takeaways per 60"],
+  giveaways60: ["Puck security", "giveaways per 60 — lower is better"],
+};
+const LOWER_BETTER = new Set(["giveaways60"]);
+
+async function fetchBoard() {
+  const seasonParam = (state.from && state.to)
+    ? (state.from === state.to ? String(state.from)
+       : `${String(state.from).slice(0,4)}-${String(state.to).slice(0,4)}`)
+    : "all";
+  if (window.STATIC) return staticBoard(seasonParam);
+  if (state.board === "skills") {
+    const u = `/api/nhl-skills?board=players&skill=${state.skill}&pos=${state.pos}`
+      + (state.from ? `&from=${state.from}` : "") + (state.to ? `&to=${state.to}` : "") + "&limit=40";
+    return await (await fetch(u)).json();
+  }
+  if (state.board === "teams") {
+    const u = `/api/nhl-skills?board=teams` + (state.to ? `&season=${state.to}` : "");
+    const d = await (await fetch(u)).json();
+    return teamBoardView(d);
+  }
+  const u = `/api/nhl-leaders?season=${seasonParam}&component=${state.component}&pos=${state.pos}&phase=${state.phase}&limit=40`;
+  return await (await fetch(u)).json();
+}
+
+/* slim a team_skills payload to the selected skill's ranked column */
+function teamBoardView(d) {
+  if (!d || !d.available) return d;
+  const key = state.skill === "speed" ? "speed_mph" : state.skill;
+  const rows = d.rows.filter(r => r[key] != null)
+    .map(r => ({ team: r.team, value: r[key], roster_minutes: r.minutes }))
+    .sort((a, b) => LOWER_BETTER.has(state.skill) ? a.value - b.value : b.value - a.value);
+  const [label, desc] = SKILL_LABELS[state.skill];
+  if (!rows.length) return { available: false,
+    note: "No data for this skill (speed boards need the EDGE import, 2021-22+)." };
+  return { available: true, metric: `Team ${label.toLowerCase()} (${desc})`,
+           window: String(d.season), rows };
+}
+
+/* static mode: aggregate the baked per-player-season bundle client-side */
+let _bundle = null, _skills = null;
+async function staticBoard(seasonParam) {
+  if (state.board !== "value") return staticSkillBoard();
+  if (!_bundle) _bundle = await (await fetch("api/leaders-data.json")).json();
+  const lo = state.from || 0, hi = state.to || 99999999;
+  const posOk = (p) => state.pos === "all" || (state.pos === "D" ? p === "D" : p !== "D");
+  const agg = {};
+  if (state.phase === "po") {
+    for (const r of _bundle.po) {
+      if (r[0] < lo || r[0] > hi || !posOk(r[3])) continue;
+      const a = agg[r[1]] ??= { id: r[1], player: r[2], pos: r[3], runs: 0, gp: 0, minutes: 0, goals: 0, sum: 0 };
+      a.runs++; a.gp += r[4]; a.minutes += r[5]; a.goals += r[6]; a.sum += r[7] * r[5];
+    }
+    const rows = Object.values(agg).filter(a => a.minutes >= 240)
+      .map(a => ({ id: a.id, player: a.player, pos: a.pos, runs: a.runs, gp: a.gp,
+                   minutes: Math.round(a.minutes), goals: a.goals,
+                   value: +(a.sum / a.minutes).toFixed(2) }))
+      .sort((x, y) => y.value - x.value).slice(0, 40);
+    return { available: true, metric: "within-run score (TOI-weighted)", rows };
+  }
+  if (state.component === "pp" || state.component === "pk") {
+    const [vi, ti] = state.component === "pp" ? [4, 5] : [6, 7];
+    for (const r of _bundle.st) {
+      if (r[0] < lo || r[0] > hi || !posOk(r[3])) continue;
+      const a = agg[r[1]] ??= { id: r[1], player: r[2], pos: r[3], seasons: 0, num: 0, toi: 0 };
+      if (r[vi] != null && r[ti]) { a.seasons++; a.num += r[vi] * r[ti]; a.toi += r[ti]; }
+    }
+    const rows = Object.values(agg).filter(a => a.toi >= 100)
+      .map(a => ({ id: a.id, player: a.player, pos: a.pos, seasons: a.seasons,
+                   minutes: Math.round(a.toi), value: +(a.num / a.toi).toFixed(3) }))
+      .sort((x, y) => y.value - x.value).slice(0, 40);
+    return { available: true, metric: (state.component === "pp" ? "PP offense" : "PK defense") + " RAPM/60", rows };
+  }
+  const vi = state.component === "ev" ? 5 : 4;
+  for (const r of _bundle.war) {
+    if (r[0] < lo || r[0] > hi || !posOk(r[3])) continue;
+    const a = agg[r[1]] ??= { id: r[1], player: r[2], pos: r[3], seasons: 0, minutes: 0, value: 0 };
+    a.seasons++; a.minutes += r[6]; a.value += r[vi];
+  }
+  const rows = Object.values(agg)
+    .map(a => ({ ...a, minutes: Math.round(a.minutes), value: +a.value.toFixed(1) }))
+    .sort((x, y) => y.value - x.value).slice(0, 40);
+  return { available: true, metric: state.component === "ev" ? "EV WAR" : "Total WAR", rows };
+}
+
+/* static skill boards from the baked skills bundle.
+   players: [season,pid,name,pos,team,toi,hits,blocks,tk,gv,pa,rush]
+   edge:    [season,pid,name,pos,team,toi,mph,mph_pct,bursts22]  */
+const SKILL_COL = { hits60: 6, blocks60: 7, takeaways60: 8, giveaways60: 9,
+                    primary_assists60: 10, rush_xg60: 11 };
+async function staticSkillBoard() {
+  if (!_skills) _skills = await fetch("api/skills-data.json").then(r => r.json()).catch(() => null);
+  if (!_skills) return { available: false, note: "Skill bundle not baked." };
+  const lo = state.from || 0, hi = state.to || 99999999;
+  const posOk = (p) => state.pos === "all" || (state.pos === "D" ? p === "D" : p !== "D");
+  const [label, desc] = SKILL_LABELS[state.skill];
+  const lower = LOWER_BETTER.has(state.skill);
+
+  if (state.board === "teams") {
+    const avail = _skills.seasons.filter(s => s >= lo && s <= hi);
+    const season = avail.length ? Math.max(...avail) : Math.max(..._skills.seasons);
+    return teamBoardView({ available: true, season, rows: _skills.teams[String(season)] || [] });
+  }
+
+  if (state.skill === "speed" || state.skill === "bursts60") {
+    const inWin = _skills.edge.filter(r => r[0] >= lo && r[0] <= hi);
+    if (!inWin.length) return { available: false,
+      note: "No EDGE tracking in this window (2021-22 onward, after the import)." };
+    const season = Math.max(...inWin.map(r => r[0]));
+    const rows = inWin.filter(r => r[0] === season && posOk(r[3]))
+      .map(r => state.skill === "speed"
+        ? { player: r[2], pos: r[3], team: r[4], minutes: Math.round(r[5]), value: r[6], pct: r[7] }
+        : { id: r[1], player: r[2], pos: r[3], team: r[4], minutes: Math.round(r[5]),
+            value: r[8] != null && r[5] ? +(r[8] * 60 / r[5]).toFixed(2) : null, bursts: r[8] })
+      .filter(r => r.value != null)
+      .sort((a, b) => b.value - a.value).slice(0, 40);
+    return { available: true, metric: `${label} (${desc})`, window: String(season), rows };
+  }
+
+  const col = SKILL_COL[state.skill], agg = {};
+  for (const r of _skills.players) {
+    if (r[0] < lo || r[0] > hi || !posOk(r[3]) || r[col] == null) continue;
+    const a = agg[r[1]] ??= { id: r[1], player: r[2], pos: r[3], team: r[4], teamToi: 0, num: 0, toi: 0 };
+    a.num += r[col] * r[5]; a.toi += r[5];
+    if (r[5] > a.teamToi) { a.teamToi = r[5]; a.team = r[4]; }
+  }
+  const rows = Object.values(agg).filter(a => a.toi >= 200)
+    .map(a => ({ id: a.id, player: a.player, pos: a.pos, team: a.team,
+                 minutes: Math.round(a.toi), value: +(a.num / a.toi).toFixed(3) }))
+    .sort((x, y) => lower ? x.value - y.value : y.value - x.value).slice(0, 40);
+  return { available: true, metric: `${label} (${desc})`, rows };
+}
+
+function seasonLabel(sid) { return String(sid).slice(2, 4) + "-" + String(sid).slice(6); }
+
+/* identity enrichment: team / age / top style per player id, from the same
+   dna-cloud.json the card uses (one 130KB fetch, cached; name fallback for
+   live-mode rows that lack ids). Absent rows render plain — never blocks. */
+const TEAM_COLORS = {
+  ANA: "#F47A38", ARI: "#A9431E", BOS: "#FFB81C", BUF: "#2A6EBB", CGY: "#D2001C", CAR: "#CE1126",
+  CHI: "#E3263A", COL: "#A32638", CBJ: "#2E5DAA", DAL: "#00A04B", DET: "#E51A2B", EDM: "#FF5A1F",
+  FLA: "#E03A3E", LAK: "#AAB0B4", MIN: "#2EA84F", MTL: "#C8102E", NSH: "#FFB81C", NJD: "#E0203A",
+  NYI: "#F26722", NYR: "#2161D6", OTT: "#D6313C", PHI: "#FA4616", PIT: "#FCB514", SJS: "#00A7B5",
+  SEA: "#6CB4C9", STL: "#2A78C2", TBL: "#2E78D8", TOR: "#1B4FA0", VAN: "#1F8A4C", VGK: "#C0A15B",
+  WPG: "#3A6BB0", WSH: "#C8102E", UTA: "#71AFE5"
+};
+const teamColor = t => TEAM_COLORS[(t || "").toUpperCase()] || null;
+const _fold = s => (s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+let _dnaIdx = null;
+async function dnaIndex() {
+  if (_dnaIdx) return _dnaIdx;
+  try {
+    const c = await (await fetch("api/dna-cloud.json")).json();
+    _dnaIdx = { byId: {}, byName: {} };
+    for (const p of c.players) { _dnaIdx.byId[p.id] = p; _dnaIdx.byName[_fold(p.n)] = p; }
+  } catch (e) { _dnaIdx = { byId: {}, byName: {} }; }
+  return _dnaIdx;
+}
+
+/* a failed fetch must never strand the board on "Loading…" */
+function boardFail() {
+  const el = document.getElementById("board");
+  el.className = "";
+  el.innerHTML = "Couldn't load the leaders bundle — <a href='javascript:location.reload()'>retry</a>.";
+}
+
+let _renderSeq = 0;
+async function render() {
+  const seq = ++_renderSeq;
+  let d;
+  try { d = await fetchBoard(); }
+  catch (e) { if (seq === _renderSeq) boardFail(); return; }
+  if (seq !== _renderSeq) return;   // superseded by a newer click; drop this response
+  if (!d || !d.available) {
+    document.getElementById("board").textContent = (d && d.note) || "Unavailable.";
+    document.getElementById("board").className = "";
+    return;
+  }
+  const from = state.from ? seasonLabel(state.from) : "2010-11";
+  const to = state.to ? seasonLabel(state.to) : "now";
+  const windowLabel = d.window
+    ? (d.window.includes("-") && d.window.length > 8
+        ? d.window.replace(/(\d{4})\d{4}-(\d{4})\d{4}/, "$1 to $2") : seasonLabel(Number(d.window)) || d.window)
+    : (from === "2010-11" && to === "now" ? "2010-present" : from + " to " + to);
+  document.getElementById("board-title").textContent =
+    `${d.metric} — ${windowLabel}` + (state.board === "value" && state.phase === "po" ? " (playoffs)" : "");
+  const isValueBoard = state.board === "value", isTeam = state.board === "teams";
+  document.getElementById("board-sub").textContent = `${d.rows.length} shown` +
+    (d.lowerIsBetter ? " · lower is better" : "") +
+    (isValueBoard ? " · production accounting — not a “best player” ranking" : "");
+  const idx = isTeam ? { byId: {}, byName: {} } : await dnaIndex();
+  if (seq !== _renderSeq) return;                       // the join awaited; re-check
+  const cols = Object.keys(d.rows[0] || {}).filter(c =>
+    c !== "player" && c !== "id" && c !== "team" && c !== "pos" && c !== "value");
+  const SUB_FMT = {
+    seasons: v => `${v} season${v === 1 ? "" : "s"}`,
+    minutes: v => `${(+v).toLocaleString()} min`,
+    roster_minutes: v => `${(+v).toLocaleString()} roster min`,
+    gp: v => `${v} GP`,
+    runs: v => `${v} run${v === 1 ? "" : "s"}`,
+    goals: v => `${v} goal${v === 1 ? "" : "s"}`,
+    pct: v => `${Math.round(v)}th pctl`,
+    bursts: v => `${v} bursts`,
+  };
+  const fmtSub = (c, v) => v == null ? null :
+    (SUB_FMT[c] ? SUB_FMT[c](v)
+      : `${String(c).replace(/_/g, " ")} ${typeof v === "number" && v >= 1000 ? v.toLocaleString() : v}`);
+  const _init = n => (n || "").split(/\s+/).map(w => w[0]).filter(Boolean).slice(0, 2).join("").toUpperCase();
+  const ssn = seasons.length ? seasons[seasons.length - 1] : null;
+  // bars scale to the VISIBLE range — leaders cluster tightly, so max-scaling
+  // rendered every bar ~full and said nothing
+  const vals = d.rows.map(r => Math.abs(+r.value || 0));
+  const maxAbs = Math.max(...vals, 1e-9), minAbs = Math.min(...vals);
+  const vspan = Math.max(maxAbs - minAbs, 1e-9);
+  const cards = d.rows.map((r, i) => {
+    const cp = r.id != null ? idx.byId[r.id] : idx.byName[_fold(r.player)];
+    const name = r.player || r.team;
+    const team = r.team || (cp && cp.t) || null, tc = teamColor(team);
+    const href = r.id != null ? `player.html?id=${r.id}`
+      : r.player ? `player.html?name=${encodeURIComponent(r.player)}` : null;
+    const click = href ? ` onclick="location.href='${href}'"` : "";
+    const v = r.value;
+    const numCls = isValueBoard ? (v >= 0 ? "pos" : "neg") : "";
+    const numTxt = (isValueBoard && v > 0 ? "+" : "") + (v ?? "—");
+    const pct = Math.max(6, Math.min(100, Math.round(12 + 88 * (Math.abs(+v || 0) - minAbs) / vspan)));
+    const barStyle = `width:${pct}%` +
+      (isValueBoard && v < 0 ? ";background:#fb7185" : tc ? `;background:linear-gradient(90deg, ${tc}55, ${tc})` : "");
+    const medal = i < 3 ? ` m${i + 1}` : "";
+    const rank = `<div class="lb-rank${medal}">${i + 1}</div>`;
+    const mugImg = (window.IC_HEADSHOTS && r.id != null && team && ssn)
+      ? `<img src="https://assets.nhle.com/mugs/nhl/${ssn}/${team}/${r.id}.png" alt="" loading="lazy" onerror="this.remove()">` : "";
+    const mug = `<div class="lb-mug"${tc ? ` style="border-color:${tc}; background:${tc}26;"` : ""}>` +
+      `<span class="rk${medal}">${i + 1}</span>${isTeam ? (team || "") : _init(name)}${mugImg}</div>`;
+    const chips = (r.pos ? `<span class="lb-pos">${r.pos}${cp && cp.a != null ? " · " + cp.a : ""}</span>` : "") +
+      (team && !isTeam ? `<span class="lb-team" style="color:${tc || "var(--muted)"}; border-color:${tc ? tc + "66" : "var(--line)"};">${team}</span>` : "") +
+      (cp && cp.s ? `<span class="lb-style">${cp.s}</span>` : "");
+    const sub = cols.map(c => fmtSub(c, r[c])).filter(Boolean).join(" · ");
+    const rate = isValueBoard && r.seasons > 1 && v != null
+      ? `<div class="lb-rate">${(v / r.seasons >= 0 ? "+" : "") + (v / r.seasons).toFixed(1)} / season</div>` : "";
+    return `<div class="lb-card${i < 3 ? " p" + (i + 1) : ""}"${click}>${rank}${mug}` +
+      `<div style="min-width:0;"><div class="lb-name"><span class="nm">${name}</span>${chips}</div>${sub ? `<div class="lb-sub">${sub}</div>` : ""}</div>` +
+      `<div class="lb-val"><div class="lb-num ${numCls}">${numTxt}</div>${rate}` +
+      `<div class="lb-bar"><span style="${barStyle}"></span></div></div></div>`;
+  }).join("");
+  document.getElementById("board").innerHTML = `<div class="lb-cards">${cards}</div>`;
+  document.getElementById("board").className = "";
+}
+
+function initSeasons(list) {
+  seasons = list;
+  for (const id of ["sel-from", "sel-to"]) {
+    const sel = document.getElementById(id);
+    sel.innerHTML = '<option value="">' + (id === "sel-from" ? "2010-11" : "latest") + "</option>" +
+      list.map(s => `<option value="${s}">${seasonLabel(s)}</option>`).join("");
+    sel.onchange = () => {
+      state.from = Number(document.getElementById("sel-from").value) || null;
+      state.to = Number(document.getElementById("sel-to").value) || null;
+      render();
+    };
+  }
+}
+
+function syncRows() {
+  const v = state.board === "value";
+  document.getElementById("phase-row").style.display = v ? "" : "none";
+  document.getElementById("comp-row").style.display = v ? "" : "none";
+  document.getElementById("skill-row").style.display = v ? "none" : "";
+  document.getElementById("pos-lab").parentElement
+    .querySelectorAll('[data-g="pos"]').forEach(x => x.style.display = state.board === "teams" ? "none" : "");
+  document.getElementById("pos-lab").style.display = state.board === "teams" ? "none" : "";
+}
+document.querySelectorAll(".ld-chip").forEach(b => b.onclick = () => {
+  document.querySelectorAll(`.ld-chip[data-g="${b.dataset.g}"]`).forEach(x => x.classList.toggle("on", x === b));
+  state[b.dataset.g] = b.dataset.v;
+  document.getElementById("comp-row").style.opacity = state.phase === "po" ? 0.35 : 1;
+  syncRows();
+  render();
+});
+
+(async () => {
+  try {
+    if (window.STATIC) {
+      _bundle = await (await fetch("api/leaders-data.json")).json();
+      initSeasons(_bundle.seasons);
+    } else {
+      const d = await (await fetch("/api/nhl-leaders?limit=1")).json();
+      initSeasons(d.seasons || []);
+    }
+  } catch (e) { boardFail(); return; }
+  render();
+})();
+</script>
+    <script src="./player-modal.js"></script>
+</body>
+</html>

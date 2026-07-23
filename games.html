@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>window.STATIC=1;window.BUILD_ID="cfa3fc9-20260723T172316Z"</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Game cards — Icenomics</title>
+  <meta property="og:title" content="NHL Game Cards — Icenomics">
+  <meta property="og:description" content="Every game of the latest night — every player's line with shot-quality context, honestly labeled single-game numbers.">
+  <meta name="description" content="NHL game cards: each night's games with every player's line, individual xG, and single-game goalie GSAx — honestly labeled.">
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#0b1018">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./styles.css?v=20260617-mobilenav">
+  <style>
+    .gc-wrap { max-width: 980px; margin: 0 auto; padding: 18px 16px 60px; }
+    .gc-head h1 { font-size: 24px; letter-spacing: -.02em; color: var(--ink-strong); margin: 14px 0 4px; }
+    .gc-head .sub { color: var(--muted); font-size: 13px; line-height: 1.55; }
+    .gc-date { color: var(--ice-bright); font-weight: 800; }
+    .gc-game { border: 1px solid var(--line); border-radius: 14px; background: linear-gradient(180deg, var(--panel-raised), var(--panel));
+      padding: 16px; margin: 16px 0; }
+    .gc-score { display: flex; align-items: center; justify-content: center; gap: 14px; flex-wrap: wrap; }
+    .gc-side { display: flex; align-items: center; gap: 10px; }
+    .gc-crest { width: 44px; height: 44px; border-radius: 50%; background: var(--panel); border: 2px solid var(--line);
+      display: flex; align-items: center; justify-content: center; overflow: hidden; }
+    .gc-crest img { width: 100%; height: 100%; object-fit: contain; padding: 4px; }
+    .gc-num { font-size: 30px; font-weight: 800; color: var(--ink-strong); font-variant-numeric: tabular-nums; }
+    .gc-code { font-size: 13px; font-weight: 800; color: var(--muted); }
+    .gc-meta { text-align: center; color: var(--faint); font-size: 11.5px; margin-top: 6px; }
+    .gc-meta b { color: var(--ice-bright); font-weight: 800; letter-spacing: .04em; }
+    .gc-stars { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin: 12px 0 4px; }
+    .gc-star { border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px 5px 7px; font-size: 12px;
+      color: var(--muted); display: flex; align-items: center; gap: 7px; background: rgba(255,255,255,.015); }
+    .gc-star .m { width: 19px; height: 19px; border-radius: 50%; display: inline-flex; align-items: center;
+      justify-content: center; font-size: 10px; font-weight: 800; color: #0b1220; flex: none; }
+    .gc-star b { color: var(--ink-strong); }
+    .gc-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 14px; }
+    @media (max-width: 680px) { .gc-cols { grid-template-columns: 1fr; } }
+    .gc-th { font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--faint);
+      display: grid; grid-template-columns: minmax(0,1fr) 26px 26px 40px 34px 44px; gap: 4px; padding: 4px 6px; }
+    .gc-row { display: grid; grid-template-columns: minmax(0,1fr) 26px 26px 40px 34px 44px; gap: 4px; padding: 5px 6px;
+      font-size: 12.5px; border-top: 1px solid rgba(255,255,255,.045); font-variant-numeric: tabular-nums;
+      color: var(--muted); align-items: baseline; }
+    .gc-row a { color: var(--ink-strong); font-weight: 650; text-decoration: none; overflow: hidden;
+      text-overflow: ellipsis; white-space: nowrap; }
+    .gc-row a:hover { color: var(--ice-bright); }
+    .gc-row .idx { color: var(--ice-bright); font-weight: 750; text-align: right; }
+    .gc-row span { text-align: right; }
+    .gc-goalie { font-size: 12.5px; color: var(--muted); padding: 7px 6px; border-top: 1px solid var(--line); margin-top: 5px; }
+    .gc-goalie b { color: var(--ink-strong); }
+    .gc-goalie .g-pos { color: #6ee7c8; font-weight: 750; }
+    .gc-goalie .g-neg { color: #fda4ab; font-weight: 750; }
+    .gc-tap { cursor: pointer; }
+    .gc-tap:hover { background: rgba(56,189,248,.04); }
+    .gc-receipt { grid-column: 1 / -1; font-size: 11px; color: var(--muted); line-height: 1.55;
+      padding: 6px 8px 7px; background: rgba(56,189,248,.05); border-left: 2px solid rgba(125,211,252,.45);
+      border-radius: 0 6px 6px 0; margin: 2px 0 4px; font-variant-numeric: tabular-nums; }
+    .gc-receipt b { color: var(--ice-bright); }
+    .gc-gradeh { cursor: pointer; color: var(--ice-bright) !important; }
+    .gc-legend { font-size: 11px; color: var(--muted); line-height: 1.6; padding: 7px 9px; margin: 4px 0 8px;
+      border: 1px dashed var(--line); border-radius: 8px; }
+    .gc-legend b { color: var(--ink-strong); }
+    .gc-note { color: var(--faint); font-size: 11.5px; line-height: 1.6; margin-top: 20px; border-left: 2px solid var(--line);
+      padding-left: 11px; }
+    .gc-tcode { font-size: 11px; font-weight: 800; letter-spacing: .07em; color: var(--ink-strong); margin: 0 0 3px 6px; }
+    .gc-sec { font-size: 14px; font-weight: 800; letter-spacing: -.01em; color: var(--ink-strong); margin: 24px 0 8px; }
+    .gc-chips { display: flex; gap: 7px; flex-wrap: wrap; margin: 0 0 12px; }
+    .gc-chip { min-height: 28px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--line);
+      background: transparent; color: var(--muted); font-size: 12px; font-weight: 700; cursor: pointer; }
+    .gc-chip.on { border-color: var(--ice); color: var(--ice-bright); }
+    .fm-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    @media (max-width: 680px) { .fm-cols { grid-template-columns: 1fr; } }
+    .fm-h { font-size: 11px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase;
+      color: var(--muted); margin: 4px 0 6px 6px; }
+    .fm-row { display: flex; align-items: center; gap: 9px; padding: 6px; font-size: 12.5px;
+      border-top: 1px solid rgba(255,255,255,.045); color: var(--muted); }
+    .fm-crest { width: 24px; height: 24px; border-radius: 50%; background: var(--panel); border: 1px solid var(--line);
+      flex: none; overflow: hidden; display: flex; }
+    .fm-crest img { width: 100%; height: 100%; object-fit: contain; padding: 2px; }
+    .fm-row a { color: var(--ink-strong); font-weight: 650; text-decoration: none; }
+    .fm-row a:hover { color: var(--ice-bright); }
+    .fm-line { margin-left: auto; text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .fm-idx { font-weight: 750; }
+    .fm-idx.hot { color: #6ee7c8; } .fm-idx.cold { color: #fda4ab; }
+    .fm-sub { font-size: 11px; color: var(--faint); margin: 2px 0 10px 6px; }
+    .fm-empty { color: var(--faint); font-size: 11.5px; padding: 7px 6px; }
+    .sb-card { border: 1px solid var(--line); border-radius: 14px;
+      background: linear-gradient(180deg, var(--panel-raised), var(--panel)); padding: 16px 18px; margin: 4px 0 8px; }
+    .sb-h { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; }
+    .sb-h h3 { font-size: 15px; font-weight: 800; color: var(--ink-strong); margin: 0; }
+    .sb-badge { font-size: 10px; font-weight: 800; letter-spacing: .05em; text-transform: uppercase;
+      border-radius: 999px; padding: 3px 9px; }
+    .sb-badge.bt { color: #cbd5e1; background: rgba(203,213,225,.12); border: 1px solid rgba(203,213,225,.28); }
+    .sb-badge.live { color: #6ee7c8; background: rgba(110,231,200,.12); border: 1px solid rgba(110,231,200,.3); }
+    .sb-headline { font-size: 18px; font-weight: 800; color: var(--ink-strong); margin: 9px 0 4px; letter-spacing: -.01em; }
+    .sb-sum { font-size: 12.5px; color: var(--muted); line-height: 1.6; }
+    .sb-metrics { display: flex; gap: 20px; flex-wrap: wrap; margin: 12px 0 2px; }
+    .sb-metric { font-variant-numeric: tabular-nums; }
+    .sb-metric .v { font-size: 20px; font-weight: 800; color: var(--ink-strong); }
+    .sb-metric .k { font-size: 10.5px; color: var(--faint); text-transform: uppercase; letter-spacing: .05em; }
+    .sb-metric .mk { color: var(--ice-bright); }
+    .sb-live-empty { font-size: 12.5px; color: var(--muted); line-height: 1.6; border-left: 2px solid rgba(110,231,200,.4);
+      padding-left: 12px; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <div class="gc-wrap">
+    <div class="pc-top" style="display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
+      <a class="bl-brand" href="./index.html"><span class="bl-mark">IC</span> Icenomics</a>
+      <nav style="display:flex; gap:12px; flex-wrap:wrap; align-items:center; font-size:12.5px; font-weight:600;"><a href="./index.html" style="color:var(--muted); text-decoration:none;">Home</a> <a href="./player.html" style="color:var(--muted); text-decoration:none;">Players</a> <span style="color:var(--ice-bright);">Games</span> <a href="./standings.html" style="color:var(--muted); text-decoration:none;">Projections</a> <a href="./fa-board.html" style="color:var(--muted); text-decoration:none;">Free agents</a> <a href="./deal-grader.html" style="color:var(--muted); text-decoration:none;">Deal Grader</a> <a href="./front-office.html" style="color:var(--muted); text-decoration:none;">Front office</a> <a href="./draft-board.html" style="color:var(--muted); text-decoration:none;">Draft board</a> <a href="./leaders.html" style="color:var(--muted); text-decoration:none;">Leaders</a> <a href="./transactions.html" style="color:var(--muted); text-decoration:none;">Transactions</a> <a href="./offseason.html" style="color:var(--muted); text-decoration:none;">Offseason</a> <a href="./book.html" style="color:var(--muted); text-decoration:none;">Open Book</a> <a href="./reliability.html" style="color:var(--muted); text-decoration:none;">Reliability</a></nav>
+    </div>
+
+    <div class="gc-head">
+      <h1>Game cards</h1>
+      <div class="sub">Every game of <span class="gc-date" id="gc-date">the latest night</span> in the warehouse —
+        every player's line with shot-quality context. In season this page is <b>last night</b>;
+        single-game numbers are honestly labeled as one night, never a rating.</div>
+    </div>
+
+    <div id="sb-host"></div>
+
+    <h3 class="gc-sec">Form — who's hot, who's not</h3>
+    <div class="gc-chips" id="fm-chips"></div>
+    <div id="fm-host"><div class="pc-loading">Loading form…</div></div>
+
+    <h3 class="gc-sec" id="gc-games-h">The latest night</h3>
+    <div id="gc-host"><div class="pc-loading">Loading the latest night…</div></div>
+    <p class="gc-note" id="gc-note"></p>
+    <p class="gc-note" id="fm-note"></p>
+  </div>
+
+  <script>
+  "use strict";
+  const crest = t => `https://assets.nhle.com/logos/nhl/svg/${t}_dark.svg`;
+  const esc = s => String(s == null ? "" : s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  const MEDALS = ["#f5c84c", "#c8d3e0", "#d9975a"];
+
+  function teamCol(tc, t) {
+    // the game grade row: production + on-ice tilt (user 2026-07-08 — the grade
+    // must be more than "did he score"; a tilted shutdown night grades too).
+    // Every row is its own receipt (user 2026-07-10: "how are these grades
+    // calculated?") — tap it and the full input line + weighted terms expand.
+    const rows = t.skaters.map(r => {
+      const terms = [
+        [0.75, r.g, "G"], [0.60, r.a, "A"], [0.60, r.ixg, "ixG"],
+        [0.075, r.sog, "SOG"], [0.05, r.hits, "hit"], [0.15, r.blk, "blk"],
+        [0.15, r.tk || 0, "TK"], [-0.15, r.gv || 0, "GV"], [0.50, r.onDiff || 0, "xG±"],
+      ].filter(([w, v]) => v).map(([w, v, k]) =>
+        `${w < 0 ? "−" : ""}${Math.abs(w)}×${v}${k}`).join(" + ").replace(/\+ −/g, "− ");
+      const detail = `${r.toi} TOI · ${r.sog} SOG · ${r.hits} hit · ${r.blk} blk · ` +
+        `${r.tk || 0} TK · ${r.gv || 0} GV — grade = ${terms || "0"} = <b>${r.idx.toFixed(2)}</b>`;
+      return `<div class="gc-row gc-tap" data-detail="${detail.replace(/"/g, "&quot;")}">` +
+        `<a href="player.html?id=${r.id}">${esc(r.name)}</a>` +
+        `<span>${r.g}</span><span>${r.a}</span>` +
+        `<span>${r.onDiff != null ? (r.onDiff >= 0 ? "+" : "") + r.onDiff.toFixed(1) : "—"}</span>` +
+        `<span>${r.ixg.toFixed(1)}</span><span class="idx">${r.idx.toFixed(1)}</span></div>`;
+    }).join("");
+    const gl = t.goalies.map(g => {
+      const gs = g.gsax >= 0 ? `<span class="g-pos">+${g.gsax.toFixed(2)}</span>` : `<span class="g-neg">${g.gsax.toFixed(2)}</span>`;
+      return `<div class="gc-goalie">🥅 <b><a style="color:inherit;text-decoration:none;" href="player.html?id=${g.id}">${esc(g.name)}</a></b> — ` +
+        `${g.saves}/${g.shotsAgainst}${g.svPct != null ? " · " + g.svPct.toFixed(3).replace(/^0/, "") : ""} · ${gs} GSAx <span style="color:var(--faint)">(single game)</span></div>`;
+    }).join("");
+    return `<div><div class="gc-tcode">${tc}</div>` +
+      `<div class="gc-th"><span style="text-align:left">Skater</span><span>G</span><span>A</span><span>xG±</span><span>ixG</span><span class="gc-gradeh" role="button" title="how the grade works">grade ⓘ</span></div>` +
+      rows + gl + `</div>`;
+  }
+
+  function render(d) {
+    document.getElementById("gc-date").textContent = d.date;
+    document.getElementById("gc-note").textContent = d.note || "";
+    document.getElementById("gc-host").innerHTML = d.games.map(g => {
+      const tag = [g.label, g.ot ? "OT" : "", g.so ? "SO" : ""].filter(Boolean).join(" · ");
+      const stars = g.stars.map((s, i) =>
+        `<span class="gc-star"><span class="m" style="background:${MEDALS[i]}">${i + 1}</span>` +
+        `<b>${esc(s.name)}</b> ${s.team} · ${esc(s.line)}</span>`).join("");
+      const order = [g.away, g.home];
+      return `<div class="gc-game">` +
+        `<div class="gc-score">` +
+        `<div class="gc-side"><span class="gc-crest"><img src="${crest(g.away)}" alt="" onerror="this.remove()"></span><span class="gc-code">${g.away}</span><span class="gc-num">${g.awayScore}</span></div>` +
+        `<span style="color:var(--faint); font-weight:700;">@</span>` +
+        `<div class="gc-side"><span class="gc-num">${g.homeScore}</span><span class="gc-code">${g.home}</span><span class="gc-crest"><img src="${crest(g.home)}" alt="" onerror="this.remove()"></span></div>` +
+        `</div>` +
+        (tag || g.venue ? `<div class="gc-meta">${tag ? `<b>${esc(tag)}</b>` : ""}${tag && g.venue ? " · " : ""}${esc(g.venue || "")}</div>` : "") +
+        `<div class="gc-stars">${stars}</div>` +
+        `<div class="gc-cols">${order.map(tc => g.teams[tc] ? teamCol(tc, g.teams[tc]) : "").join("")}</div>` +
+        `</div>`;
+    }).join("");
+  }
+
+  /* Form board — who's hot, who's not. TWO lenses (user correction 2026-07-08:
+     judge by IMPACT, not boxcars): Impact = even-strength on-ice xG tilt (default — the
+     site's brand), Production = the night index. "Cold" in both lenses is gated
+     to big-minute skaters; the note explains why. */
+  let FORM = null, fmKey = null, fmLens = "impact";
+  function fmHasImpact(w) {
+    return !!w && Array.isArray(w.hotImpact) && Array.isArray(w.coldImpact);
+  }
+  function fmRow(r, kind) {
+    if (kind === "g") {
+      const idx = `<span class="fm-idx ${r.gsax >= 0 ? "hot" : "cold"}">${r.gsax >= 0 ? "+" : ""}${r.gsax.toFixed(1)} GSAx</span>`;
+      return `<div class="fm-row"><span class="fm-crest"><img src="${crest(r.team)}" alt="" onerror="this.remove()"></span>` +
+        `<a href="player.html?id=${r.id}">${esc(r.name)}</a><span class="fm-line">${r.gp} GP · ${r.svPct != null ? r.svPct.toFixed(3).replace(/^0/, "") : "—"} · ${idx}</span></div>`;
+    }
+    const line = fmLens === "impact"
+      ? `${r.gp} GP · xGF ${r.onXgf} — ${r.onXga} xGA · <span class="fm-idx ${kind}">${r.onDiff >= 0 ? "+" : ""}${r.onDiff}</span>`
+      : `${r.gp} GP · ${r.g}G ${r.a}A · ${r.ixg} ixG · <span class="fm-idx ${kind}">${r.idxPg.toFixed(2)}/gm</span>`;
+    return `<div class="fm-row"><span class="fm-crest"><img src="${crest(r.team)}" alt="" onerror="this.remove()"></span>` +
+      `<a href="player.html?id=${r.id}">${esc(r.name)}</a><span class="fm-line">${line}</span></div>`;
+  }
+  function fmRender() {
+    const w = FORM.windows[fmKey];
+    if (!w) return;
+    const hot = fmLens === "impact" ? w.hotImpact : (w.hot || []);
+    const cold = fmLens === "impact" ? w.coldImpact : (w.cold || []);
+    const goaliesHot = w.goaliesHot || [], goaliesCold = w.goaliesCold || [];
+    const rows = (items, kind, empty) => items.length
+      ? items.map(r => fmRow(r, kind)).join("")
+      : `<div class="fm-empty">${esc(empty)}</div>`;
+    const coldSub = fmLens === "impact" ? "(17+ min a night, getting tilted)" : "(17+ min a night, not producing)";
+    const hotSub = fmLens === "impact" ? " — even-strength on-ice xG tilt" : "";
+    document.getElementById("fm-host").innerHTML =
+      `<div class="fm-cols"><div>` +
+      `<div class="fm-h">🔥 Who's hot<span style="text-transform:none; letter-spacing:0; font-weight:500;">${hotSub}</span></div>` +
+      rows(hot, "hot", "No qualifying skaters in this window.") +
+      `<div class="fm-h" style="margin-top:14px;">🥅 Goalies — hot</div>` +
+      rows(goaliesHot, "g", "No positive-GSAx goalies in this window.") +
+      `</div><div>` +
+      `<div class="fm-h">🧊 Who's not <span style="text-transform:none; letter-spacing:0; font-weight:500;">${coldSub}</span></div>` +
+      rows(cold, "cold", "No qualifying skaters in this window.") +
+      `<div class="fm-h" style="margin-top:14px;">🥅 Goalies — cold</div>` +
+      rows(goaliesCold, "g", "No negative-GSAx goalies in this window.") +
+      `</div></div>` +
+      `<div class="fm-sub">${esc(w.label)}${w.start ? " · " + esc(w.start) + " → " + esc(FORM.asOf) : " · all games incl. playoffs"} · min ${w.minGp} GP</div>`;
+  }
+  function fmChips() {
+    const box = document.getElementById("fm-chips");
+    const impactReady = fmHasImpact(FORM.windows[fmKey]);
+    if (!impactReady && fmLens === "impact") fmLens = "production";
+    const winChips = Object.entries(FORM.windows).map(([k, w]) =>
+      `<button class="gc-chip${k === fmKey ? " on" : ""}" data-k="${k}" type="button">${esc(w.label)}</button>`).join("");
+    const lensChips =
+      `<span style="flex:0 0 100%; height:0;"></span>` +
+      (impactReady
+        ? `<button class="gc-chip${fmLens === "impact" ? " on" : ""}" data-lens="impact" type="button">Impact — on-ice xG</button>`
+        : `<span class="fm-sub">Impact lens unavailable in this payload; showing Production.</span>`) +
+      `<button class="gc-chip${fmLens === "production" ? " on" : ""}" data-lens="production" type="button">Production</button>`;
+    box.innerHTML = winChips + lensChips;
+    box.onclick = (e) => {
+      const b = e.target.closest("button[data-k],button[data-lens]"); if (!b) return;
+      if (b.dataset.k) fmKey = b.dataset.k; else fmLens = b.dataset.lens;
+      fmChips(); fmRender();
+    };
+  }
+
+  /* Self-scoring scoreboard — two labeled tiers, never blended. Backtest is
+     real now (2025-26 vs Vegas closing); the live locked record fills in from
+     opening night. */
+  function sbRender(s) {
+    if (!s || !s.available) return;
+    const bt = s.backtest, p = bt && bt.primary;
+    let html = "";
+    if (bt && p) {
+      const our = p.our, mkt = p.market;
+      const m = (lab, o, k, cls) => `<div class="sb-metric"><span class="v${cls || ""}">${o}</span> <span class="k">${lab}</span></div>`;
+      html += `<div class="sb-card"><div class="sb-h"><h3>Model vs. the market</h3>` +
+        `<span class="sb-badge bt">Backtest · 2025-26</span></div>` +
+        `<div class="sb-headline">${esc(bt.headline || "")}</div>` +
+        `<div class="sb-sum">${esc(bt.summary || "")}</div>` +
+        `<div class="sb-metrics">` +
+        `<div class="sb-metric"><span class="v">${our.logloss.toFixed(4)}</span> <span class="k">our log-loss</span></div>` +
+        `<div class="sb-metric"><span class="v mk">${mkt.logloss.toFixed(4)}</span> <span class="k">Vegas closing</span></div>` +
+        `<div class="sb-metric"><span class="v">${(our.acc * 100).toFixed(1)}%</span> <span class="k">our accuracy · ${p.games} games</span></div>` +
+        `</div></div>`;
+    }
+    const live = s.live;
+    html += `<div class="sb-card"><div class="sb-h"><h3>Our locked record</h3>` +
+      `<span class="sb-badge live">Live · locked before puck drop</span></div>`;
+    if (live) {
+      html += `<div class="sb-metrics">` +
+        `<div class="sb-metric"><span class="v">${live.logloss.toFixed(4)}</span> <span class="k">log-loss</span></div>` +
+        `<div class="sb-metric"><span class="v">${(live.acc * 100).toFixed(1)}%</span> <span class="k">accuracy</span></div>` +
+        `<div class="sb-metric"><span class="v">${live.games}</span> <span class="k">games graded</span></div>` +
+        `</div>`;
+    } else {
+      html += `<div class="sb-live-empty">${esc(s.liveNote || "")}</div>`;
+    }
+    html += `</div>`;
+    document.getElementById("sb-host").innerHTML = html;
+  }
+
+  /* Grade receipts (user 2026-07-10: "how are these grades calculated?"):
+     tap the grade header for the formula, tap any row for its own arithmetic. */
+  document.getElementById("gc-host").addEventListener("click", (e) => {
+    const h = e.target.closest(".gc-gradeh");
+    if (h) {
+      const table = h.closest(".gc-th").parentElement;
+      const old = table.querySelector(".gc-legend");
+      if (old) { old.remove(); return; }
+      h.closest(".gc-th").insertAdjacentHTML("afterend",
+        `<div class="gc-legend"><b>The grade is the night index</b> — a fixed, published composite of the night's actual events: ` +
+        `0.75·G + 0.60·A + 0.60·ixG + 0.075·SOG + 0.05·hits + 0.15·blocks + 0.15·takeaways − 0.15·giveaways + ` +
+        `<b>0.50·(even-strength on-ice xG tilt)</b> — so tilting the ice by +1.5 xG counts like a goal, and a shutdown ` +
+        `night can grade without a point. A transparent sort key for ONE night, never a rating: one game is noise. ` +
+        `Tap any row for its arithmetic.</div>`);
+      return;
+    }
+    const row = e.target.closest(".gc-tap");
+    if (!row || e.target.closest("a")) return;
+    const next = row.nextElementSibling;
+    if (next && next.classList.contains("gc-receipt")) { next.remove(); return; }
+    row.insertAdjacentHTML("afterend", `<div class="gc-receipt">${row.dataset.detail}</div>`);
+  });
+
+  (async () => {
+    let sc = null;
+    try { sc = await (await fetch("api/scoreboard.json?v=" + (window.BUILD_ID || Date.now()))).json(); }
+    catch (e) { try { sc = await (await fetch("/api/scoreboard.json")).json(); } catch (e2) { /* skip */ } }
+    if (sc) sbRender(sc);
+
+    let d = null;
+    try { d = await (await fetch("api/game-cards.json?v=" + (window.BUILD_ID || Date.now()))).json(); }
+    catch (e) {
+      try { d = await (await fetch("/api/game-cards.json")).json(); } catch (e2) { /* fall through */ }
+    }
+    if (!d || !d.available) {
+      document.getElementById("gc-host").innerHTML = '<div class="pc-loading">No completed games in the warehouse yet.</div>';
+    } else {
+      render(d);
+    }
+    let f = null;
+    try { f = await (await fetch("api/form.json?v=" + (window.BUILD_ID || Date.now()))).json(); }
+    catch (e) {
+      try { f = await (await fetch("/api/form.json")).json(); } catch (e2) { /* fall through */ }
+    }
+    if (!f || !f.available) {
+      document.getElementById("fm-host").innerHTML = '<div class="pc-loading">No form data yet.</div>';
+      return;
+    }
+    FORM = f; fmKey = Object.keys(f.windows)[0];
+    fmLens = f.defaultLens === "impact" ? "impact" : "production";
+    fmChips(); fmRender();
+    document.getElementById("fm-note").textContent = f.note || "";
+  })();
+  </script>
+  <script src="./player-modal.js"></script>
+</body>
+</html>

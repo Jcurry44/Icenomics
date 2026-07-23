@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>window.STATIC=1;window.BUILD_ID="cfa3fc9-20260723T172316Z"</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Deal Grader — Icenomics</title>
+  <meta property="og:title" content="NHL Deal Grader — Icenomics">
+  <meta property="og:description" content="Current-model reconstruction of eligible NHL skater contracts in each deal's signing-year cap frame, with outcome-calibrated letters and receipts.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://jcurry44.github.io/Icenomics/og-card.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#0b1018">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <link rel="apple-touch-icon" href="./apple-touch-icon.png">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./styles.css?v=20260617-mobilenav">
+  <style>
+    .dg-wrap { max-width: 880px; margin: 0 auto; padding: 26px 18px 60px; }
+    .dg-top { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 6px; }
+    .dg-top h2 { margin: 0; font-size: 20px; color: var(--ink-strong); }
+    .dg-top a { color: var(--muted); font-size: 13px; text-decoration: none; font-weight: 600; }
+    .dg-lede { color: var(--muted); font-size: 13px; line-height: 1.6; margin: 0 0 16px; max-width: 640px; }
+    .dg-lede b { color: var(--ink-strong); }
+
+    /* hero tiles — the league's report card at a glance */
+    .dg-hero { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 16px; }
+    .dg-tile { padding: 12px 13px; border: 1px solid var(--line); border-radius: 12px;
+      background: linear-gradient(160deg, rgba(56,189,248,.06), transparent 72%); }
+    .dg-tile .k { font-size: 10px; text-transform: uppercase; letter-spacing: .09em; color: var(--muted); font-weight: 800; }
+    .dg-tile .v { font-size: 20px; font-weight: 800; letter-spacing: -.01em; color: var(--ice-bright); margin: 3px 0 1px; }
+    .dg-tile .s { font-size: 11px; color: var(--faint); line-height: 1.45; }
+    .dg-tile .s a { color: var(--ice-bright); text-decoration: none; }
+
+    /* the grade spectrum — the league distribution as one tappable band */
+    .dg-spectrum { margin-bottom: 4px; }
+    .dg-spec-bar { display: flex; height: 34px; border-radius: 10px; overflow: hidden; border: 1px solid var(--line); }
+    .dg-seg { position: relative; min-width: 22px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 800; color: #06121f; transition: filter .12s ease, transform .12s ease; }
+    .dg-seg:hover { filter: brightness(1.15); }
+    .dg-seg.dim { filter: saturate(.25) brightness(.55); }
+    .dg-seg.on { box-shadow: inset 0 0 0 2px rgba(255,255,255,.75); }
+    .dg-spec-sub { display: flex; justify-content: space-between; font-size: 10.5px; color: var(--faint); margin: 5px 1px 0; }
+    .dg-note { color: var(--muted); font-size: 12px; line-height: 1.55; margin: 10px 0 14px; }
+
+    /* filter strip */
+    .dg-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; align-items: center; }
+    .dg-lab { font-size: 11px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--faint); margin-right: 2px; }
+    .dg-chip { min-height: 36px; padding: 0 12px; font-size: 12.5px; font-weight: 700;
+      border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--muted); cursor: pointer; }
+    .dg-chip.on { background: var(--ice); border-color: var(--ice); color: #06121f; }
+    select.dg-sel, input.dg-q { max-width: 160px; min-height: 36px; }
+    input.dg-q { background: var(--panel); border: 1px solid var(--line); border-radius: 9px; color: var(--ink-strong);
+      padding: 0 11px; font-size: 13px; }
+
+    /* the board — ranked-card list, the card's visual language */
+    .dg-board { border-top: 1px solid var(--line); }
+    .dg-card { display: grid; grid-template-columns: 44px minmax(0, 1fr) 52px; gap: 12px; align-items: center;
+      padding: 12px 8px; border-bottom: 1px solid var(--line); cursor: pointer; border-radius: 10px;
+      transition: background .12s ease; text-decoration: none; }
+    .dg-card:hover, .dg-card:active { background: rgba(56,189,248,.06); }
+    .dg-mug { width: 38px; height: 38px; border-radius: 50%; position: relative; overflow: hidden; display: flex;
+      align-items: center; justify-content: center; font-weight: 800; font-size: 12.5px; letter-spacing: .02em;
+      color: var(--ink-strong); background: rgba(74,95,128,.18); border: 2px solid #4a5f80; }
+    .dg-mug img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+      border-radius: 50%; background: var(--panel, #111927); }
+    .dg-mug img.crest { object-fit: contain; padding: 4px; }
+    .dg-name { font-size: 15px; font-weight: 750; color: var(--ink-strong); line-height: 1.3; min-width: 0;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .dg-team { font-size: 9.5px; font-weight: 800; letter-spacing: .06em; padding: 2px 7px; border-radius: 99px;
+      border: 1px solid; margin-left: 7px; vertical-align: 1px; white-space: nowrap; }
+    .dg-pos { font-size: 10.5px; font-weight: 700; color: var(--faint); margin-left: 7px; letter-spacing: .04em; }
+    .dg-deal { font-size: 12px; color: var(--muted); margin-top: 3px; line-height: 1.5; }
+    .dg-deal b { color: var(--ink-strong); font-size: 13px; font-variant-numeric: tabular-nums; }
+    .dg-edgeline { margin-top: 2px; }
+    .dg-edge { font-size: 11.5px; font-weight: 800; }
+    .dg-edge.pos { color: var(--pos, #38d39f); }
+    .dg-edge.neg { color: var(--neg, #e35d6a); }
+    .dg-sub { font-size: 11.5px; color: var(--muted); margin-top: 3px; overflow: hidden; text-overflow: ellipsis;
+      white-space: nowrap; }
+    .dg-grade { width: 46px; height: 46px; border-radius: 12px; display: flex; align-items: center; justify-content: center;
+      font-size: 17px; font-weight: 850; letter-spacing: -.02em; border: 1px solid; }
+    .dg-count { font-size: 12px; color: var(--faint); margin: 10px 2px; }
+    .dg-foot { color: var(--muted); font-size: 12px; line-height: 1.6; margin-top: 18px; }
+    .dg-foot a { color: var(--ice-bright); text-decoration: none; }
+    .dg-more { width: 100%; min-height: 40px; margin-top: 10px; border-radius: 10px; border: 1px solid var(--line);
+      background: var(--panel); color: var(--muted); font-weight: 700; font-size: 13px; cursor: pointer; }
+
+    /* the receipt popup: one tap on a row = how we graded it at signing,
+       plus the honest aging read for older deals */
+    .dg-ov { position: fixed; inset: 0; background: rgba(5, 10, 18, .72); z-index: 60;
+      display: flex; align-items: flex-end; justify-content: center;
+      -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); }
+    /* THE iOS BUG (user catch 2026-07-06, live): an author display:flex
+       OVERRIDES the hidden attribute's UA display:none in Safari — the
+       overlay was visible from page load, dimming and tap-blocking the whole
+       page. Chromium's UA sheet happens to win, which is why every local
+       check passed. Explicit beats implicit: */
+    .dg-ov[hidden] { display: none !important; }
+    .dg-modal { width: min(560px, 100%); max-height: 86vh; overflow-y: auto;
+      background: var(--panel, #101a2e); border: 1px solid var(--line, #223050);
+      border-radius: 16px 16px 0 0; padding: 18px 18px 22px; }
+    @media (min-width: 681px) { .dg-ov { align-items: center; } .dg-modal { border-radius: 16px; } }
+    .dgm-head { display: flex; align-items: center; gap: 12px; margin-bottom: 4px; }
+    .dgm-name { font-size: 18px; font-weight: 800; color: var(--ink-strong); min-width: 0; }
+    .dgm-x { margin-left: auto; border: 1px solid var(--line); background: transparent;
+      color: var(--muted); border-radius: 9px; width: 34px; height: 34px; font-size: 15px; cursor: pointer; }
+    .dgm-sec { font-size: 10px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
+      color: var(--ice-bright, #7dd3fc); margin: 16px 0 7px; }
+    .dgm-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; }
+    .dgm-cell { border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; }
+    .dgm-cell .k { font-size: 9.5px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); }
+    .dgm-cell .v { font-size: 15px; font-weight: 800; color: var(--ink-strong); margin-top: 2px; }
+    .dgm-cell .s { font-size: 10.5px; color: var(--faint); margin-top: 1px; }
+    .dgm-notes { margin: 0; padding: 0; list-style: none; }
+    .dgm-notes li { font-size: 12.5px; line-height: 1.6; color: var(--ink); padding: 6px 0 6px 14px;
+      border-bottom: 1px solid var(--line); position: relative; }
+    .dgm-notes li::before { content: "·"; position: absolute; left: 2px; color: var(--ice-bright); font-weight: 800; }
+    .dgm-notes li:last-child { border-bottom: 0; }
+    .dgm-aging { font-size: 12.5px; line-height: 1.65; color: var(--ink); }
+    .dgm-aging .seasons { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 7px; }
+    .dgm-aging .seasons span { border: 1px solid var(--line); border-radius: 8px; padding: 3px 8px;
+      font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+    .dgm-verdict { font-weight: 800; }
+    .dgm-verdict.pos { color: var(--pos, #38d39f); }
+    .dgm-verdict.neg { color: var(--neg, #e35d6a); }
+    .dgm-verdict.flat { color: var(--muted); }
+    .dgm-foot { font-size: 10.5px; color: var(--faint); line-height: 1.6; margin-top: 12px; }
+    .dgm-cardlink { display: inline-block; margin-top: 12px; font-size: 13px; font-weight: 700;
+      color: var(--ice-bright, #7dd3fc); text-decoration: none; border: 1px solid rgba(125,211,252,.35);
+      border-radius: 9px; padding: 8px 14px; }
+
+    @media (max-width: 680px) {
+      .dg-wrap { padding: 14px 12px; }
+      .dg-lab { display: none; }
+      .dg-row { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; margin-bottom: 7px; }
+      .dg-row::-webkit-scrollbar { display: none; }
+      .dg-chip { min-height: 34px; font-size: 12px; flex: 0 0 auto; }
+      .dg-card { grid-template-columns: 38px minmax(0, 1fr) 44px; gap: 9px; padding: 10px 4px; }
+      .dg-mug { width: 34px; height: 34px; font-size: 11px; }
+      .dg-name { font-size: 13.5px; }
+      .dg-grade { width: 42px; height: 42px; font-size: 15px; border-radius: 10px; }
+      .dg-deal { font-size: 11px; }
+      .dg-hero { grid-template-columns: repeat(2, 1fr); gap: 7px; }
+      .dg-tile { padding: 9px 11px; }
+      .dg-tile .v { font-size: 16px; }
+      .dg-seg { font-size: 10px; }
+      /* Keep loading, empty, and failure states visible. Only the longer
+         method paragraph yields space on the first mobile screen. */
+      #dg-method { display: none; }
+      .dg-lede { font-size: 12px; margin-bottom: 10px; }
+      .dg-spec-sub { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="dg-wrap">
+    <div class="dg-top">
+      <h2>Deal Grader</h2>
+    </div>
+    <nav style="display:flex; gap:12px; flex-wrap:wrap; align-items:center; font-size:12.5px; font-weight:600;"><a href="./index.html" style="color:var(--muted); text-decoration:none;">Home</a> <a href="./player.html" style="color:var(--muted); text-decoration:none;">Players</a> <a href="./games.html" style="color:var(--muted); text-decoration:none;">Games</a> <a href="./standings.html" style="color:var(--muted); text-decoration:none;">Projections</a> <a href="./fa-board.html" style="color:var(--muted); text-decoration:none;">Free agents</a> <span style="color:var(--ice-bright);">Deal Grader</span> <a href="./front-office.html" style="color:var(--muted); text-decoration:none;">Front office</a> <a href="./draft-board.html" style="color:var(--muted); text-decoration:none;">Draft board</a> <a href="./leaders.html" style="color:var(--muted); text-decoration:none;">Leaders</a> <a href="./transactions.html" style="color:var(--muted); text-decoration:none;">Transactions</a> <a href="./offseason.html" style="color:var(--muted); text-decoration:none;">Offseason</a> <a href="./book.html" style="color:var(--muted); text-decoration:none;">Open Book</a> <a href="./reliability.html" style="color:var(--muted); text-decoration:none;">Reliability</a></nav>
+    <p class="dg-lede"><b>One question per letter: how does the current model reconstruct the bet a team made?</b>
+      Signing age, term, and cap environment use the historical deal. The underlying value model is rebuilt
+      from the current warehouse, so these are retrospective reconstructions—not frozen no-hindsight forecasts.
+      Letter bands were fit on <b>1,710 realized skater contracts</b>. Goalies are not yet graded.</p>
+
+    <div class="dg-hero" id="dg-hero"></div>
+
+    <div class="dg-spectrum">
+      <div class="dg-spec-bar" id="dg-spec"></div>
+      <div class="dg-spec-sub"><span>team-friendly end</span><span>tap a grade to filter</span><span>albatross end</span></div>
+    </div>
+    <p class="dg-note" id="dg-method"></p>
+
+    <div class="dg-row">
+      <span class="dg-lab">Pos</span>
+      <button class="dg-chip on" data-pos="all">All</button>
+      <button class="dg-chip" data-pos="F">Forwards</button>
+      <button class="dg-chip" data-pos="D">Defense</button>
+      <span class="dg-lab">Verdict</span>
+      <button class="dg-chip on" data-verd="all">All</button>
+      <button class="dg-chip" data-verd="bargain">Bargains</button>
+      <button class="dg-chip" data-verd="fair">Fair</button>
+      <button class="dg-chip" data-verd="overpay">Overpays</button>
+      <button class="dg-chip" id="dg-exp" title="Deals that ended June 30 (pending RFA/UFA) — graded history, not current books">+ Expired</button>
+    </div>
+    <div class="dg-row">
+      <select id="dg-team" class="dg-sel" aria-label="Filter by team"><option value="all">All teams</option></select>
+      <select id="dg-sort" class="dg-sel" aria-label="Sort">
+        <option value="grade">Best grade first</option>
+        <option value="gradeWorst">Worst grade first</option>
+        <option value="surp">Biggest surplus</option>
+        <option value="overpay">Biggest overpay</option>
+        <option value="cap">Biggest cap hit</option>
+        <option value="new">Newest deals</option>
+      </select>
+      <input id="dg-q" class="dg-q" type="search" placeholder="Filter by name…" aria-label="Filter by name">
+    </div>
+
+    <div class="dg-count" id="dg-count"></div>
+    <div class="dg-board" id="dg-board"><div class="dg-note">Loading the league's contracts…</div></div>
+    <button class="dg-more" id="dg-more" style="display:none;">Show more</button>
+
+    <p class="dg-foot" id="dg-foot"></p>
+  </div>
+
+  <div class="dg-ov" id="dg-ov" hidden>
+    <div class="dg-modal" role="dialog" aria-modal="true" aria-label="Deal receipt" id="dg-modal"></div>
+  </div>
+
+  <script src="./player-modal.js"></script>
+  <script>
+  "use strict";
+  // Grade color families: A teal (the wins), B ice (the league's spine),
+  // C slate (paid market rate), D amber (trouble), F red (albatross).
+  var GRADE_COLOR = {
+    "A+": "#2dd4a7", "A": "#2dd4a7", "A-": "#43c9a4",
+    "B+": "#7dd3fc", "B": "#7dd3fc", "B-": "#8cc4e8",
+    "C+": "#9aa8bd", "C": "#8b98ab", "C-": "#7d8a9c",
+    "D+": "#f0b86e", "D": "#f0b86e", "D-": "#eda155",
+    "F": "#e35d6a"
+  };
+  var TEAM_COLORS = { ANA:"#F47A38", BOS:"#FFB81C", BUF:"#2A6EBB", CGY:"#D2001C", CAR:"#CE1126",
+    CHI:"#E3263A", COL:"#A32638", CBJ:"#2E5DAA", DAL:"#00A04B", DET:"#E51A2B", EDM:"#FF5A1F",
+    FLA:"#E03A3E", LAK:"#AAB0B4", MIN:"#2EA84F", MTL:"#C8102E", NSH:"#FFB81C", NJD:"#E0203A",
+    NYI:"#F26722", NYR:"#2161D6", OTT:"#D6313C", PHI:"#FA4616", PIT:"#FCB514", SJS:"#00A7B5",
+    SEA:"#6CB4C9", STL:"#2A78C2", TBL:"#2E78D8", TOR:"#1B4FA0", VAN:"#1F8A4C", VGK:"#C0A15B",
+    WPG:"#3A6BB0", WSH:"#C8102E", UTA:"#71AFE5" };
+  // chip maps MUST mirror the server's verdict split (app.py verd_split): an
+  // "upside bet" is bucketed with the overpays there (negative current surplus,
+  // graded C as a young bet) — listing it under Bargains surfaced −$11M deals
+  // beneath a "friendly" legend count that excluded them (audit QW 2026-07-16).
+  var BARGAIN = { "elite bargain": 1, "team-friendly": 1 };
+  var OVERPAY = { "overpay": 1, "slight overpay": 1, "upside bet": 1 };
+
+  var _data = null, _shown = 60;
+  // expired deals (offseason pending RFA/UFA) hide by DEFAULT — a page titled
+  // "every current contract" can't lead with one that isn't (the Robertson
+  // catch, 2026-07-06); the chip brings them back labeled
+  var _st = { pos: "all", verd: "all", team: "all", sort: "grade", q: "", grade: null, exp: false };
+
+  function M(v) { return v == null ? "—" : "$" + (v / 1e6).toFixed(1) + "M"; }
+  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) {
+    return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+  function initials(n) { return (n || "").split(/\s+/).map(function (w) { return w[0] || ""; }).join("").slice(0, 2).toUpperCase(); }
+
+  function heroTile(k, v, s) {
+    return '<div class="dg-tile"><div class="k">' + k + '</div><div class="v">' + v + '</div><div class="s">' + s + '</div></div>';
+  }
+
+  function renderHero(d) {
+    // Two frames, said out loud (user questions 2026-07-06/07: "69% overpays —
+    // or is our fair line wrong?", then "is there even enough +WAR to sign
+    // only fair deals?"). The VERDICTS measure dollars against the
+    // replacement-anchored win-value line — and a majority-above-line market
+    // is FORCED, not chosen: every +WAR on standard contracts bought exactly
+    // at the line funds ~$2.0B of payroll vs the $2.26B mandatory league
+    // salary floor (~$3.06B actual spend); the balancing bargains live on
+    // entry-level deals nobody can bid on. Winner's curse is real but
+    // secondary — the 2026-07-07 GATED study (tools/extension_overpay_study.py,
+    // G1–G3 PASS) found team-exclusive EXTENSIONS realize −0.84M/yr WORSE
+    // than July-1 market deals net of quality and age, in both era halves;
+    // the mediator is TERM (same-term gap ~vanishes; 7+ reverses) — teams
+    // pay by buying more years, so scarcity plus the priced-in THREAT of
+    // the auction sets the price, not the auction event itself. The
+    // LETTERS are the relative frame — median
+    // deal = B — grading each bet against this market. The ledger's realized
+    // calibration is the guard: if the line drifted from reality, THAT is
+    // where it would show, and it hasn't.
+    var v = d.verdicts || {};
+    var slight = v.slightOverpay, full = v.fullOverpay;
+    var haveSplit = slight != null && full != null;
+    var seg = function (n, color) {
+      return '<span style="flex:' + Math.max(n || 0, 1) + ' 0 0; background:' + color + ';"></span>';
+    };
+    var legend = function (color, n, label) {
+      return '<span><span style="color:' + color + ';">●</span> ' + (n || 0) + " " + label + "</span>";
+    };
+    var splitBar =
+      '<div style="display:flex; height:12px; border-radius:6px; overflow:hidden; margin:8px 0 7px; border:1px solid var(--line,#223050);">' +
+      seg(v.bargain, "#2dd4a7") + seg(v.fair, "#8b98ab") +
+      (haveSplit ? seg(slight, "#d9c08a") + seg(full, "#f0b86e")
+                 : seg(v.overpay, "#f0b86e")) + "</div>" +
+      '<div style="font-size:11.5px; font-weight:700; color:var(--ink); display:flex; gap:9px; flex-wrap:wrap;">' +
+      legend("#2dd4a7", v.bargain, "friendly") +
+      legend("#8b98ab", v.fair, "fair") +
+      (haveSplit
+        ? legend("#d9c08a", slight, "slightly over") + legend("#f0b86e", full, "well over")
+        : legend("#f0b86e", v.overpay, "over the line")) + "</div>";
+    document.getElementById("dg-hero").innerHTML =
+      heroTile("Skater contracts in sample", d.n, "current skater deals ≥$1M, any term — one-year deals are labeled (bands were fit on multi-year outcomes); expired history available separately") +
+      '<div class="dg-tile" style="grid-column: span 1;"><div class="k">How the league signs</div>' +
+      splitBar +
+      '<div class="s">Most graded deals sit above the replacement-anchored win-value line — and priced at this line, every standard-contract win in the league funds less than the mandatory salary floor, so an above-line majority is forced arithmetic. Entry-level bargains nobody can bid on sit largely outside this sample. The split describes the market; it does not validate the ruler. One gated comparative result does survive leakage critique: early extensions age worse than July-1 deals — the extra years are the price. Letters show relative placement within this reconstruction: the median deal is a B. <a href="reliability.html#deal-grade-calibration" style="color:var(--ice-bright);">Calibration receipt</a>.</div></div>' +
+      (d.best ? heroTile("Highest reconstructed value",
+        '<a href="player.html?id=' + d.best.id + '" style="color:inherit;text-decoration:none;">' + esc(d.best.n) + "</a>",
+        d.best.g + " · +" + (d.best.surp / 1e6).toFixed(1) + "M/yr reconstructed edge" +
+        (d.best.osm ? " · " + esc(d.best.osm) : "") +
+        " · on current books — excludes expired &amp; pending-offer-sheet deals") : "") +
+      (d.worst ? heroTile("Lowest reconstructed value",
+        '<a href="player.html?id=' + d.worst.id + '" style="color:inherit;text-decoration:none;">' + esc(d.worst.n) + "</a>",
+        d.worst.g + " · " + (d.worst.surp / 1e6).toFixed(1) + "M/yr below the model estimate" +
+        (d.worst.osm ? " · " + esc(d.worst.osm) : "") +
+        " · on current books — excludes expired &amp; pending-offer-sheet deals") : "");
+  }
+
+  function renderSpectrum(d) {
+    var total = d.n || 1;
+    document.getElementById("dg-spec").innerHTML = d.gradeOrder.map(function (g) {
+      var n = d.byGrade[g], pct = Math.max(100 * n / total, 3);
+      var on = _st.grade === g ? " on" : (_st.grade ? " dim" : "");
+      return '<div class="dg-seg' + on + '" data-g="' + g + '" title="' + g + ' · ' + n + ' deals"' +
+        ' style="flex:' + pct + ' 0 0; background:' + GRADE_COLOR[g] + ';">' + g + "</div>";
+    }).join("");
+    Array.prototype.forEach.call(document.querySelectorAll(".dg-seg"), function (el) {
+      el.addEventListener("click", function () {
+        _st.grade = _st.grade === el.dataset.g ? null : el.dataset.g;
+        _shown = 60; renderSpectrum(_data); renderBoard();
+      });
+    });
+  }
+
+  function rowsFiltered() {
+    var q = _st.q.toLowerCase();
+    return _data.rows.filter(function (r) {
+      if (!_st.exp && r.exp) return false;
+      if (_st.grade && r.g !== _st.grade) return false;
+      if (_st.pos !== "all" && r.p !== _st.pos) return false;
+      if (_st.team !== "all" && r.t !== _st.team) return false;
+      if (_st.verd === "bargain" && !BARGAIN[r.v]) return false;
+      if (_st.verd === "fair" && r.v !== "fair market value") return false;
+      if (_st.verd === "overpay" && !OVERPAY[r.v]) return false;
+      if (q && (r.n || "").toLowerCase().indexOf(q) < 0) return false;
+      return true;
+    });
+  }
+
+  function sortRows(rows) {
+    var go = {}; _data.gradeOrder.forEach(function (g, i) { go[g] = i; });
+    var f = {
+      grade: function (a, b) { return (go[a.g] - go[b.g]) || ((b.surp || 0) - (a.surp || 0)); },
+      gradeWorst: function (a, b) { return (go[b.g] - go[a.g]) || ((a.surp || 0) - (b.surp || 0)); },
+      surp: function (a, b) { return (b.surp || 0) - (a.surp || 0); },
+      overpay: function (a, b) { return (a.surp || 0) - (b.surp || 0); },
+      cap: function (a, b) { return (b.aav || 0) - (a.aav || 0); },
+      new: function (a, b) { return (b.sy || 0) - (a.sy || 0) || (go[a.g] - go[b.g]); }
+    }[_st.sort];
+    return rows.slice().sort(f);
+  }
+
+  function card(r) {
+    var gc = GRADE_COLOR[r.g] || "#8b98ab";
+    var tc = TEAM_COLORS[r.t] || "#4a5f80";
+    var elite = r.g === "A+" || r.g === "A" || r.g === "A-";
+    // face behind the site-wide rights gate; otherwise the team crest over the
+    // initials (consistency with the browse list, user 2026-07-07) — _dark
+    // variants, since _light marks (TBL) vanish on these panels
+    var mug = window.IC_HEADSHOTS && r.id
+      ? '<img src="mug/' + r.id + '.png" alt="" loading="lazy" onerror="this.remove()">'
+      : r.t ? '<img class="crest" src="https://assets.nhle.com/logos/nhl/svg/' + r.t + '_dark.svg" alt="" onerror="this.remove()">' : "";
+    var team = r.t ? '<span class="dg-team" style="color:' + tc + '; border-color:' + tc + '55;">' + r.t + "</span>" : "";
+    var pos = '<span class="dg-pos">' + r.p + (r.age != null ? " · " + r.age : "") + "</span>";
+    // ONE content column (mobile-first fix 2026-07-06): the deal line reads as
+    // a sentence about signing day, the edge is labeled AT SIGNING (present-
+    // tense "vs fair" read like a now-claim), and the today-equivalent detail
+    // lives in the footer method note, not on every row.
+    var status = r.os ? ' <b style="color:#f0b86e;">· pending offer sheet</b>'
+      : r.osm ? ' <b style="color:#a78bfa;">· ' + esc(r.osm) + '</b>'
+      : r.exp ? ' <b style="color:#f0b86e;">· expired — ' + esc(r.exp) + "</b>" : "";
+    var deal = "<b>" + M(r.aav) + "</b> · signed ’" + String(r.sy).slice(2) +
+      (r.endAge ? " through age " + r.endAge : "") +
+      (r.capPct != null ? " · " + r.capPct.toFixed(1) + "% of that cap" : "") + status;
+    var edge = r.surp == null ? "" :
+      '<span class="dg-edge ' + (r.surp >= 0 ? "pos" : "neg") + '">' +
+      (r.surp >= 0 ? "+" : "−") + Math.abs(r.surp / 1e6).toFixed(1) + "M/yr " +
+      (r.asOf ? "as-of signing " : (_data && r.sy >= _data.projYear ? "at-signing " : "reconstructed signing ")) + (r.surp >= 0 ? "edge" : "overpay") + "</span>";
+    return '<a class="dg-card" data-id="' + r.id + '" href="player.html?id=' + r.id + '">' +
+      '<div class="dg-mug" style="border-color:' + tc + ';">' + initials(r.n) + mug + "</div>" +
+      '<div style="min-width:0;"><div class="dg-name">' + esc(r.n) + team + pos + "</div>" +
+      '<div class="dg-deal">' + deal + "</div>" +
+      (edge ? '<div class="dg-edgeline">' + edge + "</div>" : "") +
+      '<div class="dg-sub">' + esc(r.note || r.v) + "</div></div>" +
+      '<div class="dg-grade" style="color:' + gc + "; border-color:" + gc + "55; background:linear-gradient(160deg, " +
+      gc + "24, " + gc + "08);" + (elite ? " box-shadow:0 0 13px " + gc + "44;" : "") + '">' + r.g + "</div></a>";
+  }
+
+  function renderBoard() {
+    var rows = sortRows(rowsFiltered());
+    var host = document.getElementById("dg-board");
+    host.innerHTML = rows.slice(0, _shown).map(card).join("") ||
+      '<div class="dg-note" style="padding:18px 4px;">No deals match those filters.</div>';
+    document.getElementById("dg-count").textContent =
+      rows.length + " deal" + (rows.length === 1 ? "" : "s") +
+      (_st.grade ? " · grade " + _st.grade : "") +
+      (_st.team !== "all" ? " · " + _st.team : "");
+    var more = document.getElementById("dg-more");
+    more.style.display = rows.length > _shown ? "" : "none";
+    more.textContent = "Show " + Math.min(60, rows.length - _shown) + " more (of " + rows.length + ")";
+  }
+
+  // The receipt popup (user ask 2026-07-06): tap a row -> how we graded it
+  // AT SIGNING (every note the grader wrote), and for older deals the honest
+  // aging read: the level it was priced off vs the level delivered since.
+  // Level-vs-level on purpose -- a full predicted-vs-realized surplus ledger
+  // is the spec's open "grade snapshots" item, and we don't fake it.
+  function openReceipt(r) {
+    // permalink (audit strategic #13): the receipt people argue about must be
+    // linkable — the hash names the deal; loading with it open re-opens it
+    try { history.replaceState(null, "", "#deal=" + r.id + "-" + (r.sy || "")); } catch (e) {}
+    var gc = GRADE_COLOR[r.g] || "#8b98ab";
+    var tc = TEAM_COLORS[r.t] || "#4a5f80";
+    var edge = r.surp == null ? "—" :
+      ((r.surp >= 0 ? "+" : "−") + Math.abs(r.surp / 1e6).toFixed(1) + "M/yr " + (r.surp >= 0 ? "edge" : "overpay"));
+    var aging = "";
+    var elapsed = (r.warSince || []).filter(function (s) { return s[0] < new Date().getFullYear(); });
+    if (_data.ledgerPublishable && r.realized != null && r.rElapsed >= 1) {
+      // the LEDGER read, scored as OUR CALL (user note 2026-07-06: a +2.9
+      // call realizing +3.9 was reading like a miss). Direction right =
+      // "called it" — said plainly and proudly; direction wrong = "our
+      // miss" — said just as plainly. The dead zone is symmetric, and the
+      // bragging aggregate lives in the footer where it belongs.
+      var BAND = 7.5e5;
+      var P = r.surp, R = r.realized, dd = R - P;
+      var money = function (v) { return (v >= 0 ? "+" : "−") + Math.abs(v / 1e6).toFixed(1) + "M/yr"; };
+      var callWord = P >= BAND ? "team-friendly" : P <= -BAND ? "an overpay" : "fair value";
+      var rCls, rWord;
+      if (Math.abs(dd) < BAND) {
+        rCls = "pos";
+        rWord = "✓ called it — tracking our number almost exactly";
+      } else if (P >= BAND && R >= BAND) {
+        rCls = "pos";
+        rWord = "✓ called it" + (dd >= BAND ? " — and it's been even better than we graded" : "");
+      } else if (P <= -BAND && R <= -BAND) {
+        rCls = "pos";
+        rWord = "✓ called it" + (dd <= -BAND ? " — costing even more than we warned" : " — costing about what we warned");
+      } else if (R > P) {
+        rCls = "neg";
+        rWord = "✗ our miss so far — we graded " + callWord + " and he's out-earned the call";
+      } else {
+        rCls = "neg";
+        rWord = "✗ our miss so far — we graded " + callWord + " and the deal is underwater against it";
+      }
+      var chips = elapsed.length ? '<div class="seasons">' + elapsed.map(function (s) {
+        return "<span>’" + String(s[0]).slice(2) + "–’" + String(s[0] + 1).slice(2) + " · " + s[1].toFixed(1) + " WAR</span>";
+      }).join("") + "</div>" : "";
+      aging =
+        '<div class="dgm-sec">How the deal has aged</div>' +
+        '<div class="dgm-aging">Our call at signing: <b>' + callWord + "</b>, " + money(P) +
+        " of edge. Through " + r.rElapsed + " season" + (r.rElapsed === 1 ? "" : "s") +
+        ": <b>" + money(R) + "</b> delivered — " +
+        '<span class="dgm-verdict ' + rCls + '">' + rWord + "</span>." +
+        (r.warPre != null && elapsed.length
+          ? " Priced off a <b>" + r.warPre.toFixed(1) + " WAR/yr</b> level; delivered <b>" +
+            (elapsed.reduce(function (a, s) { return a + s[1]; }, 0) / elapsed.length).toFixed(1) + " WAR/yr</b>." : "") +
+        chips + "</div>";
+    } else if (_data.ledgerPublishable && r.warPre != null) {
+      aging = '<div class="dgm-sec">How the deal has aged</div>' +
+        '<div class="dgm-aging">Signed this summer off a <b>' + r.warPre.toFixed(1) +
+        " WAR/yr</b> level — nothing to age yet; the first read arrives next spring.</div>";
+    }
+    document.getElementById("dg-modal").innerHTML =
+      '<div class="dgm-head">' +
+      '<div class="dg-grade" style="color:' + gc + "; border-color:" + gc + "55; background:linear-gradient(160deg, " + gc + "24, " + gc + '08);">' + r.g + "</div>" +
+      '<div class="dgm-name">' + esc(r.n) +
+      (r.t ? ' <span class="dg-team" style="color:' + tc + "; border-color:" + tc + '55;">' + r.t + "</span>" : "") + "</div>" +
+      '<button class="dgm-x" id="dgm-x" aria-label="Close">✕</button></div>' +
+      '<div class="dgm-sec">' + (r.asOf ? "As-of signing decision (’"
+        : (_data && r.sy >= _data.projYear ? "Signing decision (’" : "Reconstructed signing decision (’")) + String(r.sy).slice(2) + ")</div>" +
+      '<div class="dgm-grid">' +
+      '<div class="dgm-cell"><div class="k">He signed for</div><div class="v">' + M(r.aav) + "</div><div class=\"s\">" +
+      (r.capPct != null ? r.capPct.toFixed(1) + "% of that season’s cap" : "") + "</div></div>" +
+      '<div class="dgm-cell"><div class="k">' + (r.asOf ? "Fair value as-of signing"
+        : (_data && r.sy >= _data.projYear ? "Fair value at signing" : "Current-model value estimate")) + '</div><div class="v">' + M(r.fair) + "</div><div class=\"s\">" +
+      (r.fairCapPct != null ? r.fairCapPct.toFixed(1) + "% of cap · " : "") + esc(r.anchor || "") + "</div></div>" +
+      '<div class="dgm-cell"><div class="k">The verdict</div><div class="v">' + edge + "</div><div class=\"s\">" + esc(r.v || "") +
+      (r.endAge ? " · runs to age " + r.endAge : "") + "</div></div>" +
+      "</div>" +
+      ((r.notes || []).length ? '<div class="dgm-sec">The receipt</div><ul class="dgm-notes">' +
+        r.notes.map(function (x) { return "<li>" + esc(x) + "</li>"; }).join("") + "</ul>" : "") +
+      aging +
+      '<div class="dgm-foot">' + (r.asOf
+        ? "Scored as-of the signing date: the WAR anchor is frozen from the signing-summer outcomes ledger and the comp pool excludes later signings — no hindsight in the letter. Every grade is snapshotted append-only (model v1.4) so the public record accrues from here."
+        : (_data && r.sy >= _data.projYear
+          ? "Graded the summer it was signed, from the live contracts feed — today's data IS the signing-date view for a fresh deal — and snapshotted append-only (model v1.4) at first sight, so this call is frozen from here forward."
+          : "This receipt is a retrospective current-model reconstruction, not a frozen historical call — no frozen WAR anchor exists for this deal. Grades are snapshotted append-only from v1.4 forward, so outcome scoring accrues on the snapshots, not on reconstructions.")) + "</div>" +
+      '<a class="dgm-cardlink" href="player.html?id=' + r.id + '">Open his full card →</a>';
+    document.getElementById("dg-ov").hidden = false;
+  }
+  (function wireOverlay() {
+    var ov = document.getElementById("dg-ov");
+    ov.addEventListener("click", function (e) {
+      if (e.target === ov || e.target.id === "dgm-x") ov.hidden = true;
+    });
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape") { ov.hidden = true; try { history.replaceState(null, "", location.pathname); } catch (e2) {} } });
+  })();
+
+  function wire() {
+    Array.prototype.forEach.call(document.querySelectorAll("[data-pos]"), function (b) {
+      b.addEventListener("click", function () {
+        _st.pos = b.dataset.pos; _shown = 60;
+        Array.prototype.forEach.call(document.querySelectorAll("[data-pos]"), function (x) { x.classList.toggle("on", x === b); });
+        renderBoard();
+      });
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-verd]"), function (b) {
+      b.addEventListener("click", function () {
+        _st.verd = b.dataset.verd; _shown = 60;
+        Array.prototype.forEach.call(document.querySelectorAll("[data-verd]"), function (x) { x.classList.toggle("on", x === b); });
+        renderBoard();
+      });
+    });
+    document.getElementById("dg-exp").addEventListener("click", function () {
+      _st.exp = !_st.exp; _shown = 60;
+      document.getElementById("dg-exp").classList.toggle("on", _st.exp);
+      renderBoard();
+    });
+    document.getElementById("dg-team").addEventListener("change", function (e) { _st.team = e.target.value; _shown = 60; renderBoard(); });
+    document.getElementById("dg-sort").addEventListener("change", function (e) { _st.sort = e.target.value; _shown = 60; renderBoard(); });
+    var qt = null;
+    document.getElementById("dg-q").addEventListener("input", function (e) {
+      clearTimeout(qt); qt = setTimeout(function () { _st.q = e.target.value.trim(); _shown = 60; renderBoard(); }, 120);
+    });
+    document.getElementById("dg-more").addEventListener("click", function () { _shown += 60; renderBoard(); });
+    // row tap -> the receipt popup (modifier/middle clicks keep the deep link)
+    document.getElementById("dg-board").addEventListener("click", function (e) {
+      var row = e.target.closest(".dg-card");
+      if (!row || e.ctrlKey || e.metaKey || e.shiftKey || e.button === 1) return;
+      var r = _data.rows.find(function (x) { return String(x.id) === row.dataset.id; });
+      if (!r) return;
+      e.preventDefault();
+      openReceipt(r);
+    });
+  }
+
+  function boot(d) {
+    _data = d;
+    // deep link: #deal=<playerId>-<signingYear> opens that receipt on load
+    try {
+      var dm = (location.hash || "").match(/^#deal=(\d+)-?(\d*)/);
+      if (dm) {
+        var target = (d.rows || []).filter(function (r) { return String(r.id) === dm[1]; })
+          .sort(function (a, b) { return (String(b.sy) === dm[2]) - (String(a.sy) === dm[2]); })[0];
+        if (target) setTimeout(function () { openReceipt(target); }, 60);
+      }
+    } catch (e) {}
+    renderHero(d);
+    renderSpectrum(d);
+    document.getElementById("dg-method").textContent = d.method;
+    var teams = {};
+    d.rows.forEach(function (r) { if (r.t) teams[r.t] = 1; });
+    document.getElementById("dg-team").innerHTML = '<option value="all">All teams</option>' +
+      Object.keys(teams).sort().map(function (t) { return '<option value="' + t + '">' + t + "</option>"; }).join("");
+    document.getElementById("dg-foot").innerHTML =
+      "<b>This board is a current-model reconstruction, not a frozen historical forecast.</b> " +
+      "Historical self-scoring is withheld until immutable signing-date snapshots are available. " +
+      "Tap any row for the model receipt; current production value remains a separate question on the player card. " +
+      "Calibration and the research record live on the " +
+      '<a href="reliability.html">reliability page</a>.';
+    wire();
+    renderBoard();
+  }
+
+  (function load() {
+    var urls = window.STATIC ? ["api/deal-board.json"] : ["/api/deal-board.json", "api/deal-board.json"];
+    (function next(i) {
+      if (i >= urls.length) {
+        document.getElementById("dg-board").innerHTML = '<div class="dg-note">Could not load the deal board.</div>';
+        return;
+      }
+      fetch(urls[i] + "?v=" + (window.BUILD_ID || Date.now()), { cache: "no-cache" })
+        .then(function (r) { if (!r.ok) throw 0; return r.json(); })
+        .then(boot).catch(function () { next(i + 1); });
+    })(0);
+  })();
+  </script>
+</body>
+</html>

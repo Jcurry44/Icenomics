@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>window.STATIC=1;window.BUILD_ID="cfa3fc9-20260723T172316Z"</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Offseason — Icenomics</title>
+  <meta property="og:title" content="NHL Offseason ledger — Icenomics">
+  <meta property="og:description" content="Every team's final 2025-26 roster vs today: adds, departures, every trade and signing graded — the net projected-points swing, ranked league-wide.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://jcurry44.github.io/Icenomics/og-card.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#0b1018">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <link rel="apple-touch-icon" href="./apple-touch-icon.png">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./styles.css?v=20260617-mobilenav">
+  <style>
+    .os-wrap { max-width: 880px; margin: 0 auto; padding: 24px 18px 60px; }
+    .os-top { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 16px; }
+    .os-hero { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; }
+    .os-hero h2 { margin: 0; font-size: 22px; color: var(--ink-strong); letter-spacing: -.01em; }
+    .os-hero .ssn { color: var(--faint); font-size: 13px; font-weight: 700; }
+    .os-note { color: var(--muted); font-size: 12.5px; margin: 0 0 6px; line-height: 1.55; }
+    .os-basis { color: var(--faint); font-size: 11.5px; margin: 0 0 16px; line-height: 1.5; }
+    .os-basis b { color: var(--muted); }
+
+    /* ranked league rows — one expandable card per team at every width */
+    .os-card { border: 1px solid var(--line); border-radius: 12px; margin: 8px 0;
+      background: linear-gradient(180deg, var(--panel-raised), var(--panel)); overflow: hidden; }
+    .os-card.open { border-color: rgba(125,211,252,.32); }
+    .os-row { display: grid; grid-template-columns: 26px 30px minmax(0,1fr) 44px 96px 18px;
+      gap: 10px; align-items: center; padding: 11px 14px; cursor: pointer; }
+    .os-row:hover { background: rgba(56,189,248,.05); }
+    .os-rank { font-size: 12.5px; font-weight: 800; color: var(--faint); text-align: center; font-variant-numeric: tabular-nums; }
+    .os-logo { width: 28px; height: 28px; object-fit: contain; }
+    .os-team { min-width: 0; }
+    .os-team .tc { font-size: 15px; font-weight: 800; color: var(--ink-strong); letter-spacing: .01em; }
+    .os-team .cts { font-size: 11px; color: var(--muted); margin-top: 2px; font-variant-numeric: tabular-nums; }
+    .os-team .cts .in { color: #2dd4a7; font-weight: 700; }
+    .os-team .cts .out { color: #fb7185; font-weight: 700; }
+    .os-grade { display: inline-grid; place-items: center; width: 34px; height: 26px; border-radius: 8px;
+      font-size: 13px; font-weight: 850; border: 1px solid var(--line); }
+    .os-grade.ga { color: #6ee7c8; border-color: rgba(45,212,167,.45); background: rgba(45,212,167,.12); }
+    .os-grade.gb { color: #7dd3fc; border-color: rgba(56,189,248,.4); background: rgba(56,189,248,.1); }
+    .os-grade.gc { color: #c7d2e0; background: rgba(255,255,255,.03); }
+    .os-grade.gd { color: #f0b86e; border-color: rgba(240,184,110,.4); background: rgba(240,184,110,.09); }
+    .os-grade.gf { color: #fda4ab; border-color: rgba(244,116,127,.45); background: rgba(244,116,127,.12); }
+    .os-d { text-align: right; font-variant-numeric: tabular-nums; }
+    .os-d .n { font-size: 17px; font-weight: 850; letter-spacing: -.01em; }
+    .os-d .k { display: block; font-size: 9px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--faint); margin-top: 1px; }
+    .up { color: #2dd4a7; } .down { color: #fb7185; } .flat { color: var(--faint); }
+    .os-chev { color: var(--faint); font-size: 11px; text-align: center; }
+    /* the ranking math, spelled out under every row — full width, never clips */
+    .os-parts { margin: -3px 14px 9px 66px; font-size: 11px; color: var(--faint);
+      font-variant-numeric: tabular-nums; line-height: 1.5; }
+    .os-parts b { font-weight: 750; }
+    /* rank-by chips: which team did the best at each PIECE of the summer */
+    .os-rankby { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin: 0 0 12px; }
+    .os-rankby .lab { font-size: 10.5px; font-weight: 800; letter-spacing: .08em;
+      text-transform: uppercase; color: var(--faint); margin-right: 3px; }
+    .os-chip { min-height: 34px; padding: 0 13px; font-size: 12.5px; font-weight: 700;
+      border-radius: 999px; border: 1px solid var(--line); background: transparent;
+      color: var(--muted); cursor: pointer; }
+    .os-chip.on { background: var(--ice, #38bdf8); border-color: var(--ice, #38bdf8); color: #06121f; }
+
+    /* expanded detail */
+    .os-detail { border-top: 1px solid var(--line); padding: 13px 14px 15px; animation: osfade .16s ease; }
+    @keyframes osfade { from { opacity: 0; transform: translateY(-3px); } to { opacity: 1; transform: none; } }
+    .os-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .os-h { font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--faint); margin: 0 0 5px; }
+    .os-h .n { color: var(--muted); }
+    /* single-column player rows — full names always read (no multi-column name grids) */
+    .os-prow { display: flex; gap: 8px; align-items: baseline; padding: 3.5px 0; font-size: 12.5px; min-width: 0; }
+    .os-prow .sgn { flex: none; width: 10px; font-weight: 800; }
+    .os-prow .sgn.plus { color: #2dd4a7; } .os-prow .sgn.minus { color: #fb7185; }
+    .os-pl { color: var(--ink-strong); font-weight: 650; text-decoration: none; min-width: 0; }
+    .os-pl:hover { color: var(--ice-bright); }
+    .os-prow .pos { color: var(--faint); font-size: 10px; font-weight: 700; }
+    .os-prow .war { margin-left: auto; font-variant-numeric: tabular-nums; color: var(--muted); flex: none; }
+    .os-prow .dest { color: var(--faint); font-size: 11px; flex: none; min-width: 56px; text-align: right; }
+    .os-prow .dest b { color: var(--muted); }
+    .os-tag { flex: none; font-size: 9px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase;
+      color: var(--faint); border: 1px solid var(--line); border-radius: 5px; padding: 1px 5px; }
+    .os-sub { font-size: 10.5px; color: var(--faint); margin: 9px 0 3px; line-height: 1.4; }
+    .os-none { color: var(--faint); font-size: 12px; padding: 3px 0; }
+
+    /* moves list */
+    .os-moves { margin-top: 15px; }
+    .os-move { display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; border-top: 1px solid var(--line); }
+    .os-move .dt { flex: 0 0 46px; font-size: 10.5px; color: var(--faint); font-weight: 650; padding-top: 3px; }
+    .os-move .bd { flex: 1 1 auto; min-width: 0; font-size: 12.5px; line-height: 1.5; color: var(--muted); }
+    .os-move .bd .o { color: var(--ink-strong); font-weight: 650; }
+    .os-move .kind { font-size: 9px; text-transform: uppercase; letter-spacing: .08em; font-weight: 700; margin-right: 6px; }
+    .os-move .kind.trade { color: #a78bfa; } .os-move .kind.signing { color: #34d399; }
+    .os-move .why { display: block; font-size: 11px; color: var(--faint); margin-top: 2px; line-height: 1.45; }
+    .os-pill { flex: none; align-self: center; padding: 3px 9px; border-radius: 8px; font-size: 11.5px; font-weight: 750;
+      white-space: nowrap; border: 1px solid var(--line); color: #c7d2e0; }
+    .os-pill.good { color: #6ee7c8; border-color: rgba(45,212,167,.4); background: rgba(45,212,167,.1); }
+    .os-pill.bad { color: #fda4ab; border-color: rgba(244,116,127,.4); background: rgba(244,116,127,.1); }
+
+    /* mobile: single-column cards, compact grid, nothing truncates */
+    @media (max-width: 680px) {
+      .os-wrap { padding: 14px 12px 50px; }
+      .os-row { grid-template-columns: 20px 24px minmax(0,1fr) 36px 76px 12px; gap: 7px; padding: 10px 10px; }
+      .os-logo { width: 24px; height: 24px; }
+      .os-d .n { font-size: 15px; }
+      .os-parts { margin-left: 51px; margin-right: 10px; }
+      .os-cols { grid-template-columns: 1fr; }
+      .os-move { flex-wrap: wrap; }
+      .os-move .dt { flex-basis: 100%; padding-top: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="os-wrap">
+    <div class="os-top">
+      <a class="bl-brand" href="./index.html"><span class="bl-mark">IC</span> Icenomics</a>
+      <nav style="display:flex; gap:12px; flex-wrap:wrap; align-items:center; font-size:12.5px; font-weight:600;"><a href="./index.html" style="color:var(--muted); text-decoration:none;">Home</a> <a href="./player.html" style="color:var(--muted); text-decoration:none;">Players</a> <a href="./games.html" style="color:var(--muted); text-decoration:none;">Games</a> <a href="./standings.html" style="color:var(--muted); text-decoration:none;">Projections</a> <a href="./fa-board.html" style="color:var(--muted); text-decoration:none;">Free agents</a> <a href="./deal-grader.html" style="color:var(--muted); text-decoration:none;">Deal Grader</a> <a href="./front-office.html" style="color:var(--muted); text-decoration:none;">Front office</a> <a href="./draft-board.html" style="color:var(--muted); text-decoration:none;">Draft board</a> <a href="./leaders.html" style="color:var(--muted); text-decoration:none;">Leaders</a> <a href="./transactions.html" style="color:var(--muted); text-decoration:none;">Transactions</a> <span style="color:var(--ice-bright);">Offseason</span> <a href="./book.html" style="color:var(--muted); text-decoration:none;">Open Book</a> <a href="./reliability.html" style="color:var(--muted); text-decoration:none;">Reliability</a></nav>
+    </div>
+
+    <div class="os-hero">
+      <h2>Offseason ledger</h2>
+      <span class="ssn" id="os-season">2025-26 → 2026-27</span>
+    </div>
+    <p class="os-note" id="os-note">Every team's final 2025-26 roster vs today — who came in, who walked, every move graded.</p>
+    <p class="os-basis" id="os-basis"></p>
+
+    <!-- three ORTHOGONAL lenses only (user catch 2026-07-06: points is the
+         roster-wins signal in standings units — sim conversion ≈3.0 pts/win,
+         constant across teams — so ranking by it duplicated Roster now; it
+         stays on each row's breakdown line as the translation, not a lens) -->
+    <div class="os-rankby" id="os-rankby">
+      <span class="lab">Rank by</span>
+      <button class="os-chip on" data-rank="valueDelta">Total value</button>
+      <button class="os-chip" data-rank="ratingDelta">Roster now</button>
+      <button class="os-chip" data-rank="picksWar7">Future picks</button>
+    </div>
+
+    <div id="ledger" style="padding:24px; color:var(--muted); text-align:center;">Loading…</div>
+  </div>
+
+  <script>
+  "use strict";
+  const logo = t => `https://assets.nhle.com/logos/nhl/svg/${t}_dark.svg`;
+  const esc = s => String(s == null ? "" : s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  const fmtM = n => n == null ? "—" : (n < 0 ? "-$" : "$") + (Math.abs(n) >= 9.5e5 ? (Math.abs(n)/1e6).toFixed(1) + "M" : Math.round(Math.abs(n)/1e3) + "K");
+  const GRADE_CLS = { A: "ga", B: "gb", C: "gc", D: "gd", F: "gf" };
+  const dcls = v => v > 0.05 ? "up" : (v < -0.05 ? "down" : "flat");
+  const sign1 = v => (v > 0 ? "+" : "") + v.toFixed(1);
+  const dlabel = d => { if (!d) return ""; const p = d.split("-");
+    return ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][(+p[1]||1)-1] + " " + (+p[2]||""); };
+  // id-keyed player links only — duplicate full names stay unambiguous
+  const plink = p => p.id != null
+    ? `<a class="os-pl" href="player.html?id=${p.id}">${esc(p.name)}</a>`
+    : `<span class="os-pl">${esc(p.name)}</span>`;
+
+  function inRow(p) {
+    return `<div class="os-prow"><span class="sgn plus">+</span>${plink(p)}` +
+      `<span class="pos">${esc(p.pos || "")}</span>` +
+      (p.back ? `<span class="os-tag">returning</span>` : "") +
+      `<span class="war">${(p.war > 0 ? "+" : "")}${p.war}</span></div>`;
+  }
+  function outRow(p) {
+    const dest = p.to === "UFA" ? `<span class="dest">unsigned</span>`
+      : `<span class="dest">→ <b>${esc(p.to)}</b></span>`;
+    return `<div class="os-prow"><span class="sgn minus">−</span>${plink(p)}` +
+      `<span class="pos">${esc(p.pos || "")}</span>` +
+      `<span class="war">${(p.war > 0 ? "+" : "")}${p.war}</span>${dest}</div>`;
+  }
+  function movePill(m) {
+    if (m.kind === "signing") {
+      if (m.letter) { const good = /^[AB]/.test(m.letter), bad = /^[DF]/.test(m.letter);
+        return `<span class="os-pill ${good ? "good" : (bad ? "bad" : "")}">${esc(m.letter)}</span>`; }
+      if (m.value) { const cls = m.value.text === "Bargain" ? "good" : (m.value.text === "Overpay" ? "bad" : "");
+        return `<span class="os-pill ${cls}">${esc(m.value.text)}</span>`; }
+      return "";
+    }
+    const g = m.grade; if (!g) return "";
+    return `<span class="os-pill ${g.favors ? "good" : ""}">${esc(g.text)}${g.favors ? " · " + (g.war > 0 ? "+" : "") + g.war + " WAR" : ""}</span>`;
+  }
+  function moveRow(m) {
+    let body, why = "";
+    if (m.kind === "signing") {
+      body = `<span class="kind signing">Signing</span><span class="o">${esc(m.player)}</span>` +
+        ` · ${fmtM(m.capHit)} × ${m.years || "?"}yr${m.contractType ? " · " + esc(m.contractType) : ""}`;
+      if (m.letterWhy) why = `<span class="why">Deal grade: ${esc(m.letterWhy)}${m.value ? " · " + fmtM(m.value.surplus) + " vs measured value" : ""}</span>`;
+      else if (m.value) why = `<span class="why">${fmtM(m.value.surplus)} vs measured past value — growth deals read low by design</span>`;
+    } else {
+      const named = (m.players || []).filter(p => !/^player \d+$/.test(p.name));
+      const depth = (m.players || []).length - named.length;
+      const bits = named.map(p => `<span class="o">${esc(p.name)}</span> ${esc(p.from || "")}→${esc(p.to || "")}`);
+      (m.picks || []).forEach(p => bits.push(`${p.year || ""} R${p.round} ${esc(p.from || "")}→${esc(p.to || "")}`));
+      if (depth > 0) bits.push(`<span style="color:var(--faint)">+${depth} depth</span>`);
+      body = `<span class="kind trade">Trade</span><span class="o">${m.teams.map(esc).join(" ⇄ ")}</span> · ` + bits.join(" &nbsp;·&nbsp; ");
+      if (m.why) why = `<span class="why">${esc(m.why)}</span>`;
+    }
+    return `<div class="os-move"><span class="dt">${dlabel(m.date)}</span>` +
+      `<span class="bd">${body}${why}</span>${movePill(m)}</div>`;
+  }
+
+  function detail(t) {
+    const adds = t.ins.filter(p => !p.back), backs = t.ins.filter(p => p.back);
+    const insHtml =
+      (adds.length ? adds.map(inRow).join("") : `<div class="os-none">No outside additions yet.</div>`) +
+      (backs.length ? `<div class="os-sub">Back in the lineup — with the club last season, rested or injured in the final week:</div>` + backs.map(inRow).join("") : "");
+    const outsHtml = t.outs.length ? t.outs.map(outRow).join("") : `<div class="os-none">Nobody out.</div>`;
+    const c = t.counts;
+    const movesHtml = t.moves.length
+      ? `<div class="os-moves"><div class="os-h">Moves since the season ended <span class="n">· ${c.trades} trade${c.trades === 1 ? "" : "s"} · ${c.signings} signing${c.signings === 1 ? "" : "s"}</span></div>${t.moves.map(moveRow).join("")}</div>`
+      : `<div class="os-moves"><div class="os-h">Moves since the season ended</div><div class="os-none">None recorded yet.</div></div>`;
+    return `<div class="os-detail" hidden>` +
+      `<div class="os-cols"><div><div class="os-h">In <span class="n">· ${t.ins.length}</span></div>${insHtml}</div>` +
+      `<div><div class="os-h">Out <span class="n">· ${t.outs.length}</span></div>${outsHtml}</div></div>` +
+      movesHtml + `</div>`;
+  }
+
+  // the big right-side stat always matches the ACTIVE ranking — the rank
+  // order must never contradict the visible number (the BUF lesson)
+  const RANK_LABEL = { valueDelta: "value added", ratingDelta: "roster wins",
+                       picksWar7: "pick capital", pointsDelta: "proj pts" };
+  let _rank = "valueDelta";
+  function teamCard(t, i) {
+    const c = t.counts, adds = c.ins - (c.returning || 0);
+    const cts = `<span class="in">+${adds}</span> in` +
+      ((c.returning || 0) > 0 ? ` <span style="color:var(--faint)">(+${c.returning} back)</span>` : "") +
+      ` · <span class="out">−${c.outs}</span> out`;
+    // ONE primary stat: the number the ranking actually runs on (net value
+    // added = roster WAR change + pick capital), with the breakdown on a
+    // full-width line UNDER the row — the old layout showed proj pts big
+    // (which contradicts the rank order) and pushed the picks cell into an
+    // implicit grid column clean off the phone screen (user catch 2026-07-06:
+    // "BUF is 2 and I don't know why").
+    return `<div class="os-card" data-team="${t.team}">` +
+      `<div class="os-row"><span class="os-rank">${i + 1}</span>` +
+      `<img class="os-logo" src="${logo(t.team)}" alt="" onerror="this.style.display='none'">` +
+      `<div class="os-team"><div class="tc">${esc(t.team)}</div><div class="cts">${cts}</div></div>` +
+      `<span class="os-grade ${GRADE_CLS[t.grade] || "gc"}">${esc(t.grade)}</span>` +
+      `<div class="os-d ${dcls(t[_rank])}"><span class="n">${sign1(t[_rank])}</span><span class="k">${RANK_LABEL[_rank]}</span></div>` +
+      `<span class="os-chev">▾</span></div>` +
+      `<div class="os-parts">roster talent now <b class="${dcls(t.ratingDelta)}">${sign1(t.ratingDelta)} wins</b> <span title="The same roster change expressed in standings language — the season simulation converts ≈3 points per win of talent. A translation of the wins number, not a separate component.">(≈ <b class="${dcls(t.pointsDelta)}">${sign1(t.pointsDelta)} pts</b> next season)</span> · future draft capital <b class="${dcls(t.picksWar7)}" title="Expected wins above replacement over a drafted player's first 7 NHL seasons — the years the drafting team controls him. A slot's historical average, not a forecast of the specific pick.">${sign1(t.picksWar7)} wins</b></div>` +
+      (t.pending && t.pending.length
+        ? `<div style="margin:2px 14px 8px 66px; font-size:11.5px; color:#f0b86e;">⏳ ${t.pending.map(esc).join(" · ")}</div>` : "") +
+      detail(t) + `</div>`;
+  }
+
+  function renderCards(d) {
+    const host = document.getElementById("ledger");
+    host.style.cssText = "";
+    const ordered = [...d.teams].sort((a, b) => (b[_rank] || 0) - (a[_rank] || 0));
+    host.innerHTML = ordered.map(teamCard).join("");
+    if (!host._wired) {
+      host._wired = true;
+      host.addEventListener("click", e => {
+        if (e.target.closest("a")) return;             // player links navigate
+        const row = e.target.closest(".os-row"); if (!row) return;
+        const card = row.closest(".os-card"), det = card.querySelector(".os-detail");
+        const opening = det.hasAttribute("hidden");
+        if (opening) det.removeAttribute("hidden"); else det.setAttribute("hidden", "");
+        card.classList.toggle("open", opening);
+        row.querySelector(".os-chev").textContent = opening ? "▴" : "▾";
+      });
+    }
+  }
+  function render(d) {
+    document.getElementById("os-season").textContent = `${d.seasonFrom} → ${d.seasonTo}`;
+    document.getElementById("os-note").textContent = d.note || "";
+    document.getElementById("os-basis").innerHTML =
+      `<b>Final roster</b> = ${esc(d.finalRosterBasis || "")} · <b>Grade</b> = ${esc(d.gradeBands || "")} · as of ${esc(d.asOf || "")}.`;
+    renderCards(d);
+    // rank-by chips: which team won each PIECE of the summer. The grade
+    // letter stays pinned to total value — re-ranking changes the lens,
+    // never the grade.
+    document.querySelectorAll("#os-rankby .os-chip").forEach(b => {
+      b.addEventListener("click", () => {
+        _rank = b.dataset.rank;
+        document.querySelectorAll("#os-rankby .os-chip").forEach(x =>
+          x.classList.toggle("on", x === b));
+        renderCards(d);
+      });
+    });
+  }
+
+  /* a failed fetch must never strand the page on "Loading…" */
+  function fail() {
+    document.getElementById("ledger").innerHTML =
+      "Couldn't load the offseason ledger — <a href='javascript:location.reload()' style='color:var(--ice)'>retry</a>.";
+  }
+  fetch("api/offseason.json?v=" + (window.BUILD_ID || Date.now()))
+    .then(r => { if (!r.ok) throw 0; return r.json(); })
+    .then(d => { if (!d || !d.teams || !d.teams.length) { fail(); return; } render(d); })
+    .catch(fail);
+  </script>
+  <script src="./player-modal.js"></script>
+</body>
+</html>

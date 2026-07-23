@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>window.STATIC=1;window.BUILD_ID="cfa3fc9-20260723T172316Z"</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Projections — Icenomics</title>
+  <meta property="og:title" content="NHL Projections — Icenomics">
+  <meta property="og:description" content="2026-27 projected standings, playoff & Cup odds from roster WAR — with a live what-if trade simulator. Validated, leakage-audited, honestly calibrated.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://jcurry44.github.io/Icenomics/og-card.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#0b1018">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <link rel="apple-touch-icon" href="./apple-touch-icon.png">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./styles.css?v=20260617-mobilenav">
+  <style>
+    .sp-wrap { max-width: 1040px; margin: 0 auto; padding: 24px 18px 60px; }
+    .sp-top { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 16px; }
+    .sp-hero { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 6px; }
+    .sp-hero h2 { margin: 0; font-size: 22px; color: var(--ink-strong); letter-spacing: -.01em; }
+    .sp-hero select { min-height: 38px; font-size: 14px; font-weight: 700; max-width: 230px; }
+    .sp-sub { color: var(--muted); font-size: 12.5px; margin: 0 0 16px; line-height: 1.5; }
+
+    .sp-grid { display: grid; grid-template-columns: 1.15fr .85fr; gap: 16px; align-items: start; }
+    @media (max-width: 880px) { .sp-grid { grid-template-columns: 1fr; } }
+
+    .card { border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px;
+      background: linear-gradient(180deg, var(--panel-raised), var(--panel)); }
+    .tm-head { display: flex; align-items: center; gap: 14px; }
+    .tm-logo { width: 56px; height: 56px; object-fit: contain; flex: none; }
+    .tm-id .nm { font-size: 18px; font-weight: 800; color: var(--ink-strong); letter-spacing: -.01em; }
+    .tm-id .fin { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+    .tm-pts { margin-left: auto; text-align: right; }
+    .tm-pts .n { font-size: 40px; font-weight: 850; letter-spacing: -.03em; color: var(--ink-strong);
+      font-variant-numeric: tabular-nums; line-height: 1; }
+    .tm-pts .n .chg { font-size: 15px; font-weight: 800; margin-left: 6px; }
+    .tm-pts .lab { font-size: 10.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--faint); }
+
+    .odds { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 16px; }
+    .odd { border: 1px solid var(--line); border-radius: 10px; padding: 10px 8px; text-align: center; background: rgba(255,255,255,.015); }
+    .odd .k { font-size: 9.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); }
+    .odd .v { font-size: 21px; font-weight: 850; color: var(--ink-strong); font-variant-numeric: tabular-nums; margin-top: 3px; letter-spacing: -.01em; }
+    .odd .d { font-size: 11px; font-weight: 800; margin-top: 2px; min-height: 14px; font-variant-numeric: tabular-nums; }
+    .up { color: #2dd4a7; } .down { color: #fb7185; } .flat { color: var(--faint); }
+    .ctx { font-size: 12px; color: var(--muted); line-height: 1.5; margin-top: 13px;
+      border-left: 2px solid var(--line); padding-left: 11px; }
+    .ctx b { color: var(--ink-strong); }
+
+    .bars { margin-top: 16px; }
+    .bar { display: grid; grid-template-columns: 86px 1fr 78px; gap: 10px; align-items: center; margin: 7px 0; }
+    .bar .bk { font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+    .bar .track { height: 8px; border-radius: 5px; background: var(--line); overflow: hidden; position: relative; }
+    .bar .fill { position: absolute; top: 0; bottom: 0; left: 50%; border-radius: 5px; }
+    .bar .bv { font-size: 12.5px; font-weight: 800; text-align: right; font-variant-numeric: tabular-nums; color: var(--ink-strong); }
+    .bar { cursor: pointer; } .bar:hover .bk { color: var(--ice-bright); }
+    .bar .rk { font-size: 10px; font-weight: 700; color: var(--faint); margin-left: 5px; }
+    .bar .track .tick { position: absolute; top: -2px; bottom: -2px; width: 2px; background: var(--faint);
+      opacity: .55; border-radius: 1px; }
+    .bar-detail { font-size: 11px; color: var(--muted); line-height: 1.55; margin: 2px 0 8px 96px;
+      border-left: 2px solid var(--line); padding-left: 10px; }
+    @media (max-width: 680px) { .bar-detail { margin-left: 0; } }
+
+    .lineup { margin-top: 4px; }
+    /* flex, not a floated toolbar: three wi-mode buttons at 390px used to leave the
+       first forward line wrapping beside the float in ~100px — names crushed to "T…" */
+    .lh { font-size: 10.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--faint);
+      margin: 14px 0 7px; display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+    .line { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; margin-bottom: 7px; }
+    .pair { grid-template-columns: repeat(2, 1fr); }
+    .goalrow { grid-template-columns: repeat(2, 1fr); }
+    .pchip { display: flex; align-items: center; gap: 8px; border: 1px solid var(--line); border-radius: 9px;
+      padding: 6px 8px; background: rgba(255,255,255,.02); min-width: 0; }
+    .pchip.added { border-color: rgba(45,212,167,.6); background: rgba(45,212,167,.08); }
+    .pchip .mug { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; flex: none;
+      background: var(--line); display: grid; place-items: center; font-size: 10px; font-weight: 800; color: #06121f; overflow: hidden; }
+    .pchip .pn { font-size: 11.5px; font-weight: 650; color: var(--ink-strong); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .pchip .pw { font-size: 10.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+    .pchip .pp { font-size: 9px; font-weight: 700; color: var(--faint); }
+    .pchip .pp.oop { color: #d9a441; }   /* seated off natural position — honest, not hidden */
+    .pchip.sel { outline: 2px solid var(--ice); }
+    .pchip.tradable { cursor: pointer; } .pchip.tradable:hover { border-color: var(--ice); }
+    /* every lineup chip is tappable: opens the player card, or selects in edit mode */
+    .lineup .pchip { cursor: pointer; }
+    .lineup .pchip:hover { border-color: var(--ice); }
+    .pchip.esel { outline: 2px solid #fbbf24; background: rgba(251,191,36,.08); }
+    .lu-tools { margin-left: auto; display: inline-flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+    .lu-btn { min-height: 26px; padding: 0 10px; border-radius: 999px; border: 1px solid var(--line);
+      background: transparent; color: var(--muted); font-size: 10.5px; font-weight: 700; cursor: pointer; }
+    .lu-btn:hover { border-color: var(--ice); color: var(--ice-bright); }
+    .lu-btn.on { border-color: var(--ice); color: var(--ice-bright); }
+    .lu-bench { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 7px; }
+    .lu-bench .pchip { opacity: .75; border-style: dashed; }
+    .lu-note { font-size: 11px; color: var(--faint); line-height: 1.5; margin-top: 10px; }
+    /* what-ifs are ALWAYS visually the user's: amber + dashed, never the model's blue */
+    .pchip.wi { border-color: rgba(251,191,36,.65); border-style: dashed; background: rgba(251,191,36,.07); }
+    .pchip .wiarrow { margin: 0 3px; color: #fbbf24; font-weight: 800; }
+    .pchip.wi .pw b { color: #fbbf24; }
+    .wi-strip { font-size: 11.5px; color: var(--muted); border: 1px dashed rgba(251,191,36,.5);
+      border-radius: 10px; padding: 9px 11px; margin: 10px 0 4px; background: rgba(251,191,36,.05); line-height: 1.9; }
+    .wi-tag { border: 1px solid rgba(251,191,36,.4); border-radius: 999px; padding: 2px 4px 2px 9px;
+      margin-right: 4px; white-space: nowrap; }
+    .wi-tag b { color: #fbbf24; }
+    .wi-x { background: transparent; border: 0; color: var(--muted); cursor: pointer; font-size: 10px; padding: 2px 5px; }
+    .wi-x:hover { color: #fb7185; }
+    .wi-panel { border: 1px solid var(--line-strong, #2a2d34); border-radius: 10px; padding: 10px 12px;
+      margin: 10px 0 6px; font-size: 12px; color: var(--ink-strong); background: rgba(255,255,255,.02); }
+    .wi-opts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .wi-opts .lu-btn { min-height: 30px; }
+    /* call-up search: input + tap-to-pick result rows inside the what-if panel */
+    .wi-cu-q { display: block; width: 100%; box-sizing: border-box; margin-top: 8px; min-height: 36px;
+      padding: 0 12px; border-radius: 9px; border: 1px solid var(--line-strong, #2a2d34);
+      background: rgba(255,255,255,.03); color: var(--ink-strong); font-size: 13px; outline: none; }
+    .wi-cu-q:focus { border-color: var(--ice); }
+    .wi-cu-list { margin-top: 6px; }
+    .wi-cu-row { display: flex; align-items: baseline; gap: 8px; width: 100%; text-align: left;
+      background: transparent; border: 0; border-bottom: 1px solid var(--line); padding: 8px 4px;
+      cursor: pointer; color: var(--ink-strong); font-size: 12.5px; }
+    .wi-cu-row:last-child { border-bottom: 0; }
+    .wi-cu-row:hover { background: rgba(56,189,248,.06); }
+    .wi-cu-row b { font-weight: 700; }
+    .wi-cu-row span { color: var(--muted); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    /* mobile: the 3-wide forward rows left ~110px per chip and every name ellipsized to
+       uselessness ("Tage T…") — shrink the mug + tighten gaps, and chip() switches to
+       "T. Thompson"-style short names below 680px so the name always reads */
+    @media (max-width: 680px) {
+      .line { gap: 5px; }
+      .pchip { gap: 6px; padding: 6px 7px; }
+      /* the monogram is redundant next to the name and eats the ~30px the long
+         surnames need ("E. Luostarinen") — the name is the identity on mobile */
+      .line .pchip .mug { display: none; }
+      .pchip .pn { font-size: 11px; }
+    }
+
+    .te-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
+    .te-row select { min-height: 34px; font-size: 13px; }
+    .te-side { font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--faint); margin: 8px 0 5px; }
+    .te-pool { display: flex; flex-wrap: wrap; gap: 6px; max-height: 168px; overflow: auto; padding: 2px 2px 12px; }
+    /* the pool scrolls — fade the bottom edge so a clipped pill row reads as "more below",
+       not as a rendering glitch colliding with the next section label */
+    .te-pool { -webkit-mask-image: linear-gradient(180deg, #000 84%, transparent); mask-image: linear-gradient(180deg, #000 84%, transparent); }
+    .pill { font-size: 11.5px; font-weight: 650; border: 1px solid var(--line); border-radius: 999px; padding: 5px 10px;
+      cursor: pointer; color: var(--muted); white-space: nowrap; }
+    .pill:hover { border-color: var(--ice); }
+    .pill.on { background: var(--ice); border-color: var(--ice); color: #06121f; }
+    .te-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; align-items: center; }
+    .te-note { font-size: 11.5px; color: var(--muted); margin-top: 8px; line-height: 1.45; min-height: 16px; }
+
+    .lt { width: 100%; border-collapse: collapse; margin-top: 8px; }
+    .lt th { font-size: 10px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--faint);
+      text-align: right; padding: 7px 8px; border-bottom: 1px solid var(--line); }
+    .lt th:nth-child(2) { text-align: left; }
+    .lt td { padding: 8px; font-size: 13px; border-bottom: 1px solid var(--line); text-align: right; font-variant-numeric: tabular-nums; }
+    .lt td:nth-child(2) { text-align: left; font-weight: 700; color: var(--ink-strong); }
+    .lt tr.cut td { border-bottom: 2px solid var(--ice); }
+    .lt tr.selrow td { background: rgba(56,189,248,.08); }
+    .st-views { display: flex; gap: 7px; flex-wrap: wrap; margin: 10px 0 2px; }
+    .lt tbody tr[data-t] { cursor: pointer; }
+    .lt tbody tr[data-t]:hover td { background: rgba(56,189,248,.05); }
+    .rtag { display: inline-block; margin-left: 5px; background: #4ade80; color: #06121f;
+      font-size: 9px; font-weight: 800; border-radius: 4px; padding: 1px 4px; vertical-align: 1px; }
+    /* lineup-competition chips (contract shape, not cut predictions): a prospect
+       PUSHING for a spot vs veteran depth on a BUBBLE deal */
+    .ptag { display: inline-block; margin-left: 5px; background: rgba(56,189,248,.16); color: #7dd3fc;
+      border: 1px solid rgba(56,189,248,.45); font-size: 8.5px; font-weight: 800; letter-spacing: .04em;
+      border-radius: 4px; padding: 1px 4px; vertical-align: 1px; }
+    .btag { display: inline-block; margin-left: 5px; background: rgba(251,191,36,.13); color: #fbbf24;
+      border: 1px solid rgba(251,191,36,.4); font-size: 8.5px; font-weight: 800; letter-spacing: .04em;
+      border-radius: 4px; padding: 1px 4px; vertical-align: 1px; }
+    /* fresh multi-year commitment: the club's own plan holds him a lineup seat */
+    .ctag { display: inline-block; margin-left: 5px; background: rgba(167,139,250,.14); color: #a78bfa;
+      border: 1px solid rgba(167,139,250,.42); font-size: 8.5px; font-weight: 800; letter-spacing: .04em;
+      border-radius: 4px; padding: 1px 4px; vertical-align: 1px; }
+    .lt tr.lt-div td { border-bottom: 0; padding: 14px 8px 4px; font-size: 10.5px; font-weight: 800;
+      letter-spacing: .07em; text-transform: uppercase; color: var(--faint); text-align: left; }
+    .lt-note { color: var(--faint); font-size: 11.5px; margin-top: 7px; line-height: 1.5; }
+    .lt .tlogo { width: 18px; height: 18px; vertical-align: -4px; margin-right: 7px; }
+    .sp-note { color: var(--muted); font-size: 12px; line-height: 1.6; margin-top: 18px; }
+    .tr-strip { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; border: 1px solid var(--line);
+      border-radius: 12px; padding: 12px 16px; margin-top: 16px; background: rgba(255,255,255,.015); }
+    .tr-strip b { color: var(--ink-strong); } .tr-strip .m { color: var(--muted); font-size: 12.5px; }
+    h3.sec { font-size: 13px; color: var(--ink-strong); margin: 22px 0 4px; letter-spacing: -.01em; }
+  </style>
+</head>
+<body>
+  <div class="sp-wrap">
+    <div class="sp-top">
+      <a class="bl-brand" href="./index.html"><span class="bl-mark">IC</span> Icenomics</a>
+      <nav style="display:flex; gap:12px; flex-wrap:wrap; align-items:center; font-size:12.5px; font-weight:600;"><a href="./index.html" style="color:var(--muted); text-decoration:none;">Home</a> <a href="./player.html" style="color:var(--muted); text-decoration:none;">Players</a> <a href="./games.html" style="color:var(--muted); text-decoration:none;">Games</a> <span style="color:var(--ice-bright);">Projections</span> <a href="./fa-board.html" style="color:var(--muted); text-decoration:none;">Free agents</a> <a href="./deal-grader.html" style="color:var(--muted); text-decoration:none;">Deal Grader</a> <a href="./front-office.html" style="color:var(--muted); text-decoration:none;">Front office</a> <a href="./draft-board.html" style="color:var(--muted); text-decoration:none;">Draft board</a> <a href="./leaders.html" style="color:var(--muted); text-decoration:none;">Leaders</a> <a href="./transactions.html" style="color:var(--muted); text-decoration:none;">Transactions</a> <a href="./offseason.html" style="color:var(--muted); text-decoration:none;">Offseason</a> <a href="./book.html" style="color:var(--muted); text-decoration:none;">Open Book</a> <a href="./reliability.html" style="color:var(--muted); text-decoration:none;">Reliability</a></nav>
+    </div>
+
+    <div class="sp-hero">
+      <h2>2026-27 Projections</h2>
+      <select id="team-sel" aria-label="Select team"></select>
+    </div>
+    <p class="sp-sub">Projected from each team's current roster WAR through the validated game model. Build a
+      hypothetical trade below and the standings, playoff and Cup odds re-simulate live.</p>
+
+    <a id="mkt-strip" href="./reliability.html#vs-market" class="tr-strip" style="display:none; text-decoration:none;">
+      <span style="font-size:10.5px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:#06121f;
+        background:#4ade80; border-radius:999px; padding:4px 10px; white-space:nowrap;">Market-grade</span>
+      <span class="m" id="mkt-strip-text" style="flex:1 1 260px;"></span>
+      <span style="margin-left:auto; color:var(--ice-bright); font-weight:700; font-size:12.5px; white-space:nowrap;">See the head-to-head →</span>
+    </a>
+    <script>
+    (function () {
+      var urls = window.STATIC ? ["api/calibration.json"] : ["/api/nhl-calibration", "api/calibration.json"];
+      (function next(i) {
+        if (i >= urls.length) return;
+        fetch(urls[i] + "?v=" + (window.BUILD_ID || Date.now()), { cache: "no-cache" }).then(function (r) { if (!r.ok) throw 0; return r.json(); }).then(function (cal) {
+          var m = cal && cal.market; if (!m || !m.primary) return;
+          var p = m.primary;
+          document.getElementById("mkt-strip-text").innerHTML =
+            'Our game model — built on the same player-WAR foundation as these projections — matched the <b>Vegas closing line</b> to within '
+            + (p.our.logloss - p.market.logloss).toFixed(3) + ' log-loss across <b>'
+            + p.games.toLocaleString() + ' games</b> (' + p.season + '), tested head-to-head against the sharpest number in hockey.';
+          document.getElementById("mkt-strip").style.display = "flex";
+        }).catch(function () { next(i + 1); });
+      })(0);
+    })();
+    </script>
+
+    <div class="sp-grid">
+      <!-- LEFT: team card -->
+      <div class="card" id="team-card"></div>
+
+      <!-- RIGHT: trade editor + odds happen on the card; this is the simulator.
+           Collapsed by default (user 2026-07-07: it shouldn't be expanded right away) -->
+      <div class="card">
+        <h3 class="sec" id="sim-toggle" style="margin-top:0; cursor:pointer; user-select:none;">Hypothetical trade <span id="sim-chev" style="color:var(--ice-bright); font-size:13px;">▸</span></h3>
+        <div class="m" id="sim-teaser" style="font-size:12.5px; color:var(--muted); line-height:1.55;">Build a what-if deal between any two teams and watch the standings re-simulate — tap to open.</div>
+        <div id="sim-body" hidden>
+        <div class="te-row">
+          <span class="te-side" style="margin:0">Partner</span>
+          <select id="partner-sel" aria-label="Trade partner"></select>
+        </div>
+        <div class="te-side" id="te-a-lab">— sends</div>
+        <div class="te-pool" id="te-a"></div>
+        <div class="te-side" id="te-b-lab">— sends</div>
+        <div class="te-pool" id="te-b"></div>
+        <div class="te-actions">
+          <button class="primary" id="sim-btn" style="min-height:38px;">Simulate trade</button>
+          <button id="reset-btn" style="min-height:38px; background:transparent; border:1px solid var(--line); color:var(--muted); border-radius:8px; padding:0 14px; cursor:pointer;">Reset</button>
+        </div>
+        <div class="te-note" id="te-note"></div>
+        </div>
+      </div>
+    </div>
+
+    <h3 class="sec">Projected standings — <span id="lt-season">2026-27</span></h3>
+    <div class="st-views" id="st-views">
+      <button class="lu-btn on" data-v="league" type="button">League</button>
+      <button class="lu-btn" data-v="East" type="button">East</button>
+      <button class="lu-btn" data-v="West" type="button">West</button>
+      <button class="lu-btn" data-v="div" type="button">Divisions</button>
+    </div>
+    <div style="overflow-x:auto"><table class="lt" id="lt"></table></div>
+    <div class="lt-note" id="lt-note"></div>
+
+    <div class="tr-strip">
+      <b>Track record</b>
+      <span class="m" id="tr-text">—</span>
+    </div>
+    <p class="sp-note" id="foot"></p>
+  </div>
+
+  <script src="./standings-sim.js"></script>
+  <script>
+  "use strict";
+  const COL = {ANA:"#F47A38",BOS:"#FFB81C",BUF:"#003087",CGY:"#D2001C",CAR:"#CE1126",CHI:"#CF0A2C",
+    COL:"#6F263D",CBJ:"#002654",DAL:"#006847",DET:"#CE1126",EDM:"#FF4C00",FLA:"#C8102E",LAK:"#A2AAAD",
+    MIN:"#154734",MTL:"#AF1E2D",NSH:"#FFB81C",NJD:"#CE1126",NYI:"#00539B",NYR:"#0038A8",OTT:"#C52032",
+    PHI:"#F74902",PIT:"#FCB514",SJS:"#006D75",SEA:"#99D9D9",STL:"#002F87",TBL:"#002868",TOR:"#00205B",
+    UTA:"#6CACE4",VAN:"#00205B",VGK:"#B4975A",WSH:"#C8102E",WPG:"#041E42"};
+  const logo = t => `https://assets.nhle.com/logos/nhl/svg/${t}_dark.svg`;
+  const mug = (t,id) => `https://assets.nhle.com/mugs/nhl/20252026/${t}/${id}.png`;
+  const initials = n => (n||"").split(" ").map(w=>w[0]).slice(0,2).join("").toUpperCase();
+  const sign = v => (v>0?"+":"") + v;
+  const fmtChg = (v,suffix="") => { v=+v.toFixed(1); if(Math.abs(v)<0.05) return `<span class="flat">±0${suffix}</span>`;
+    return `<span class="${v>0?'up':'down'}">${sign(v)}${suffix}</span>`; };
+
+  let DATA=null, byTeam={}, baseRosters={}, baseOdds={}, creditByTeam={}, clientBaseline=null, view=null, sel=null;
+  const trade = { partner:null, a:new Set(), b:new Set() };
+  const ord = n => { const s=["th","st","nd","rd"], v=n%100; return n+(s[(v-20)%10]||s[v]||s[0]); };
+
+  function load(d){
+    DATA=d; SIM.setModel(d.model);
+    d.teams.forEach(t=>{ byTeam[t.team]=t; baseRosters[t.team]=t.roster.map(p=>({...p,_team:t.team}));
+      creditByTeam[t.team]=t.finishingCredit||0;
+      baseOdds[t.team]={expPoints:t.expPoints,playoff:t.playoffPct,presidents:t.presidentsPct,cup:t.cupPct,first:t.firstPct}; });
+    (d.callupPool||[]).forEach(p=>{ cuById[p.id]=p; });
+    view = JSON.parse(JSON.stringify(baseOdds));
+    document.getElementById("lt-season").textContent=d.season;
+    // The honest preseason record LEADS (frozen first-3-games rosters, prior-
+    // season WAR only, walk-forward); the two retrodiction seasons follow,
+    // labeled with the payload's own "upper bound" language instead of the
+    // "leakage-audited, out-of-sample" gloss those numbers never earned
+    // (audit QW 2026-07-16: frozenRecord was baked but never rendered).
+    const tr=d.trackRecord||[], fz=d.frozenRecord||null;
+    document.getElementById("tr-text").innerHTML =
+      (fz ? `<b>Frozen preseason record</b> (${fz.seasons} seasons, ${fz.window}): mean ρ ${fz.meanSpearman}, `
+          + `≈${fz.maeWins} wins MAE, ${fz.playoffHitPct}% playoff-team hit rate — ${fz.method}.<br>` : "")
+      + (tr.length ? tr.map(r=>`<b>${r.season}</b> ${r.playoffHit} playoff teams (ρ ${r.spearman})`).join(" · ")
+          + " — " + (d.trackRecordMethod || "retrodiction with in-season rosters — an upper bound.") : "");
+    document.getElementById("foot").textContent = d.note||"";
+    const teams=d.teams.map(t=>t.team).sort();
+    const ts=document.getElementById("team-sel"), ps=document.getElementById("partner-sel");
+    ts.innerHTML=teams.map(t=>`<option>${t}</option>`).join("");
+    // ?team= deep link (the landing's my-team pin uses it); else default
+    const qsTeam=(new URLSearchParams(location.search).get("team")||"").toUpperCase();
+    sel = byTeam[qsTeam]?qsTeam:(byTeam["FLA"]?"FLA":teams[0]);
+    ts.value=sel; ts.onchange=()=>{ sel=ts.value; resetTrade(); fillPartner();
+      luEdit=false; luSel=null; wiTarget=null; wiCu=false; wiCuQ=""; barOpen=null;
+      // saved what-ifs stay live across team switches — the scenario is league-wide
+      if(wiCount()) wiResim(); else render(); };
+    fillPartner();
+    document.getElementById("sim-btn").onclick=simulate;
+    document.getElementById("reset-btn").onclick=()=>{ resetTrade(); if(wiCount()) wiResim(); else render(); };
+    // collapsed-by-default simulator (user 2026-07-07): the header is the toggle
+    document.getElementById("sim-toggle").onclick=()=>{
+      const b=document.getElementById("sim-body"), open=b.hidden;
+      b.hidden=!b.hidden;
+      document.getElementById("sim-chev").textContent=open?"▾":"▸";
+      document.getElementById("sim-teaser").hidden=open;
+    };
+    // standings rows select the team (user 2026-07-07: "click a team → take you
+    // to that team") — same path as the dropdown, then scroll the card into view
+    document.getElementById("lt").addEventListener("click",(e)=>{
+      const tr=e.target.closest("tr[data-t]"); if(!tr) return;
+      if(ts.value!==tr.dataset.t){ ts.value=tr.dataset.t; ts.onchange(); }
+      document.getElementById("team-card").scrollIntoView({behavior:"smooth", block:"start"});
+    });
+    render();
+    if(wiCount()) wiResim();   // a saved scenario re-simulates on load so the deltas are live
+  }
+
+  function fillPartner(){
+    const ps=document.getElementById("partner-sel");
+    const teams=DATA.teams.map(t=>t.team).filter(t=>t!==sel).sort();
+    ps.innerHTML=teams.map(t=>`<option>${t}</option>`).join("");
+    trade.partner=ps.value=trade.partner&&trade.partner!==sel?trade.partner:teams[0];
+    ps.onchange=()=>{ trade.partner=ps.value; trade.a.clear(); trade.b.clear(); renderPools(); };
+    renderPools();
+  }
+  function resetTrade(){ trade.a.clear(); trade.b.clear(); clientBaseline=null;
+    view=JSON.parse(JSON.stringify(baseOdds)); document.getElementById("te-note").textContent=""; }
+
+  function workingRosters(){
+    // clone, then move selected players between sel and partner
+    const r={}; for(const t in baseRosters) r[t]=baseRosters[t].slice();
+    const a=trade.partner, me=sel;
+    const aOut=baseRosters[me].filter(p=>trade.a.has(p.id));
+    const bOut=baseRosters[a].filter(p=>trade.b.has(p.id));
+    r[me]=baseRosters[me].filter(p=>!trade.a.has(p.id)).concat(bOut);
+    r[a]=baseRosters[a].filter(p=>!trade.b.has(p.id)).concat(aOut);
+    return r;
+  }
+
+  async function simulate(){
+    if(!trade.a.size && !trade.b.size){ document.getElementById("te-note").textContent="Pick at least one player to move."; return; }
+    document.getElementById("sim-btn").disabled=true;
+    const {epAfter, after}=await resim("Simulating 2,000 seasons…");
+    const me=sel, ptr=trade.partner;
+    const dPts=(epAfter[me]-baseOdds[me].expPoints).toFixed(1);       // points vs baked baseline
+    document.getElementById("te-note").innerHTML=
+      `Re-simulated. <b>${me}</b> ${fmtChg(+dPts," pts")}, playoff ${fmtChg(after[me].playoff-clientBaseline[me].playoff,"%")} · `+
+      `<b>${ptr}</b> ${fmtChg(+(epAfter[ptr]-baseOdds[ptr].expPoints).toFixed(1)," pts")}, playoff ${fmtChg(after[ptr].playoff-clientBaseline[ptr].playoff,"%")}.`;
+    document.getElementById("sim-btn").disabled=false;
+    render(true);
+  }
+
+  async function wiResim(){
+    // a what-if changed: re-run (or restore the plain view when nothing is active)
+    if(!wiCount() && !trade.a.size && !trade.b.size){
+      window._working=null; view=JSON.parse(JSON.stringify(baseOdds)); render(); return;
+    }
+    const {epAfter, after}=await resim("Simulating your scenario — 2,000 seasons…");
+    const me=sel;
+    document.getElementById("te-note").innerHTML=
+      `Scenario re-simulated. <b>${me}</b> ${fmtChg(+(epAfter[me]-baseOdds[me].expPoints).toFixed(1)," pts")}, `+
+      `playoff ${fmtChg(after[me].playoff-clientBaseline[me].playoff,"%")}.`;
+    render(true);
+  }
+
+  // Narrow screens can't fit full names in the 3-wide forward rows — "Tage Thompson"
+  // became "Tage T…" and no player was identifiable (user-reported). Hockey-standard
+  // short form: first initial + surname ("T. Thompson"); multi-word surnames keep
+  // every token after the first ("J. van Riemsdyk").
+  const NARROW = window.matchMedia("(max-width: 680px)");
+  NARROW.addEventListener && NARROW.addEventListener("change", () => { if (sel) render(false); });
+  function shortName(name){
+    const parts = String(name || "").trim().split(/\s+/);
+    if (parts.length < 2) return name;
+    return parts[0][0] + ". " + parts.slice(1).join(" ");
+  }
+  // hypothetical WAR levels come from preset numbers ("1" from +1.0) — show one
+  // decimal so they read on the same scale as the model's own values
+  const fmtWar = v => (v>0?"+":"") + (Number.isInteger(v) ? v.toFixed(1) : v);
+  function chip(p, tradable, selSet){
+    const c=COL[p._team]||"#38bdf8";
+    // Headshots are gated site-wide behind window.IC_HEADSHOTS (copyrighted photos, off by
+    // default) — the team-color initials monogram is the default and the on-error fallback.
+    const m=window.IC_HEADSHOTS
+      ? `<span class="mug" style="background:${c}"><img src="${mug(p._team,p.id)}" width="30" height="30" alt="" `+
+        `onerror="this.replaceWith(Object.assign(document.createElement('span'),{textContent:'${initials(p.name)}'}))"></span>`
+      : `<span class="mug" style="background:${c}">${initials(p.name)}</span>`;
+    const shown = NARROW.matches ? shortName(p.name) : p.name;
+    // auto-added #1 overall (rookiePatch): a real roster addition valued at the
+    // historical #1-pick debut mean — the R tag + title say exactly that
+    const rk = p.rookie ? `<span class="rtag" title="${(p.rookieNote||"drafted rookie").replace(/"/g,'&quot;')}">R</span>` : "";
+    // lineup-competition chips (2026-07-15): contract SHAPE, not a cut call —
+    // "PUSH" = NHL-tested prospect knocking, "BUBBLE" = veteran depth deal.
+    // Unrated players carry their honesty note (why the sim sees 0.0) here.
+    const tgTitle = p.unratedNote
+      || (p.tag === "pushing"
+          ? "NHL-tested prospect pushing for a lineup spot"
+          : p.twoWay
+          ? "two-way deal — the club's own AHL-shuttle designation; seats in the projected lineup only if the one-way group runs thin"
+          : "veteran depth on a bubble deal (age/cap shape) — a camp battle, not a lock");
+    const tg = p.tag === "pushing"
+      ? `<span class="ptag" title="${tgTitle.replace(/"/g,'&quot;')}">PUSH</span>`
+      : p.tag === "bubble"
+      ? `<span class="btag" title="${tgTitle.replace(/"/g,'&quot;')}">BUBBLE</span>`
+      : p.committed
+      ? `<span class="ctag" title="${(p.committedNote||"fresh multi-year commitment").replace(/"/g,'&quot;')}">${p.committed}YR</span>`
+      : "";
+    const extra = (selSet&&selSet.has(p.id)?' sel':'')+(tradable?' tradable':'')+(p._wi?' wi':'')
+      +(p._callup?' cu':'')+(p.unrated?' unr':'')+(p._cls||'');
+    const meta = ` data-name="${p.name.replace(/"/g,'&quot;')}" data-group="${p.group}"`;
+    const warTxt = p._callup
+      ? `<span class="wiarrow">↑</span><b>${fmtWar(p.war)}</b>`   // called up: all-new contribution
+      : p._wi
+      ? `${(p._modelWar>0?'+':'')}${p._modelWar}<span class="wiarrow">→</span><b>${fmtWar(p.war)}</b>`
+      : `${(p.war>0?'+':'')}${p.war}`;
+    return `<div class="pchip${extra}" data-id="${p.id}"${meta}>`+
+      `${m}<div style="min-width:0"><div class="pn" title="${p.name.replace(/"/g,'&quot;')}">${shown}${rk}${tg}</div>`+
+      `<div class="pw"><span class="pp${p._oop?' oop':''}"${p._oop?` title="natural ${p.pos} seated at ${p._seat} — no true ${p._seat==='C'?'center':'winger'} left on this roster slice"`:''}>${p.pos||p.group}${p._oop?`→${p._seat}`:''}</span> ${warTxt}</div></div></div>`;
+  }
+
+  /* Editable lineup (user-asked 2026-07-02): the arrangement is the fan's planning
+     canvas, saved per team on this device. HONESTY: the projection rates the FULL
+     roster (goalie weighting always takes the better goalie first), so arranging
+     lines does not move the numbers — the note below the editor says so, and the
+     cap-aware editor with real consequences is the Front office Line Deck. */
+  const luKey = t => "ic_lineup_" + t;
+  function savedLineup(t){ try { return JSON.parse(localStorage.getItem(luKey(t))||"null"); } catch(e){ return null; } }
+  function saveLineup(t, ids){ try { localStorage.setItem(luKey(t), JSON.stringify(ids)); } catch(e){} }
+  let luEdit=false, luSel=null;          // luSel = player id awaiting its swap partner
+  let LU=null;                           // the ordered groups of the LAST render (swap targets)
+  let barOpen=null;                      // which split's league-context drilldown is expanded
+
+  /* Player WHAT-IFS (user-asked 2026-07-02): "if Ostlund plays like a top-six forward,
+     what happens to the Sabres?" A what-if sets a player's HYPOTHETICAL WAR and re-runs
+     the whole simulation client-side — points, playoff/Cup odds, ranks — with deltas
+     against the model baseline, exactly like the trade sim. The assumption stays visibly
+     the user's (amber, labeled); the model's own read is never overwritten. Persisted
+     on-device; composes with hypothetical trades (overrides follow the player id). */
+  let wiMode=false, wiTarget=null;       // wiTarget = player id with the preset panel open
+  let WI={};                             // player id -> {war, name, model} (+callup/pos/group for call-ups)
+  try { WI = JSON.parse(localStorage.getItem("ic_whatifs")||"{}"); } catch(e) { WI={}; }
+  const wiCount=()=>Object.keys(WI).length;
+  function wiSave(){ try{ localStorage.setItem("ic_whatifs", JSON.stringify(WI)); }catch(e){} }
+
+  /* CALL-UPS (user-asked 2026-07-02): "if Helenius' numbers track like they did in the
+     playoffs, what does BUF look like?" The bake ships every player with NHL games last
+     season who is NOT on a current roster (callupPool) — search one, see his REAL line
+     as context (no fake WAR derived from a 4-game sample), pick a level, and he joins
+     this team's working roster for the re-simulation. model=0: he isn't on any rated
+     roster, so his whole hypothetical WAR is new. */
+  let wiCu=false, wiCuQ="";              // call-up search panel open + its query
+  let cuById={};                         // pool index (built in load)
+  const fold=s=>String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
+  function cuContext(cu){
+    // his actual season, stated plainly — the honest anchor the user prices against
+    const skater=cu.group!=="G";
+    let s=`2025-26 with ${cu.team}: ${cu.rsGp} GP${skater?` · ${cu.rsG} G ${cu.rsA} A`:""}`;
+    if(cu.poGp) s+=` — playoffs ${cu.poGp} GP${skater?` · ${cu.poG} G ${cu.poA} A`:""}`;
+    if((cu.rsGp+cu.poGp)<20) s+=` <i>(small sample)</i>`;
+    return s;
+  }
+  function cuLadder(group){
+    // the same WAR ladder as rostered what-ifs, translated into role words per position
+    const lab = group==="G" ? ["fringe","backup","tandem","starter","top-10","elite"]
+      : group==="D" ? ["fringe","3rd pair","2nd pair","top-4","#1 D","elite"]
+      : ["fringe","depth","middle six","top six","first line","star"];
+    return [0.3,0.5,1.0,1.5,2.0,2.5].map((v,i)=>[String(v),`+${v.toFixed(1)} ${lab[i]}`]);
+  }
+  function cuListHtml(){
+    const q=fold(wiCuQ);
+    const pool=DATA.callupPool||[];
+    const list = q ? pool.filter(p=>fold(p.name).includes(q))
+                   : pool.filter(p=>p.team===sel);   // default: this club's own call-up options
+    const rows=list.slice(0,8).map(p=>
+      `<button class="wi-cu-row" data-cu-pick="${p.id}"><b>${p.name}</b>`+
+      `<span>${p.pos} · ${p.team} · ${p.rsGp} GP${p.poGp?` · ${p.poGp} playoff GP`:""}</span></button>`).join("");
+    return rows || `<div class="lu-note" style="margin:8px 0 0">${q
+      ? "No match. The pool is players with NHL games last season who aren't on a current roster."
+      : `No unrostered ${sel} players from last season — search any name.`}</div>`;
+  }
+  function applyWhatIfs(rosters){
+    // two kinds of what-if: a hypothetical WAR level, or OUT of the lineup entirely
+    // ("Sheary doesn't start"). OUT removes the player from the working roster — in a
+    // roster-sum model that is exactly "he contributes nothing this season", and the
+    // lineup backfills with the next player up, like reality would.
+    if(!wiCount()) return rosters;
+    // an explicit override TRUMPS the contract-seating heuristic: dressed()
+    // seats two-way deals after every one-way player, so a two-way player's
+    // what-if WAR could never crack the 13F/7D cut and the scenario silently
+    // no-op'd (review 2026-07-17). The user's assumption IS "he makes the team
+    // at this level" — seat him by WAR like a one-way player, exactly as the
+    // call-up path already does (injected call-ups carry no twoWay flag).
+    const out={};
+    for(const t in rosters) out[t]=rosters[t]
+      .filter(p=>!(WI[p.id]&&WI[p.id].out))
+      .map(p=> WI[p.id]!=null && !WI[p.id].out
+        ? {...p, war:WI[p.id].war, _wi:true, _modelWar:p.war, twoWay:false} : p);
+    // third kind: CALL-UPS — a pool player joins the chosen team's working roster.
+    // Guard: if a data refresh has since put him on a real roster, the override above
+    // already priced him — don't inject a duplicate.
+    for(const id in WI){ const w=WI[id];
+      if(!w.callup || w.out || !out[w.callup]) continue;
+      if(out[w.callup].some(p=>p.id===+id)) continue;
+      out[w.callup].push({id:+id, name:w.name, pos:w.pos||"C", group:w.group||"F",
+        war:w.war, _wi:true, _callup:true, _modelWar:0, _team:w.callup});
+    }
+    return out;
+  }
+
+  // Common random numbers: the baseline and every scenario run share this seed, so the
+  // paired sims replay the SAME random seasons in both worlds and a delta carries model
+  // signal only — an unchanged league reads exactly 0, never a phantom sampling swing.
+  const SIM_SEED=7;   // matches the Python bake (monte_carlo seed=7)
+
+  async function resim(noteText){
+    // one re-simulation path for trades AND what-ifs: same baseline, same engine,
+    // so every hypothetical is priced in the same currency
+    const note=document.getElementById("te-note");
+    if(noteText) note.textContent=noteText;
+    await new Promise(r=>setTimeout(r,30));
+    if(!clientBaseline){
+      const ratings0={}; for(const t in baseRosters) ratings0[t]=SIM.rating(baseRosters[t])+(creditByTeam[t]||0);
+      clientBaseline=SIM.simulate(ratings0,2000,SIM_SEED);
+    }
+    const wr=applyWhatIfs(workingRosters());
+    const ratings1={}; for(const t in wr) ratings1[t]=SIM.rating(wr[t])+(creditByTeam[t]||0);
+    const epAfter=SIM.expectedPoints(ratings1);
+    const after=SIM.simulate(ratings1,2000,SIM_SEED);
+    view={}; for(const t in after) view[t]={expPoints:epAfter[t],playoff:after[t].playoff,
+      presidents:after[t].presidents,cup:after[t].cup,first:after[t].first};
+    window._working=wr;
+    return {epAfter, after};
+  }
+
+  function leagueSplits(active){
+    // every team's F/D/G WAR sums, ranked — from the same roster set on display
+    // (a simulated trade swaps in the working rosters, so both clubs re-rank live)
+    const src = active && window._working ? window._working : baseRosters;
+    const out={offense:[],defense:[],goaltending:[]};
+    for(const t in src){
+      const s=SIM.splits(src[t]);
+      out.offense.push({team:t,v:s.offense});
+      out.defense.push({team:t,v:s.defense});
+      out.goaltending.push({team:t,v:s.goaltending});
+    }
+    for(const k in out) out[k].sort((a,b)=>b.v-a.v);
+    return out;
+  }
+
+  function orderedGroups(roster, team){
+    // Projected-lineup seating (owner-caught 2026-07-15: a 34-year-old
+    // vet-minimum depth signing sat L2 by trailing war): seats order by the
+    // model's own FORWARD lens (projWar) where cached, trailing war
+    // otherwise — and two-way deals (the club's own AHL-shuttle designation)
+    // seat only after every one-way player. Display only: the team RATING
+    // still counts trailing war through the same two-way-last dress cut.
+    const lens=p=>(p.projWar!=null?p.projWar:p.war);
+    const byLens=(a,b)=>((a.twoWay?1:0)-(b.twoWay?1:0))||(lens(b)-lens(a));
+    const all={ F: roster.filter(p=>p.group==="F").sort(byLens),
+                D: roster.filter(p=>p.group==="D").sort(byLens),
+                G: roster.filter(p=>p.group==="G").sort(byLens) };
+    const sv = team ? savedLineup(team) : null;
+    const take=(grp,n,ids)=>{
+      const list=all[grp];
+      if(!ids){
+        // model-order selection: fresh multi-year commitments (p.committed)
+        // hold a skater seat first — a club doesn't sign 6 years to scratch
+        // a player (Malenstyn) — then the forward lens fills the rest; the
+        // picked group re-sorts by lens so a locked 4th-liner seats on L4.
+        // Goalies stay pure quality order (commitment never jumps the corps).
+        if(grp==="G"){ return {picked:list.slice(0,n), custom:false}; }
+        const locks=list.filter(p=>p.committed), rest=list.filter(p=>!p.committed);
+        const picked=locks.concat(rest).slice(0,n).sort(byLens);
+        return {picked, custom:false};
+      }
+      const by={}; list.forEach(p=>by[p.id]=p);
+      const picked=ids.map(i=>by[i]).filter(Boolean);           // traded-away ids drop out
+      const used=new Set(picked.map(p=>p.id));
+      for(const p of list){ if(picked.length>=n) break; if(!used.has(p.id)){ picked.push(p); used.add(p.id); } }
+      return {picked:picked.slice(0,n), custom:true};
+    };
+    const f=take("F",12,sv&&sv.f), d=take("D",6,sv&&sv.d), g=take("G",2,sv&&sv.g);
+    const bench=grp=>{ const used=new Set(({F:f,D:d,G:g})[grp].picked.map(p=>p.id));
+                       return all[grp].filter(p=>!used.has(p.id)); };
+    return { f:f.picked, d:d.picked, g:g.picked,
+             custom: f.custom||d.custom||g.custom,
+             benchF:bench("F"), benchD:bench("D"), benchG:bench("G") };
+  }
+
+  function buildLineup(roster, team){
+    const gr=orderedGroups(roster, team);
+    const lines=[];
+    if(gr.custom){
+      // the fan's own arrangement: display exactly as saved, no tags
+      for(let i=0;i<4;i++){ const ln=gr.f.slice(i*3,i*3+3);
+        ln.forEach(p=>{ p._oop=false; }); if(ln.length) lines.push(ln); }
+    } else {
+      // Positional construction (user-caught 2026-07-15: chopping the top-12
+      // by WAR into trios sat wingers in the middle seat, which any hockey
+      // reader takes as "the center" — BUF showed Quinn/Zucker at C). Each
+      // line gets the best remaining true C, then natural-side wings; when a
+      // pool runs dry the seat is filled by the best remaining forward and
+      // TAGGED out-of-position instead of silently implying a C exists.
+      const pool=gr.f.slice();               // top-12, already WAR-sorted
+      const takeBy=pred=>{ const i=pool.findIndex(pred); return i<0?null:pool.splice(i,1)[0]; };
+      while(pool.length && lines.length<4){
+        const c = takeBy(p=>p.pos==="C") || takeBy(()=>true);
+        const l = takeBy(p=>p.pos==="L") || takeBy(p=>p.pos==="R") || takeBy(()=>true);
+        const r = takeBy(p=>p.pos==="R") || takeBy(p=>p.pos==="L") || takeBy(()=>true);
+        const ln=[l,c,r].filter(Boolean);
+        const seat={L:"LW",C:"C",R:"RW"};
+        [["L",l],["C",c],["R",r]].forEach(([s,p])=>{
+          if(p){ p._oop = (p.pos!==s); p._seat = seat[s]; } });
+        if(ln.length) lines.push(ln);
+      }
+    }
+    const pairs=[]; for(let i=0;i<3;i++){ const pr=gr.d.slice(i*2,i*2+2); if(pr.length) pairs.push(pr); }
+    // the swap engine must see the DISPLAYED order (default lines are position-sorted
+    // within each trio) — otherwise the first-ever edit reshuffles names the user
+    // never touched when the raw WAR order takes over
+    gr.f=lines.flat(); gr.d=pairs.flat();
+    return {lines,pairs,goalies:gr.g,groups:gr};
+  }
+
+  function luCurrentIds(){
+    return { f:LU.f.map(p=>p.id), d:LU.d.map(p=>p.id), g:LU.g.map(p=>p.id) };
+  }
+  function luSwap(idA, idB){
+    // swap two players within a position group (lineup<->lineup or lineup<->bench)
+    const ids=luCurrentIds();
+    for(const grp of ["f","d","g"]){
+      const arr=ids[grp], ia=arr.indexOf(idA), ib=arr.indexOf(idB);
+      const benchList=LU[{f:"benchF",d:"benchD",g:"benchG"}[grp]];
+      const aBench=benchList.some(p=>p.id===idA), bBench=benchList.some(p=>p.id===idB);
+      if(ia>=0&&ib>=0){ arr[ia]=idB; arr[ib]=idA; saveLineup(sel,ids); return true; }
+      if(ia>=0&&bBench){ arr[ia]=idB; saveLineup(sel,ids); return true; }
+      if(ib>=0&&aBench){ arr[ib]=idA; saveLineup(sel,ids); return true; }
+    }
+    return false;   // different position groups — not a legal swap
+  }
+
+  function render(traded){
+    const t=byTeam[sel]; const o=view[sel]||baseOdds[sel]; const b=baseOdds[sel];
+    const active = traded || (clientBaseline && (trade.a.size||trade.b.size||wiCount()>0));
+    const oddsBefore = active ? clientBaseline[sel] : null;   // MC baseline for odds deltas
+    const roster = active ? (window._working? window._working[sel]: baseRosters[sel]) : baseRosters[sel];
+    const addedIds = new Set(active ? roster.filter(p=>p._team!==sel).map(p=>p.id):[]);
+    // splits from current roster
+    const sp = SIM.splits(roster); const spB = SIM.splits(baseRosters[sel]);
+    // finish (rank by view expPoints within league)
+    const order=Object.keys(view).sort((x,y)=>view[y].expPoints-view[x].expPoints);
+    const rank=order.indexOf(sel)+1;
+    const oddTile=(k,key,suffix="%")=>{
+      const v=o[key], db=(oddsBefore&&v!=null&&oddsBefore[key]!=null)?(v-oddsBefore[key]):null;
+      return `<div class="odd"><div class="k">${k}</div><div class="v">${v!=null?`${v}${suffix}`:"—"}</div>`+
+        `<div class="d">${db!=null?fmtChg(db,suffix):""}</div></div>`;
+    };
+    const ptsChg = active?`<span class="chg">${fmtChg(o.expPoints-baseOdds[sel].expPoints)}</span>`:"";
+    const lu=buildLineup(roster, sel); LU=lu.groups;
+    const c=COL[sel]||"#38bdf8";
+    // regression context: last season's actual vs expected (xG), why the projection lands where it does
+    const ox=t.overXG, gd=t.lastGD, xgd=t.lastXGD, cr=creditByTeam[sel]||0;
+    let ctx="";
+    if(ox!=null){
+      const rk=[...DATA.teams].sort((a,b)=>(b.overXG||0)-(a.overXG||0)).findIndex(x=>x.team===sel)+1;
+      const rankTxt = Math.abs(ox)>=15 ? ` (${ord(ox>=0?rk:33-rk)} ${ox>=0?'most':'least'} in NHL)` : "";
+      const crStr = `${cr>=0?'+':''}${cr.toFixed(2)} WAR`;
+      const read = ox>=15 ? `A record built partly on finishing luck regresses — we keep only <b>${crStr}</b> of the repeatable part.`
+        : ox<=-15 ? `The projection leans on its underlying play, not the unlucky record — we shade <b>${crStr}</b> for the part that tends to persist.`
+        : `About in line with its underlying play.`;
+      ctx=`<div class="ctx"><b>${DATA.lastSeason}:</b> ${gd>0?'+':''}${gd} goal differential, but `+
+        `<b>${xgd>0?'+':''}${xgd}</b> by expected goals — <span class="${ox>=0?'up':'down'}">`+
+        `${ox>0?'+':''}${ox} over xG</span>${rankTxt}. ${read}</div>`;
+    }
+    // league context for each split (user-asked 2026-07-02): rank inline, the rest
+    // behind a tap so the card stays clean. Ranks come from the same roster set on
+    // display, so a simulated trade re-ranks both clubs live.
+    const lg = leagueSplits(active);
+    const barRow=(lab,key,val,bval)=>{
+      const max=14, pct=Math.max(2,Math.min(100,Math.abs(val)/max*100));
+      const col = val>=0?"linear-gradient(90deg,#38bdf8,#2dd4a7)":"#fb7185";
+      const side = val>=0?`left:50%;width:${pct/2}%`:`right:50%;width:${pct/2}%;left:auto`;
+      const dch = (active&&Math.abs(val-bval)>=0.05)?` ${fmtChg(val-bval)}`:"";
+      const list=lg[key], rank=list.findIndex(x=>x.team===sel)+1;
+      const avg=list.reduce((a,x)=>a+x.v,0)/list.length;
+      const tick=50+Math.max(-50,Math.min(50,avg/max*50));
+      let detail="";
+      if(barOpen===key){
+        const grp={offense:"F",defense:"D",goaltending:"G"}[key];
+        const top3=(roster.filter(p=>p.group===grp).sort((a,b)=>b.war-a.war).slice(0,3))
+          .map(p=>`${shortName(p.name)} ${(p.war>0?'+':'')}${p.war}`).join(" · ");
+        detail=`<div class="bar-detail">League avg <b>${avg>=0?'+':''}${avg.toFixed(2)}</b> · `+
+          `#1 ${list[0].team} ${list[0].v>=0?'+':''}${list[0].v} · `+
+          `#32 ${list[31].team} ${list[31].v>=0?'+':''}${list[31].v}`+
+          `<br>Top contributors: ${top3||"—"}</div>`;
+      }
+      return `<div class="bar" data-bar="${key}" role="button" title="tap for league context">`+
+        `<span class="bk">${lab}</span>`+
+        `<div class="track"><span class="tick" style="left:${tick}%"></span><span class="fill" style="${side};background:${col}"></span></div>`+
+        `<span class="bv">${val>0?'+':''}${val}${dch}<span class="rk">${ord(rank)}</span></span></div>`+detail;
+    };
+    // auto-added #1 overall: name him and his provenance in plain sight, not just a hover
+    const rkP=(roster||[]).find(p=>p.rookie&&p.rookieNote);
+    const rkStrip=rkP?`<div class="wi-strip" style="border-color:rgba(74,222,128,.5); background:rgba(74,222,128,.05)">`+
+      `<b>${rkP.name}</b> added to this projection — ${rkP.rookieNote}</div>`:"";
+    document.getElementById("team-card").innerHTML =
+      `<div class="tm-head"><img class="tm-logo" src="${logo(sel)}" alt="${sel}" onerror="this.style.display='none'">`+
+      `<div class="tm-id"><div class="nm">${sel}</div><div class="fin">Proj. ${ord(rank)} overall · ${t.division}</div></div>`+
+      `<div class="tm-pts"><div class="n">${o.expPoints}${ptsChg}</div><div class="lab">Projected points</div></div></div>`+
+      `<div class="odds">${oddTile("Playoff","playoff")}${oddTile("Cup","cup")}${oddTile("President's","presidents")}${oddTile("Last overall","first")}</div>`+
+      rkStrip+ctx+
+      `<div class="bars">${barRow("Offense","offense",sp.offense,spB.offense)}${barRow("Defense","defense",sp.defense,spB.defense)}${barRow("Goaltending","goaltending",sp.goaltending,spB.goaltending)}</div>`+
+      luHtml(lu, addedIds, roster);
+    renderTable();
+  }
+
+  function luHtml(lu, addedIds, roster){
+    const mark=p=>{ p._cls=(addedIds.has(p.id)?" added":"")+(luEdit&&luSel===p.id?" esel":"")+(wiMode&&wiTarget===p.id?" esel":""); const h=chip(p,false,null); p._cls=""; return h; };
+    const bench=(list,lab)=> !luEdit||!list.length ? "" :
+      `<div class="lh">${lab} — tap to swap in</div><div class="lu-bench">${list.map(mark).join("")}</div>`;
+    const tools =
+      (luEdit ? `<button class="lu-btn on" id="lu-done">Done</button><button class="lu-btn" id="lu-reset">Reset to model order</button>`
+              : `<button class="lu-btn" id="lu-edit">✎ Edit lines</button>`)+
+      (wiMode ? `<button class="lu-btn${wiCu?' on':''}" id="wi-callup">↑ Call up</button><button class="lu-btn on" id="lu-wi">⚡ Done</button>`
+              : `<button class="lu-btn" id="lu-wi">⚡ What-if</button>`);
+    // active-scenario strip: every what-if listed with a remove ✕, clearly the USER's
+    const entries=Object.entries(WI);
+    const strip = !entries.length ? "" :
+      `<div class="wi-strip">⚡ <b>Your scenario:</b> `+
+      entries.map(([id,w])=>`<span class="wi-tag">${w.callup
+        ? `↑ ${shortName(w.name)} (${w.callup}) <b>${fmtWar(w.war)}</b>`
+        : `${shortName(w.name)} ${w.out?"sits":
+        `${(w.model>0?'+':'')}${w.model}→<b>${fmtWar(w.war)}</b>`}`}`+
+        `<button class="wi-x" data-wi-remove="${id}" aria-label="remove">✕</button></span>`).join(" ")+
+      ` <button class="lu-btn" id="wi-clear-all">Clear all</button>`+
+      `<div class="lu-note">Your assumptions, not the model's — the baseline projection stays underneath. `+
+      `Points/odds deltas above show what the scenario changes.</div></div>`;
+    // preset panel for the tapped player — or the call-up search
+    let panel="";
+    if(wiMode&&wiCu){
+      panel=`<div class="wi-panel"><b>Call up a player</b> — anyone with NHL games in `+
+        `${DATA.lastSeason||"2025-26"} who isn't on a current roster. He joins <b>${sel}</b>.`+
+        `<input id="wi-cu-q" class="wi-cu-q" type="search" placeholder="Search a name — Helenius, Bolduc…" autocomplete="off">`+
+        `<div class="wi-cu-list" id="wi-cu-list">${cuListHtml()}</div>`+
+        `<div class="wi-opts"><button class="lu-btn" id="wi-close">Close</button></div></div>`;
+    }
+    else if(wiMode&&wiTarget!=null){
+      const p=(roster||[]).find(x=>x.id===wiTarget)||(baseRosters[sel]||[]).find(x=>x.id===wiTarget);
+      const cu=cuById[wiTarget];
+      if(cu&&(!p||p._callup)){
+        // call-up panel: his REAL line is the anchor; the user prices it on the role ladder.
+        // No WAR auto-derived from a 4-game playoff sample — that precision would be fake.
+        // MODEL ANCHOR (validated 2026-07-02): experienced call-ups get their rated
+        // 3-season level; true rookies get the pre-debut projection (walk-forward
+        // Spearman 0.22 vs 0.09 slot-only — an anchor to price against, not a promise).
+        const anchor = cu.modelWar!=null
+          ? [[String(cu.modelWar), `Model level ${fmtWar(cu.modelWar)}`]]
+          : cu.rookieProj!=null
+          ? [[String(cu.rookieProj), `Model rookie est. ${fmtWar(cu.rookieProj)}`]] : [];
+        const anchorNote = cu.modelWar!=null
+          ? `The model rates his demonstrated level at ${fmtWar(cu.modelWar)} — he just isn't on a roster.`
+          : cu.rookieProj!=null
+          ? `Rookie estimate from draft pedigree + his last pre-NHL season (a validated anchor with wide error bars — ordering skill is real but modest).`
+          : `He isn't in the model's rated roster — whatever level you pick is all new WAR for ${sel}.`;
+        // similar real debuts (pedigree + pre-NHL production path): the SPREAD of what
+        // they actually did is the honest error bar around the point estimate
+        const comps = (cu.comps&&cu.comps.length)
+          ? `<div class="lu-note" style="margin:4px 0 0">Similar debuts: `+
+            cu.comps.map(c=>`${shortName(c.n)} <b>${fmtWar(c.w)}</b> (${c.s})`).join(" · ")+`</div>`
+          : "";
+        panel=`<div class="wi-panel"><b>${cu.name}</b> — call up to ${sel} (${cu.pos})`+
+          `<div class="lu-note" style="margin:5px 0 0">${cuContext(cu)}</div>`+comps+
+          `<div class="wi-opts">${anchor.concat(cuLadder(cu.group)).map(([v,l])=>`<button class="lu-btn wi-preset" data-wi-set="${v}">${l}</button>`).join("")}`+
+          `${WI[wiTarget]?`<button class="lu-btn" data-wi-set="clear">Send back down</button>`:""}`+
+          `<button class="lu-btn" id="wi-close">Close</button></div>`+
+          `<div class="lu-note">${anchorNote}</div></div>`;
+      }
+      else if(p){
+        const model=p._modelWar!=null?p._modelWar:p.war;
+        const opts=[["out","Sits (out of lineup)"],[String(model),`Model ${(model>0?'+':'')}${model}`]];
+        if(p.projWar!=null) opts.push([String(p.projWar),`Model proj ${(p.projWar>0?'+':'')}${p.projWar}`]);
+        for(const v of [0.5,1.0,1.5,2.0,2.5]) opts.push([String(v),`+${v.toFixed(1)}`]);
+        panel=`<div class="wi-panel"><b>${p.name}</b> — what if he…`+
+          `<div class="wi-opts">${opts.map(([v,l])=>`<button class="lu-btn wi-preset" data-wi-set="${v}">${l}</button>`).join("")}`+
+          `${WI[p.id]?`<button class="lu-btn" data-wi-set="clear">Back to model</button>`:""}`+
+          `<button class="lu-btn" id="wi-close">Close</button></div></div>`;
+      }
+    }
+    const note = luEdit
+      ? `<div class="lu-note">Tap two players to swap them (same position group; bench swaps in). `+
+        `Your lines save on this device. The projection rates the full roster either way — arrangement is `+
+        `planning, not a model input. For cap-aware lineups use the <a href="front-office.html" `+
+        `style="color:var(--ice)">Front office Line Deck</a>.</div>`
+      : wiMode
+      ? `<div class="lu-note">Tap a player to set a hypothetical: a performance level, or out of the `+
+        `lineup entirely — or <b>↑ Call up</b> a prospect who isn't on the roster. The whole league `+
+        `re-simulates and the deltas are your scenario vs the model — paired simulations replay the `+
+        `same random seasons in both worlds, so a delta carries your scenario, never sampling noise. `+
+        `Teams you didn't touch move only through their games against the changed roster (schedule `+
+        `knock-on), so their deltas read ~0; an unchanged league reads exactly 0.</div>`
+      : "";
+    // Camp battle (2026-07-15, owner-asked roster realism): the contract-reality
+    // roster beyond the projected lineup, ALWAYS visible — prospects PUSHING
+    // first, then the depth/bubble vets. In edit mode the same players render
+    // as swappable bench groups instead, so skip the strip there.
+    const inCamp = luEdit ? [] :
+      [...lu.groups.benchF, ...lu.groups.benchD, ...lu.groups.benchG]
+        .sort((a,b)=>((b.tag==="pushing")-(a.tag==="pushing")) || (b.war-a.war));
+    const camp = !inCamp.length ? "" :
+      `<div class="lh" title="under contract or team control for 2026-27, outside the projected lineup — the rating uses the best 13 F + 7 D + 2 G, so a depth player moves the numbers only when he cracks that group">In camp — pushing &amp; depth</div>`+
+      `<div class="lu-bench">${inCamp.map(mark).join("")}</div>`;
+    return `<div class="lineup">${strip}${panel}<div class="lh">Forwards <span class="lu-tools">${tools}</span></div>`+
+      lu.lines.map(ln=>`<div class="line">${ln.map(mark).join("")}</div>`).join("")+
+      bench(lu.groups.benchF,"Bench forwards")+
+      `<div class="lh">Defense</div>`+
+      lu.pairs.map(pr=>`<div class="line pair">${pr.map(mark).join("")}</div>`).join("")+
+      bench(lu.groups.benchD,"Bench defense")+
+      `<div class="lh">Goaltending</div><div class="line goalrow">${lu.goalies.map(mark).join("")}</div>`+
+      bench(lu.groups.benchG,"Other goalies")+
+      camp+note+`</div>`;
+  }
+
+  // one delegated handler on the (persistent) card container: edit-mode swaps,
+  // otherwise a tap on any player opens their card in the overlay (id-keyed)
+  document.getElementById("team-card").addEventListener("click", (e)=>{
+    // what-if controls first (they live inside the lineup section)
+    const rm=e.target.closest("[data-wi-remove]");
+    if(rm){ delete WI[rm.dataset.wiRemove]; wiSave(); wiResim(); return; }
+    if(e.target.closest("#wi-clear-all")){ WI={}; wiSave(); wiTarget=null; wiResim(); return; }
+    if(e.target.closest("#wi-close")){ wiTarget=null; wiCu=false; wiCuQ=""; render(!!wiCount()); return; }
+    const cp=e.target.closest("[data-cu-pick]");
+    if(cp){ wiCu=false; wiCuQ=""; wiTarget=+cp.dataset.cuPick; render(!!wiCount()); return; }
+    if(e.target.closest("#wi-callup")){ wiCu=!wiCu; wiTarget=null; render(!!wiCount());
+      const q=document.getElementById("wi-cu-q"); if(q) q.focus(); return; }
+    const preset=e.target.closest(".wi-preset,[data-wi-set]");
+    if(preset&&preset.dataset.wiSet!=null&&wiTarget!=null){
+      const v=preset.dataset.wiSet;
+      const cu=cuById[wiTarget];
+      const onRoster=((window._working&&window._working[sel])||baseRosters[sel]||[]).find(x=>x.id===wiTarget)
+              ||(baseRosters[sel]||[]).find(x=>x.id===wiTarget);
+      if(cu&&(!onRoster||onRoster._callup)){
+        // call-up: he isn't on any rated roster, so model contribution = 0 and the
+        // chosen level is entirely new WAR for this club (negative levels allowed —
+        // the "Model level" anchor for a fringe veteran can be below zero)
+        if(v==="clear"){ delete WI[wiTarget]; }
+        else { const w=+v; if(!isNaN(w))
+          WI[wiTarget]={war:w, name:cu.name, model:0, callup:sel, pos:cu.pos, group:cu.group}; }
+        wiSave(); wiTarget=null; wiResim(); return;
+      }
+      const p=onRoster;
+      const model=p&&(p._modelWar!=null?p._modelWar:p.war);
+      if(v==="clear"){ delete WI[wiTarget]; }
+      else if(v==="out"){ WI[wiTarget]={out:true, name:p.name, model}; }
+      else { const w=+v; if(!isNaN(w)&&Math.abs(w-model)>0.001) WI[wiTarget]={war:w, name:p.name, model};
+             else delete WI[wiTarget]; }
+      wiSave(); wiTarget=null; wiResim(); return;
+    }
+    const bar=e.target.closest(".bar[data-bar]");
+    if(bar){ barOpen = barOpen===bar.dataset.bar ? null : bar.dataset.bar; render(); return; }
+    if(e.target.closest("#lu-edit")){ luEdit=true; wiMode=false; wiTarget=null; wiCu=false; luSel=null; render(); return; }
+    if(e.target.closest("#lu-done")){ luEdit=false; luSel=null; render(); return; }
+    if(e.target.closest("#lu-reset")){ try{localStorage.removeItem(luKey(sel));}catch(err){} luSel=null; render(); return; }
+    if(e.target.closest("#lu-wi")){ wiMode=!wiMode; luEdit=false; luSel=null; wiTarget=null; wiCu=false; wiCuQ=""; render(!!wiCount()); return; }
+    const ch=e.target.closest(".pchip[data-id]");
+    if(!ch) return;
+    const id=+ch.dataset.id;
+    if(wiMode){ wiTarget = wiTarget===id ? null : id; wiCu=false; render(!!wiCount()); return; }
+    if(!luEdit){
+      // a called-up OR unrated player has no baked card (neither is in the
+      // rated pool) — tapping either edits his what-if assumption instead of
+      // opening a dead "No player card for that id" page (audit strategic #15:
+      // 63 contract-reality roster chips dead-ended)
+      if(ch.classList.contains("cu")||ch.classList.contains("unr")){ wiMode=true; wiTarget=id; render(!!wiCount()); return; }
+      if(window.goPlayer) goPlayer(ch.dataset.name, id); return; }
+    if(luSel==null){ luSel=id; render(); return; }
+    if(luSel===id){ luSel=null; render(); return; }   // tap again to deselect
+    if(luSwap(luSel,id)){ luSel=null; render(); }
+    else { luSel=id; render(); }                      // cross-group tap: move the selection
+  });
+
+  // call-up search types live: update ONLY the result list (a full render would
+  // rebuild the input and drop keyboard focus mid-word)
+  document.getElementById("team-card").addEventListener("input", (e)=>{
+    if(e.target&&e.target.id==="wi-cu-q"){
+      wiCuQ=e.target.value;
+      const l=document.getElementById("wi-cu-list");
+      if(l) l.innerHTML=cuListHtml();
+    }
+  });
+
+  function renderPools(){
+    const me=sel, a=trade.partner;
+    document.getElementById("te-a-lab").textContent=`${me} sends`;
+    document.getElementById("te-b-lab").textContent=`${a} sends`;
+    const pool=(team,set,which)=>{
+      return (baseRosters[team]||[]).slice().sort((x,y)=>y.war-x.war).map(p=>
+        `<span class="pill${set.has(p.id)?' on':''}" data-id="${p.id}" data-w="${which}">${p.name} <b style="opacity:.7">${(p.war>0?'+':'')}${p.war}</b></span>`).join("");
+    };
+    document.getElementById("te-a").innerHTML=pool(me,trade.a,"a");
+    document.getElementById("te-b").innerHTML=pool(a,trade.b,"b");
+    document.querySelectorAll(".te-pool .pill").forEach(el=>el.onclick=()=>{
+      const id=+el.dataset.id, set=el.dataset.w==="a"?trade.a:trade.b;
+      if(set.has(id)) set.delete(id); else set.add(id); el.classList.toggle("on");
+    });
+  }
+
+  // Standings views (user ask 2026-07-07): League / East / West / Divisions.
+  // Division is the hockey-native read — playoff seeding is top-3-per-division
+  // + two wild cards — so each view draws its own honest cut line and names
+  // what the line means (the old top-16 league line was silently approximate).
+  let stView="league";
+  const CONF={Atlantic:"East",Metropolitan:"East",Central:"West",Pacific:"West"};
+  function renderTable(){
+    const order=Object.keys(view).sort((x,y)=>view[y].expPoints-view[x].expPoints);
+    const divOf=t=>(byTeam[t]||{}).division||"";
+    const row=(t,i,cutIdx)=>{
+      const o=view[t]; const cut = i===cutIdx;
+      const dPts = (clientBaseline&&(trade.a.size||trade.b.size))?(o.expPoints-baseOdds[t].expPoints):0;
+      const chg = Math.abs(dPts)>=0.1?` <span class="${dPts>0?'up':'down'}" style="font-size:11px">${sign(+dPts.toFixed(1))}</span>`:"";
+      return `<tr class="${cut?'cut':''} ${t===sel?'selrow':''}" data-t="${t}"><td>${i+1}</td>`+
+        `<td><img class="tlogo" src="${logo(t)}" alt="" onerror="this.style.display='none'">${t}</td>`+
+        `<td>${o.expPoints}${chg}</td><td>${o.playoff}%</td><td>${o.cup}%</td></tr>`;
+    };
+    let body="", note="";
+    if(stView==="East"||stView==="West"){
+      body=order.filter(t=>CONF[divOf(t)]===stView).map((t,i)=>row(t,i,7)).join("");
+      note="Line = top 8 in the conference.";
+    } else if(stView==="div"){
+      body=["Atlantic","Metropolitan","Central","Pacific"].map(dv=>
+        `<tr class="lt-div"><td colspan="5">${dv}</td></tr>`+
+        order.filter(t=>divOf(t)===dv).map((t,i)=>row(t,i,2)).join("")).join("");
+      note="Line = top 3, the automatic division berths — two wild cards per conference fill out the field.";
+    } else {
+      body=order.map((t,i)=>row(t,i,15)).join("");
+      note="Line = top 16 league-wide, an illustration — real berths are decided per conference.";
+    }
+    document.getElementById("lt").innerHTML=
+      `<thead><tr><th>#</th><th>Team</th><th>Proj pts</th><th>Playoff</th><th>Cup</th></tr></thead><tbody>${body}</tbody>`;
+    document.getElementById("lt-note").textContent=note;
+  }
+  document.getElementById("st-views").addEventListener("click",(e)=>{
+    const b=e.target.closest("button[data-v]"); if(!b) return;
+    stView=b.dataset.v;
+    document.querySelectorAll("#st-views .lu-btn").forEach(x=>x.classList.toggle("on",x===b));
+    renderTable();
+  });
+
+  (async()=>{ try{ load(await (await fetch("api/standings.json?v=" + (window.BUILD_ID || Date.now()))).json()); }
+    catch(e){ document.getElementById("team-card").textContent="Could not load projections."; console.error(e); } })();
+  </script>
+  <script src="./player-modal.js"></script>
+</body>
+</html>

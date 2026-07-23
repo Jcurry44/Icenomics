@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>window.STATIC=1;window.BUILD_ID="cfa3fc9-20260723T172316Z"</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Open Book — Icenomics</title>
+  <meta property="og:title" content="The Open Book — Icenomics">
+  <meta property="og:description" content="Pre-registered NHL contract predictions: frozen before the outcome, externally anchored, settled in public whatever the result.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://jcurry44.github.io/Icenomics/og-card.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#0b1018">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <link rel="apple-touch-icon" href="./apple-touch-icon.png">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./styles.css?v=20260617-mobilenav">
+  <style>
+    .ob-wrap { max-width: 880px; margin: 0 auto; padding: 26px 18px 60px; }
+    .ob-top { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 6px; }
+    .ob-top h2 { margin: 0; font-size: 20px; color: var(--ink-strong); }
+    .ob-lede { color: var(--muted); font-size: 13px; line-height: 1.6; margin: 0 0 16px; max-width: 680px; }
+    .ob-lede b { color: var(--ink-strong); }
+
+    /* counts — the ledger at a glance, dg-tile language */
+    .ob-hero { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 18px; }
+    .ob-tile { padding: 12px 13px; border: 1px solid var(--line); border-radius: 12px;
+      background: linear-gradient(160deg, rgba(56,189,248,.06), transparent 72%); }
+    .ob-tile .k { font-size: 10px; text-transform: uppercase; letter-spacing: .09em; color: var(--muted); font-weight: 800; }
+    .ob-tile .v { font-size: 20px; font-weight: 800; letter-spacing: -.01em; color: var(--ice-bright); margin: 3px 0 1px; }
+    .ob-tile .s { font-size: 11px; color: var(--faint); line-height: 1.45; }
+
+    .ob-sec { font-size: 10px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
+      color: var(--ice-bright, #7dd3fc); margin: 22px 0 8px; }
+    .ob-note { color: var(--muted); font-size: 12px; line-height: 1.6; margin: 8px 0 12px; }
+
+    /* the ticket table — wide content scrolls in its own container */
+    .ob-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; border: 1px solid var(--line); border-radius: 12px; }
+    .ob-table { width: 100%; border-collapse: collapse; min-width: 680px; }
+    .ob-table th { font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
+      color: var(--muted); text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line);
+      background: rgba(56,189,248,.05); white-space: nowrap; }
+    .ob-table td { font-size: 12.5px; color: var(--ink); padding: 10px 12px; border-bottom: 1px solid var(--line);
+      vertical-align: top; line-height: 1.55; }
+    .ob-table tr:last-child td { border-bottom: 0; }
+    .ob-player { font-weight: 750; color: var(--ink-strong); white-space: nowrap; }
+    .ob-team { font-size: 10px; font-weight: 800; letter-spacing: .05em; color: var(--faint); margin-left: 6px; }
+    /* styles.css applies td{white-space:nowrap} sitewide — prose cells must opt back into wrapping
+       or their text paints across the neighboring columns (live incident 2026-07-23) */
+    .ob-claim { max-width: 330px; min-width: 240px; color: var(--muted); font-size: 12px; white-space: normal; }
+    .ob-claim b { color: var(--ink-strong); font-variant-numeric: tabular-nums; }
+    .ob-date { white-space: nowrap; font-variant-numeric: tabular-nums; color: var(--muted); font-size: 12px; }
+    .ob-date .basis { display: block; font-size: 10px; color: var(--faint); }
+    .ob-chip { display: inline-block; font-size: 10.5px; font-weight: 800; letter-spacing: .05em;
+      padding: 3px 9px; border-radius: 999px; border: 1px solid; white-space: nowrap; }
+    .ob-chip.pending { color: var(--ice-bright, #7dd3fc); border-color: rgba(125,211,252,.45); }
+    .ob-chip.settled { color: #2dd4a7; border-color: rgba(45,212,167,.5); background: rgba(45,212,167,.09); }
+    .ob-settle { font-size: 12px; color: var(--muted); min-width: 180px; white-space: normal; }
+    .ob-settle b { color: var(--ink-strong); font-variant-numeric: tabular-nums; }
+    .ob-err.low { color: #f0b86e; font-weight: 700; }
+    .ob-err.high { color: #7dd3fc; font-weight: 700; }
+    .ob-flag { display: block; font-size: 10.5px; color: var(--faint); margin-top: 2px; }
+
+    /* verify — the receipts panel */
+    .ob-verify { border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px;
+      background: linear-gradient(160deg, rgba(45,212,167,.05), transparent 70%); }
+    .ob-vrow { margin-bottom: 12px; }
+    .ob-vrow .k { font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+    .ob-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px;
+      color: var(--ink-strong); background: rgba(5,10,18,.5); border: 1px solid var(--line);
+      border-radius: 8px; padding: 8px 10px; word-break: break-all; line-height: 1.5; }
+    .ob-mono.absent { color: var(--faint); font-family: inherit; font-size: 11.5px; }
+    .ob-vlink { display: inline-block; font-size: 12.5px; font-weight: 700; color: var(--ice-bright, #7dd3fc);
+      text-decoration: none; border: 1px solid rgba(125,211,252,.35); border-radius: 9px; padding: 7px 13px; margin: 2px 8px 2px 0; }
+    .ob-steps { margin: 6px 0 0; padding-left: 20px; }
+    .ob-steps li { font-size: 12.5px; line-height: 1.65; color: var(--ink); margin-bottom: 7px; }
+    .ob-foot { color: var(--muted); font-size: 12px; line-height: 1.6; margin-top: 20px; }
+    .ob-foot a { color: var(--ice-bright); text-decoration: none; }
+
+    @media (max-width: 680px) {
+      .ob-wrap { padding: 14px 12px; }
+      .ob-hero { grid-template-columns: repeat(2, 1fr); gap: 7px; }
+      .ob-tile { padding: 9px 11px; }
+      .ob-tile .v { font-size: 16px; }
+      .ob-lede { font-size: 12px; margin-bottom: 10px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="ob-wrap">
+    <div class="ob-top">
+      <h2>The Open Book</h2>
+    </div>
+    <nav style="display:flex; gap:12px; flex-wrap:wrap; align-items:center; font-size:12.5px; font-weight:600;"><a href="./index.html" style="color:var(--muted); text-decoration:none;">Home</a> <a href="./player.html" style="color:var(--muted); text-decoration:none;">Players</a> <a href="./games.html" style="color:var(--muted); text-decoration:none;">Games</a> <a href="./standings.html" style="color:var(--muted); text-decoration:none;">Projections</a> <a href="./fa-board.html" style="color:var(--muted); text-decoration:none;">Free agents</a> <a href="./deal-grader.html" style="color:var(--muted); text-decoration:none;">Deal Grader</a> <a href="./front-office.html" style="color:var(--muted); text-decoration:none;">Front office</a> <a href="./draft-board.html" style="color:var(--muted); text-decoration:none;">Draft board</a> <a href="./leaders.html" style="color:var(--muted); text-decoration:none;">Leaders</a> <a href="./transactions.html" style="color:var(--muted); text-decoration:none;">Transactions</a> <a href="./offseason.html" style="color:var(--muted); text-decoration:none;">Offseason</a> <span style="color:var(--ice-bright);">Open Book</span> <a href="./reliability.html" style="color:var(--muted); text-decoration:none;">Reliability</a></nav>
+    <p class="ob-lede"><b>Every prediction here was registered before the outcome, anchored outside our control so it cannot be quietly edited, and settles in public whatever the result.</b>
+      This page is the on-site view of that ledger: each ticket below is a frozen claim, its status, and its settlement —
+      including the misses, which stay on the page forever.</p>
+
+    <div class="ob-hero" id="ob-hero"></div>
+
+    <div class="ob-sec">The ticket book — 2026 arbitration slate</div>
+    <p class="ob-note" id="ob-slate"></p>
+    <div class="ob-scroll">
+      <table class="ob-table" id="ob-table" aria-label="Open Book tickets">
+        <thead><tr><th>Player</th><th>Claim</th><th>Frozen</th><th>Status</th><th>Settlement</th></tr></thead>
+        <tbody id="ob-rows"><tr><td colspan="5" class="ob-note" style="padding:16px 12px;">Loading the book…</td></tr></tbody>
+      </table>
+    </div>
+    <p class="ob-note" id="ob-legend"></p>
+
+    <div class="ob-sec">Verify it yourself</div>
+    <div class="ob-verify" id="ob-verify">
+      <div class="ob-vrow"><div class="k">Merkle root over the frozen tickets</div><div class="ob-mono" id="ob-root"></div></div>
+      <div class="ob-vrow"><div class="k">External anchors</div><div id="ob-anchors"></div></div>
+      <div class="ob-vrow"><div class="k">How to check the book — no trust in this site required</div><ol class="ob-steps" id="ob-steps"></ol></div>
+    </div>
+
+    <p class="ob-foot" id="ob-foot"></p>
+  </div>
+
+  <script>
+  "use strict";
+
+  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) {
+    return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+  function usd(v) { return v == null ? "—" : "$" + Math.round(v).toLocaleString("en-US"); }
+  function heroTile(k, v, s) {
+    return '<div class="ob-tile"><div class="k">' + k + '</div><div class="v">' + v + '</div><div class="s">' + s + "</div></div>";
+  }
+
+  function renderHero(d) {
+    var c = d.counts || {};
+    var excluded = c.settledExcluded != null ? c.settledExcluded : (c.settledPreRegistration || 0);
+    document.getElementById("ob-hero").innerHTML =
+      heroTile("Registered tickets", c.registered,
+        (c.priced || 0) + " priced, " + (c.unpriced || 0) + " explicit no-prices — refusals publish too") +
+      heroTile("Pending", c.pending, "open into the Jul 20 – Aug 1 hearing window") +
+      heroTile("Settled", c.settled,
+        excluded ? excluded + " resolved pre-registration or pre-anchor — recorded, excluded from scored claims" : "settled strictly after the anchor") +
+      heroTile("Settlement unit", "cap-share",
+        "AAV over the " + (d.capUsd ? "$" + (d.capUsd / 1e6).toFixed(0) + "M" : "signing-year") + " cap; one number per case, term not scored");
+  }
+
+  function settleCell(t) {
+    var s = t.settlement;
+    if (!s) return '<span class="ob-settle">— settles at club deal, award, or walk</span>';
+    var html = '<div class="ob-settle"><b>' + esc(s.outcome) + "</b>";
+    if (s.errorUsd != null) {
+      html += '<br><span class="ob-err ' + s.modelSide + '">model ' + usd(Math.abs(s.errorUsd)) + " " + s.modelSide + "</span>" +
+        (s.inPrimaryCi != null ? ' · primary CI ' + (s.inPrimaryCi ? "hit" : "miss") : "");
+    }
+    if (s.resolvedPreRegistration) {
+      html += '<span class="ob-flag">resolved pre-registration — excluded from scored claims</span>';
+    } else if (s.resolvedPreAnchor) {
+      html += '<span class="ob-flag">resolved pre-anchor — excluded from scored claims</span>';
+    }
+    if (!s.resolvedPreRegistration && s.publicReport && s.publicReport.detail) {
+      html += '<span class="ob-flag">first public report: ' + esc(s.publicReport.detail) + "</span>";
+    }
+    return html + "</div>";
+  }
+
+  function renderTable(d) {
+    document.getElementById("ob-slate").textContent = d.slate || "";
+    document.getElementById("ob-rows").innerHTML = (d.tickets || []).map(function (t) {
+      var frozen = (t.registeredAt || "").slice(0, 10);
+      var basis = t.registeredBasis === "frozen_at" ? "frozen" : "drafted";
+      return "<tr>" +
+        '<td><span class="ob-player">' + esc(t.player) + '</span><span class="ob-team">' + esc(t.team) + "</span></td>" +
+        '<td class="ob-claim">' + esc(t.claim) + "</td>" +
+        '<td class="ob-date">' + esc(frozen) + '<span class="basis">' + basis + "</span></td>" +
+        '<td><span class="ob-chip ' + t.status + '">' + t.status + "</span></td>" +
+        "<td>" + settleCell(t) + "</td>" +
+        "</tr>";
+    }).join("");
+    document.getElementById("ob-legend").textContent =
+      "Positive error = the model priced low. Tickets resolved on or before the draft date — or not provably after the external anchor — are recorded for reference and excluded from every scored claim; hiding them would be worse. Resolutions feed " +
+      (d.trackerLatestFetch ? "from the daily contract tracker, last fetched " + d.trackerLatestFetch + " UTC." : "from the daily contract tracker.");
+  }
+
+  function renderVerify(d) {
+    var rootEl = document.getElementById("ob-root");
+    if (d.merkleRoot) {
+      rootEl.textContent = d.merkleRoot;
+      rootEl.classList.remove("absent");
+    } else {
+      rootEl.textContent = d.merkleRootNote || "Not recorded in this build.";
+      rootEl.classList.add("absent");
+    }
+    var anchors = "";
+    var rk = d.rekor || {};
+    if (rk.verifyUrl) {
+      anchors += '<a class="ob-vlink" href="' + esc(rk.verifyUrl) + '" target="_blank" rel="noopener">Rekor transparency log' +
+        (rk.logIndex != null ? " · entry " + esc(rk.logIndex) : "") + " ↗</a>";
+    }
+    if (d.publicRepo) {
+      anchors += '<a class="ob-vlink" href="' + esc(d.publicRepo) + '" target="_blank" rel="noopener">Public book repo ↗</a>';
+    }
+    if (!rk.verifyUrl && rk.note) {
+      anchors += '<div class="ob-note" style="margin:6px 0 0;">' + esc(rk.note) + "</div>";
+    }
+    document.getElementById("ob-anchors").innerHTML = anchors;
+    document.getElementById("ob-steps").innerHTML = (d.howToVerify || []).map(function (s) {
+      return "<li>" + esc(s) + "</li>";
+    }).join("");
+  }
+
+  function boot(d) {
+    renderHero(d);
+    renderTable(d);
+    renderVerify(d);
+    document.getElementById("ob-foot").innerHTML =
+      "<b>The rules were written before the outcomes.</b> " +
+      esc(d.settlementRulesNote || "Settlement rules are versioned in the public repo.") +
+      " No number on this page is hand-written — every figure renders from the ledger files. " +
+      'Model calibration and the research record live on the <a href="reliability.html">reliability page</a>. ' +
+      '<a href="./methods.html">How every number is computed — Methods</a>.';
+  }
+
+  (function load() {
+    var urls = window.STATIC ? ["api/book.json"] : ["/api/book.json", "api/book.json"];
+    (function next(i) {
+      if (i >= urls.length) {
+        document.getElementById("ob-rows").innerHTML =
+          '<tr><td colspan="5" class="ob-note" style="padding:16px 12px;">Could not load the book.</td></tr>';
+        return;
+      }
+      fetch(urls[i] + "?v=" + (window.BUILD_ID || Date.now()), { cache: "no-cache" })
+        .then(function (r) { if (!r.ok) throw 0; return r.json(); })
+        .then(boot).catch(function () { next(i + 1); });
+    })(0);
+  })();
+  </script>
+</body>
+</html>

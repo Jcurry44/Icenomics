@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>window.STATIC=1;window.BUILD_ID="cfa3fc9-20260723T172316Z"</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Transactions — Icenomics</title>
+  <meta property="og:title" content="NHL Transactions, graded — Icenomics">
+  <meta property="og:description" content="Every trade and signing in the league, graded the moment it happens — by WAR exchanged and contract value.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://jcurry44.github.io/Icenomics/og-card.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#0b1018">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Icenomics">
+  <link rel="apple-touch-icon" href="./apple-touch-icon.png">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./styles.css?v=20260617-mobilenav">
+  <style>
+    .tx-wrap { max-width: 880px; margin: 0 auto; padding: 24px; }
+    .tx-head { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+    .tx-lead { color: var(--muted, #8b98ab); margin: 6px 0 16px; font-size: .92rem; line-height: 1.5; }
+    .tx-filters { display: flex; gap: 7px; margin: 0 0 16px; flex-wrap: wrap; }
+    .tx-fchip { min-height: 32px; padding: 0 13px; border-radius: 8px; border: 1px solid var(--line, rgba(148,184,255,.14));
+                background: transparent; color: var(--muted, #8b98ab); font-size: 12.5px; font-weight: 650; cursor: pointer; }
+    .tx-fchip.on { color: var(--ice-bright, #7dd3fc); border-color: rgba(125,211,252,.42); background: rgba(56,189,248,.1); }
+    .tx-card { border: 1px solid var(--line, rgba(148,184,255,.1));
+               border-radius: 12px; padding: 13px 15px; margin: 9px 0; background: linear-gradient(165deg, rgba(56,189,248,.035), transparent 60%); }
+    .tx-row { display: flex; gap: 13px; align-items: flex-start; }
+    .tx-trade .tx-row { cursor: pointer; }
+    .tx-trade.tx-open { border-color: rgba(125,211,252,.3); background: linear-gradient(165deg, rgba(56,189,248,.07), transparent 64%); }
+    .tx-date { flex: 0 0 50px; font-size: 11px; color: var(--faint, #5d6b7e); font-weight: 650; padding-top: 3px; text-align: center; }
+    .tx-body { flex: 1 1 auto; min-width: 0; }
+    .tx-kind { font-size: 10px; text-transform: uppercase; letter-spacing: .09em; font-weight: 700; }
+    .tx-kind.trade { color: #a78bfa; } .tx-kind.signing { color: #34d399; }
+    .tx-title { font-size: 14.5px; font-weight: 700; color: var(--ink-strong, #f7fafc); margin: 2px 0 5px; letter-spacing: -.01em; }
+    .tx-plink { color: inherit; text-decoration: none; border-bottom: 1px dotted rgba(125,211,252,.45); }
+    .tx-plink:hover { color: var(--ice-bright, #7dd3fc); border-bottom-color: var(--ice-bright, #7dd3fc); }
+    .tx-detail { font-size: 12px; color: var(--muted, #8b98ab); line-height: 1.55; }
+    .tx-detail .o { color: var(--ink-strong, #f7fafc); }
+    /* two-sided trade layout: each crest with what it RECEIVED underneath */
+    .tx-sides { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 9px; margin: 3px 0 4px; }
+    .tx-side2 { border: 1px solid var(--line, rgba(148,184,255,.14)); border-radius: 10px;
+      padding: 8px 10px; background: rgba(255,255,255,.02); min-width: 0; }
+    .tx-side2-head { display: flex; align-items: center; gap: 7px; font-size: 11px; font-weight: 800;
+      letter-spacing: .05em; text-transform: uppercase; color: var(--muted, #8b98ab); margin-bottom: 5px; }
+    .tx-side2-head img { width: 22px; height: 22px; object-fit: contain; }
+    .tx-side2-item { font-size: 12.5px; color: var(--ink-strong, #f7fafc); font-weight: 650;
+      padding: 2.5px 0; line-height: 1.4; }
+    .tx-side2-item.none { color: var(--faint, #5d6b7e); font-weight: 500; }
+    .tx-pick2 { color: var(--muted, #8b98ab); font-weight: 600; }
+    .tx-pick2 .via { color: var(--faint, #5d6b7e); font-size: 11px; }
+    .tx-depth2 { color: var(--faint, #5d6b7e); font-weight: 500; font-size: 11.5px; }
+    .tx-grade { flex: 0 0 auto; align-self: center; text-align: right; }
+    .tx-pill { display: inline-block; padding: 4px 10px; border-radius: 8px; font-size: 12px; font-weight: 750; white-space: nowrap;
+               border: 1px solid var(--line, rgba(148,184,255,.14)); }
+    .tx-pill.good { color: #6ee7c8; border-color: rgba(45,212,167,.4); background: rgba(45,212,167,.1); }
+    .tx-pill.bad  { color: #fda4ab; border-color: rgba(244,116,127,.4); background: rgba(244,116,127,.1); }
+    .tx-pill.mid  { color: #c7d2e0; }
+    .tx-sub { font-size: 10.5px; color: var(--faint, #5d6b7e); margin-top: 4px; }
+    .tx-why-cue { display: inline-block; margin-top: 6px; font-size: 11px; font-weight: 700;
+                  color: var(--ice-bright, #7dd3fc); white-space: nowrap; user-select: none; }
+    /* the "why this grade" drill-down */
+    .tx-why { margin-top: 13px; padding-top: 13px; border-top: 1px solid var(--line, rgba(148,184,255,.12)); animation: txfade .18s ease; }
+    @keyframes txfade { from { opacity: 0; transform: translateY(-3px); } to { opacity: 1; transform: none; } }
+    .tx-why-head { font-size: 9.5px; text-transform: uppercase; letter-spacing: .09em; color: var(--ice-bright, #7dd3fc); font-weight: 700; margin-bottom: 7px; }
+    .tx-why-verdict { font-size: 13px; line-height: 1.5; color: var(--ink-strong, #f7fafc); font-weight: 600; margin-bottom: 5px; }
+    .tx-why-unit { font-size: 10.5px; color: var(--faint, #5d6b7e); margin: 0 0 12px; }
+    .tx-ledger { display: grid; grid-template-columns: 1fr 1fr; gap: 11px; }
+    @media (max-width: 560px) { .tx-ledger { grid-template-columns: 1fr; } }
+    .tx-side { border: 1px solid var(--line, rgba(148,184,255,.1)); border-radius: 10px; padding: 10px 11px; background: rgba(13,18,28,.4); }
+    .tx-side-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+    .tx-team { font-size: 13px; font-weight: 800; letter-spacing: .02em; color: var(--ink-strong, #f7fafc); }
+    .tx-net { font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--muted, #8b98ab); }
+    .tx-net.pos { color: #6ee7c8; } .tx-net.neg { color: #fda4ab; }
+    .tx-dir { font-size: 9.5px; text-transform: uppercase; letter-spacing: .08em; color: var(--faint, #5d6b7e); margin: 8px 0 2px; font-weight: 700; }
+    .tx-asset { display: flex; gap: 8px; align-items: baseline; padding: 2px 0; }
+    .tx-asset-w { flex: 0 0 44px; text-align: right; font-size: 12px; font-weight: 750; font-variant-numeric: tabular-nums; color: var(--ice-bright, #7dd3fc); }
+    .tx-asset.out .tx-asset-w { color: var(--muted, #8b98ab); }
+    .tx-asset-main { min-width: 0; font-size: 12px; line-height: 1.35; }
+    .tx-asset-main b { color: var(--ink-strong, #f7fafc); font-weight: 650; }
+    .tx-eq { font-size: 10px; color: var(--faint, #5d6b7e); border: 1px solid var(--line, rgba(148,184,255,.16)); border-radius: 5px; padding: 0 4px; margin-left: 3px; white-space: nowrap; }
+    .tx-lvl { color: var(--muted, #8b98ab); }
+    .tx-asset-sub { display: block; font-size: 10.5px; color: var(--faint, #5d6b7e); }
+    .tx-soft { color: #f0b86e; margin-left: 4px; cursor: help; font-weight: 800; }
+    .tx-asset.empty { color: var(--faint, #5d6b7e); font-size: 12px; padding-left: 52px; }
+    .tx-picknote { margin-top: 11px; font-size: 11.5px; line-height: 1.5; color: var(--muted, #8b98ab);
+                   padding: 8px 11px; border-left: 2px solid rgba(125,211,252,.45); background: rgba(56,189,248,.05); border-radius: 0 7px 7px 0; }
+    .tx-caveats { margin-top: 11px; }
+    .tx-caveats summary { font-size: 10.5px; color: var(--faint, #5d6b7e); cursor: pointer; font-weight: 600; }
+    .tx-caveats ul { margin: 6px 0 0; padding-left: 16px; }
+    .tx-caveats li { font-size: 10.5px; line-height: 1.5; color: var(--faint, #5d6b7e); margin: 2px 0; }
+    @media (max-width: 680px) { .tx-wrap { padding: 14px 12px; } .tx-row { flex-wrap: wrap; } .tx-grade { width: 100%; text-align: left; } }
+  </style>
+</head>
+<body>
+  <div class="tx-wrap">
+    <div class="tx-head">
+      <a class="bl-brand" href="./index.html"><span class="bl-mark">IC</span> Icenomics</a>
+      <nav style="display:flex; gap:12px; flex-wrap:wrap; align-items:center; font-size:12.5px; font-weight:600;"><a href="./index.html" style="color:var(--muted); text-decoration:none;">Home</a> <a href="./player.html" style="color:var(--muted); text-decoration:none;">Players</a> <a href="./games.html" style="color:var(--muted); text-decoration:none;">Games</a> <a href="./standings.html" style="color:var(--muted); text-decoration:none;">Projections</a> <a href="./fa-board.html" style="color:var(--muted); text-decoration:none;">Free agents</a> <a href="./deal-grader.html" style="color:var(--muted); text-decoration:none;">Deal Grader</a> <a href="./front-office.html" style="color:var(--muted); text-decoration:none;">Front office</a> <a href="./draft-board.html" style="color:var(--muted); text-decoration:none;">Draft board</a> <a href="./leaders.html" style="color:var(--muted); text-decoration:none;">Leaders</a> <span style="color:var(--ice-bright);">Transactions</span> <a href="./offseason.html" style="color:var(--muted); text-decoration:none;">Offseason</a> <a href="./book.html" style="color:var(--muted); text-decoration:none;">Open Book</a> <a href="./reliability.html" style="color:var(--muted); text-decoration:none;">Reliability</a></nav>
+    </div>
+    <h1 style="margin:6px 0 0; font-size:20px; color:var(--ink-strong);">Transactions, graded</h1>
+    <p class="tx-lead">Every trade and signing in the league, graded the moment it lands — trades by the <b style="color:var(--ink-strong)">WAR exchanged</b> (preliminary until the window elapses, then final), signings by <b style="color:var(--ink-strong)">contract value</b> (production worth vs the cap hit). A live graded log; historical model scoring is reported separately only when its evidence is locked.</p>
+    <div class="tx-filters" id="tx-filters">
+      <button class="tx-fchip on" data-f="all">All</button>
+      <button class="tx-fchip" data-f="trade">Trades</button>
+      <button class="tx-fchip" data-f="signing">Signings</button>
+    </div>
+    <div id="tx-feed"><p class="tx-lead">Loading…</p></div>
+  </div>
+
+  <script src="./player-modal.js"></script>
+  <script>
+  (function () {
+    var FEED = [], META = {}, filter = "all", _shown = 60;
+    function fmtM(n) { if (n == null) return "—"; var a = Math.abs(n); return (n < 0 ? "-$" : "$") + (a >= 9.5e5 ? (a / 1e6).toFixed(1) + "M" : Math.round(a / 1e3) + "K"); }
+    function pill(cls, txt) { return '<span class="tx-pill ' + cls + '">' + txt + '</span>'; }
+    function tradeCard(it) {
+      var g = it.grade, gradeHtml = "", sub = "";
+      if (g) {
+        var cls = g.favors ? "good" : "mid";
+        gradeHtml = pill(cls, g.text + (g.favors ? " · " + (g.war > 0 ? "+" : "") + g.war + " WAR" : ""));
+        sub = '<div class="tx-sub">' + (g.realized ? "final" : "preliminary — window not elapsed") + "</div>";
+      }
+      // Two-sided layout (user ask 2026-07-06: the inline "Carlo TOR→STL ·
+      // 2026 R3 STL→TOR" arrow soup was unreadable) — each club's crest with
+      // what it RECEIVED underneath, the way every good trade tracker reads.
+      var ordn = function (r) { return { 1: "1st", 2: "2nd", 3: "3rd" }[r] || (r + "th"); };
+      var logoUrl = function (t) { return "https://assets.nhle.com/logos/nhl/svg/" + t + "_dark.svg"; };
+      var sides = it.teams.map(function (team) {
+        var got = [];
+        var depth = 0;
+        it.players.forEach(function (p) {
+          if (p.to !== team) return;
+          if (/^player \d+$/.test(p.name)) { depth += 1; return; }
+          got.push(p.id != null
+            ? '<a class="tx-plink" href="player.html?id=' + p.id + '">' + esc(p.name) + "</a>"
+            : esc(p.name));
+        });
+        it.picks.forEach(function (pk) {
+          if (pk.to !== team) return;
+          got.push('<span class="tx-pick2">' + (pk.year || "") + " " + ordn(pk.round) +
+            (pk.from && pk.from !== team ? ' <span class="via">via ' + esc(pk.from) + "</span>" : "") + "</span>");
+        });
+        if (depth) got.push('<span class="tx-depth2">+' + depth + " depth</span>");
+        return '<div class="tx-side2"><div class="tx-side2-head">' +
+          '<img src="' + logoUrl(team) + '" alt="" loading="lazy" onerror="this.style.display=\'none\'">' +
+          esc(team) + " receives</div>" +
+          (got.length ? '<div class="tx-side2-list">' + got.map(function (g) {
+            return '<div class="tx-side2-item">' + g + "</div>"; }).join("") + "</div>"
+            : '<div class="tx-side2-item none">nothing recorded</div>') + "</div>";
+      }).join("");
+      var cue = it.explain ? '<div class="tx-why-cue">Why ▾</div>' : "";
+      // price check (trade-ask audit): the ex-ante quote vs the actual haul —
+      // "what we'd have expected the price to be" on every clean headliner deal
+      var pc = "";
+      (it.priceCheck || []).forEach(function (c) {
+        if (c.expected == null || c.actual == null) return;
+        // err = expected - actual: negative means he FETCHED MORE than our quote
+        var rich = c.err < -0.25, cheap = c.err > 0.25;
+        var word = rich ? "fetched more than our quote" : (cheap ? "fetched less than our quote" : "right on our quote");
+        var col = (rich || cheap) ? "#f0b86e" : "var(--pos, #38d39f)";
+        pc += '<div class="tx-sub" style="margin-top:3px;">Price check — ' + esc(c.name)
+          + ': expected ~' + c.expected + ', fetched ' + c.actual
+          + ' <span style="color:' + col + ';">(' + word + ')</span>'
+          + '<span style="color:var(--faint,#5d6b7e);"> · pick-WAR7, quoted as-of the deal</span></div>';
+      });
+      return '<div class="tx-card tx-trade" data-kind="trade">'
+        + '<div class="tx-row"><div class="tx-date">' + dlabel(it.date) + '</div>'
+        + '<div class="tx-body"><div class="tx-kind trade">Trade</div>'
+        + '<div class="tx-sides">' + sides + '</div>'
+        + pc + '</div>'
+        + '<div class="tx-grade">' + gradeHtml + sub + cue + '</div></div>'
+        + (it.explain ? whyPanel(it.explain) : "")
+        + '</div>';
+    }
+    function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+    function assetRow(l, dir) {
+      var w = (l.war > 0 ? "+" : "") + Number(l.war).toFixed(2);
+      var eq = l.pickEq ? '<span class="tx-eq">' + esc(l.pickEq) + '</span>' : "";
+      var soft = (l.soft && l.note) ? '<span class="tx-soft" title="' + esc(l.note) + '">*</span>' : "";
+      var sub = [l.level ? esc(l.level) : "", l.detail ? esc(l.detail) : ""].filter(Boolean).join(" · ");
+      return '<div class="tx-asset ' + dir + '"><span class="tx-asset-w">' + w + '</span>'
+        + '<span class="tx-asset-main"><b>' + esc(l.label) + '</b>' + eq + soft
+        + (sub ? '<span class="tx-asset-sub">' + sub + '</span>' : "") + '</span></div>';
+    }
+    function sideCol(s) {
+      var got = s.got.length ? s.got.map(function (l) { return assetRow(l, "in"); }).join("") : '<div class="tx-asset empty">—</div>';
+      var gave = s.gave.length ? s.gave.map(function (l) { return assetRow(l, "out"); }).join("") : '<div class="tx-asset empty">—</div>';
+      var net = (s.net > 0 ? "+" : "") + Number(s.net).toFixed(2);
+      var ncls = s.net > 0.05 ? "pos" : (s.net < -0.05 ? "neg" : "");
+      return '<div class="tx-side"><div class="tx-side-head"><span class="tx-team">' + esc(s.team) + '</span>'
+        + '<span class="tx-net ' + ncls + '">net ' + net + ' WAR</span></div>'
+        + '<div class="tx-dir">Acquired</div>' + got
+        + '<div class="tx-dir">Gave up</div>' + gave + '</div>';
+    }
+    function whyPanel(ex) {
+      var sides = ex.sides.map(sideCol).join("");
+      var pick = ex.pickNote ? '<div class="tx-picknote">' + esc(ex.pickNote) + '</div>' : "";
+      var cav = (ex.caveats || []).map(function (c) { return '<li>' + esc(c) + '</li>'; }).join("");
+      return '<div class="tx-why" hidden>'
+        + '<div class="tx-why-head">Why the grade · value at the time of the deal</div>'
+        + '<div class="tx-why-verdict">' + esc(ex.verdict.line) + '</div>'
+        + '<div class="tx-why-unit">Every chip priced in WAR over a 7-year horizon — the same scale a draft pick is valued on, so players and picks compare directly.</div>'
+        + '<div class="tx-ledger">' + sides + '</div>' + pick
+        + (cav ? '<details class="tx-caveats"><summary>How this is valued · caveats</summary><ul>' + cav + '</ul></details>' : "")
+        + '</div>';
+    }
+    function signCard(it) {
+      // grade is an OBJECT for normal signings and a STRING for offer sheets
+      // (the Carlsson item shipped as "OFFER SHEET" and rendered "undefined")
+      var g = it.grade || {};
+      var isOS = it.kind === "offer-sheet" || typeof g === "string";
+      // the calibrated Deal Grade LETTER is the pill when the grader has the
+      // deal (audit strategic #6); the naive value verdict is the fallback
+      var gtext = isOS ? (typeof g === "string" ? g : "OFFER SHEET")
+        : it.letter ? ("Deal Grade " + it.letter)
+        : (g.text || "—");
+      var cls = isOS ? "mid"
+        : it.letter ? (/^A/.test(it.letter) ? "good" : /^[CDF]/.test(it.letter) ? "bad" : "mid")
+        : (g.text === "Bargain" ? "good" : (g.text === "Overpay" ? "bad" : "mid"));
+      var gsub = isOS ? "match calculus on his card"
+        : it.letter ? "outcome-calibrated letter; receipts on his card"
+        : (g.surplus != null ? fmtM(g.surplus) + " vs value" : "");
+      var nm = it.playerId != null
+        ? '<a class="tx-plink" href="player.html?id=' + it.playerId + '">' + esc(it.player) + '</a>'
+        : esc(it.player);
+      return '<div class="tx-card" data-kind="signing"><div class="tx-date">' + dlabel(it.date) + '</div>'
+        + '<div class="tx-body"><div class="tx-kind signing">' + (isOS ? "Offer sheet" : "Signing") + '</div>'
+        + '<div class="tx-title">' + nm + ' <span style="color:var(--muted);font-weight:600;">→ ' + it.team + '</span></div>'
+        + '<div class="tx-detail">' + fmtM(it.capHit) + " × " + (it.years || "?") + "yr · " + (it.contractType || "") + (it.age ? " · age " + it.age : "") + '</div></div>'
+        + '<div class="tx-grade">' + pill(cls, gtext) + (gsub ? '<div class="tx-sub">' + gsub + '</div>' : "") + "</div>"
+        + '<div class="tx-sub" style="margin-top:7px;">' + esc(it.note ||
+            "Graded on measured past WAR vs the new cap hit — a deal paying for projected growth reads Overpay by design; the player card's Deal Grade is a current-model reconstruction, not a frozen historical forecast.") + '</div></div>';
+    }
+    function dlabel(d) { if (!d) return ""; var p = d.split("-"); return ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][(+p[1] || 1) - 1] + " " + (+p[2] || ""); }
+    function render() {
+      var host = document.getElementById("tx-feed");
+      var rows = FEED.filter(function (it) { return filter === "all" || it.kind === filter; });
+      if (!rows.length) { host.innerHTML = '<p class="tx-lead">No ' + (filter === "all" ? "" : filter + " ") + "transactions yet this league year.</p>"; return; }
+      // counts line from the baked totals — the header claims "every trade and
+      // signing", so the page says how many that is and since when (audit P0
+      // 2026-07-16: a 60-item cap silently dropped 93% of July 1 beneath that
+      // headline). The payload has no cap; the window IS the league year.
+      var counts = '<p class="tx-lead" style="margin:2px 0 10px;">'
+        + (META.signingCount || 0) + " signings · " + (META.tradeCount || 0)
+        + " trades since " + (dlabel(META.windowStart) || "Jul 1")
+        + " — the full league year, uncapped.</p>";
+      // day headers: one label per date group (the feed is date-desc sorted)
+      // DOM paints _shown at a time (deal-grader's show-more pattern): the
+      // payload stays uncapped and the counts stay honest, but a March feed
+      // of 1000+ cards never lands in one innerHTML pass on a phone.
+      var out = [], lastDay = null;
+      rows.slice(0, _shown).forEach(function (it) {
+        if (it.date !== lastDay) {
+          lastDay = it.date;
+          out.push('<div style="margin:16px 0 7px;font-size:11.5px;font-weight:800;color:var(--muted);letter-spacing:.06em;">' + dlabel(it.date).toUpperCase() + "</div>");
+        }
+        out.push(it.kind === "trade" ? tradeCard(it) : signCard(it));
+      });
+      var more = rows.length > _shown
+        ? '<button id="tx-more" style="width:100%;min-height:40px;margin-top:10px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--muted);font-weight:700;font-size:13px;cursor:pointer;">Show ' + Math.min(60, rows.length - _shown) + ' more (' + (rows.length - _shown) + ' remaining)</button>'
+        : "";
+      host.innerHTML = counts + out.join("") + more;
+      var mb = document.getElementById("tx-more");
+      if (mb) mb.addEventListener("click", function () { _shown += 60; render(); });
+    }
+    document.getElementById("tx-filters").addEventListener("click", function (e) {
+      var b = e.target.closest(".tx-fchip"); if (!b) return;
+      filter = b.dataset.f;
+      [].forEach.call(this.querySelectorAll(".tx-fchip"), function (x) { x.classList.toggle("on", x === b); });
+      render();
+    });
+    // click a trade's header row -> reveal the "why this grade" breakdown
+    // (only the row toggles, so clicks inside the panel/caveats don't collapse it)
+    document.getElementById("tx-feed").addEventListener("click", function (e) {
+      var row = e.target.closest(".tx-row"); if (!row) return;
+      var card = row.closest(".tx-trade"); if (!card) return;
+      var why = card.querySelector(".tx-why"); if (!why) return;
+      var opening = why.hasAttribute("hidden");
+      if (opening) why.removeAttribute("hidden"); else why.setAttribute("hidden", "");
+      card.classList.toggle("tx-open", opening);
+      var cue = card.querySelector(".tx-why-cue"); if (cue) cue.textContent = opening ? "Why ▴" : "Why ▾";
+    });
+    var urls = window.STATIC ? ["api/transactions.json"] : ["/api/transactions", "api/transactions.json"];
+    (function next(i) {
+      if (i >= urls.length) { document.getElementById("tx-feed").innerHTML = '<p class="tx-lead">Transactions feed unavailable.</p>'; return; }
+      fetch(urls[i] + "?v=" + (window.BUILD_ID || Date.now()), { cache: "no-cache" }).then(function (r) { if (!r.ok) throw 0; return r.json(); })
+        .then(function (d) { FEED = (d && d.items) || []; META = d || {}; render(); }).catch(function () { next(i + 1); });
+    })(0);
+  })();
+  </script>
+</body>
+</html>

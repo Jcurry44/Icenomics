@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Icenomics — The public NHL front office</title>
+<meta property="og:title" content="Icenomics — The public NHL front office">
+<meta property="og:description" content="Every NHL contract is a bet. The Open Book freezes the call before the answer, anchors it externally, and settles it in public.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://jcurry44.github.io/Icenomics/og-card.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="manifest" href="./manifest.json"><meta name="theme-color" content="#0b1018">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Icenomics">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<link rel="stylesheet" href="./styles.css">
+<style>
+  .land { max-width: 760px; margin: 0 auto; padding: 32px 20px 60px; }
+  .land h1 { font-size: 30px; letter-spacing: -.02em; color: var(--ink-strong); margin: 18px 0 8px; }
+  .land p.sub { color: var(--muted); margin: 0 0 26px; line-height: 1.6; }
+  .land a.card { display: block; border: 1px solid var(--line); border-radius: 10px;
+    background: linear-gradient(180deg, var(--panel-raised), var(--panel));
+    padding: 18px 42px 18px 18px; margin: 12px 0; text-decoration: none; color: var(--ink);
+    position: relative; transition: border-color .15s ease, transform .12s ease; }
+  /* the arrow is the tap affordance -- the trust bullets above deliberately
+     have NO box chrome so only destinations look pressable (user catch
+     2026-07-07: half of visitors would tap "Receipts" before "Player cards") */
+  .land a.card::after { content: "→"; position: absolute; right: 15px; top: 50%;
+    transform: translateY(-50%); color: var(--ice-bright); font-size: 18px; font-weight: 700;
+    opacity: .85; transition: transform .12s ease; }
+  .land a.card:hover { border-color: rgba(56,189,248,.45); transform: translateY(-1px); }
+  .land a.card:hover::after { transform: translate(3px, -50%); }
+  .land a.card b { color: var(--ice-bright); font-size: 17px; }
+  .land a.card span { display: block; color: var(--muted); font-size: 13.5px; margin-top: 5px; line-height: 1.5; }
+  .land a.open-book { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 18px;
+    align-items: center; position: relative; overflow: hidden; margin: 0 0 20px; padding: 20px;
+    border: 1px solid rgba(56,189,248,.42); border-radius: 14px; text-decoration: none;
+    color: var(--ink); background:
+      radial-gradient(circle at 100% 0, rgba(56,189,248,.2), transparent 42%),
+      linear-gradient(155deg, rgba(16,32,50,.98), rgba(9,17,28,.98));
+    box-shadow: 0 16px 44px rgba(0,0,0,.25); transition: border-color .15s ease, transform .12s ease; }
+  .land a.open-book:hover { border-color: rgba(125,211,252,.78); transform: translateY(-1px); }
+  .land .book-kicker { display: flex; align-items: center; gap: 7px; color: #6ee7c8;
+    font-size: 10px; letter-spacing: .14em; text-transform: uppercase; font-weight: 800; }
+  .land .book-kicker::before { content: ""; width: 6px; height: 6px; border-radius: 50%;
+    background: #6ee7c8; box-shadow: 0 0 10px rgba(110,231,200,.72); }
+  .land .book-title { display: block; margin: 10px 0 6px; color: var(--ink-strong);
+    font-size: 19px; line-height: 1.25; font-weight: 760; letter-spacing: -.01em; }
+  .land .book-copy { display: block; max-width: 560px; color: var(--muted); font-size: 13px; line-height: 1.55; }
+  .land .book-meta { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 13px; }
+  .land .book-meta span { border: 1px solid rgba(125,211,252,.2); border-radius: 999px;
+    padding: 5px 8px; color: var(--ice-bright); font-size: 10.5px; font-weight: 700; }
+  .land .book-go { color: var(--ice-bright); font-size: 13px; font-weight: 750; white-space: nowrap; }
+  .land .book-repo { margin: -13px 2px 18px; text-align: right; font-size: 11.5px; }
+  .land .book-repo a { color: var(--faint); text-decoration: none; font-weight: 700; }
+  .land .book-repo a:hover { color: var(--ice-bright); }
+  .land .note { color: var(--faint); font-size: 12.5px; margin-top: 26px; line-height: 1.6; }
+  .land .myteam { display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    margin: 0 0 18px; min-height: 34px; font-size: 12.5px; color: var(--muted); }
+  .land .myteam img { width: 30px; height: 30px; border-radius: 50%; background: var(--panel);
+    border: 1px solid var(--line); padding: 3px; }
+  .land .myteam b { color: var(--ink-strong); font-size: 13px; }
+  .land .myteam a { color: var(--ice-bright); text-decoration: none; font-weight: 700;
+    border: 1px solid var(--line); border-radius: 999px; padding: 5px 11px; }
+  .land .myteam a:hover { border-color: rgba(56,189,248,.45); }
+  .land .myteam select { min-height: 32px; }
+  .land .myteam button { background: transparent; border: 0; color: var(--faint);
+    font-size: 11.5px; cursor: pointer; text-decoration: underline; }
+  .land .trust { display: grid; gap: 7px; margin: 0 0 24px; }
+  .land .trust > div { position: relative; padding: 0 0 0 21px; }
+  .land .trust > div::before { content: "✓"; position: absolute; left: 2px; top: 0;
+    color: #6ee7c8; font-weight: 800; font-size: 12.5px; }
+  .land .trust b { font-size: 12.5px; color: var(--ink-strong); }
+  .land .trust b::after { content: " — "; color: var(--muted); font-weight: 400; }
+  .land .trust span { font-size: 12.5px; color: var(--muted); line-height: 1.5; }
+  .land .brandrow { display: flex; align-items: center; gap: 12px; margin: 0 0 6px; }
+  .land .mark { width: 52px; height: 52px; border-radius: 13px; display: block;
+    box-shadow: 0 6px 18px rgba(56,189,248,.18); }
+  .land .wordmark { font-size: 19px; font-weight: 800; letter-spacing: -.01em; color: var(--ink-strong); }
+  .land .brandrow + h1 { margin-top: 14px; }
+  /* search + live recommendations */
+  .land-search { position: relative; margin: 0 0 20px; }
+  .land-sugg { position: absolute; left: 0; right: 0; top: 50px; z-index: 30; display: none;
+    background: var(--panel-raised, #101a29); border: 1px solid var(--line);
+    border-radius: 10px; overflow: hidden; box-shadow: 0 16px 44px rgba(0,0,0,.55); }
+  .land-sugg.open { display: block; }
+  .land-sugg .opt { display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    padding: 11px 14px; cursor: pointer; border-bottom: 1px solid var(--line); }
+  .land-sugg .opt:last-child { border-bottom: 0; }
+  .land-sugg .opt.active, .land-sugg .opt:hover { background: rgba(56,189,248,.13); }
+  .land-sugg .opt b { color: var(--ink-strong); font-weight: 650; }
+  .land-sugg .opt .pos { color: var(--faint); font-size: 12px; letter-spacing: .04em; }
+  .land-sugg .none { padding: 11px 14px; color: var(--faint); font-size: 13.5px; cursor: default; }
+  @media (max-width: 560px) {
+    .land { padding: 22px 14px 48px; }
+    .land a.open-book { grid-template-columns: 1fr; gap: 12px; padding: 17px; }
+  }
+</style></head>
+<body><script>window.STATIC=1;window.BUILD_ID="cfa3fc9-20260723T172316Z"</script>
+<div class="land">
+  <div class="brandrow"><img class="mark" src="./icon.svg" alt="Icenomics" width="52" height="52">
+    <span class="wordmark">Icenomics</span></div>
+  <h1>The public NHL front office that keeps a book.</h1>
+  <p class="sub">Every contract is a bet. Prospective calls are frozen before the answer,
+  externally anchored, and settled in public. Transparent, validated, attributed.</p>
+  <a class="open-book" href="./book.html"
+    aria-label="Open the Icenomics Open Book — every ticket, status, and settlement">
+    <span>
+      <span class="book-kicker">Open Book · live</span>
+      <span class="book-title">2026 arbitration slate</span>
+      <span class="book-copy">Fifteen public tickets. Ten eligible price calls. Two explicit no-prices.
+        Every ticket is frozen into one externally anchored manifest before the outcome —
+        and settles in public whatever the result.</span>
+      <span class="book-meta"><span>Merkle anchored</span><span>Public settlement</span><span>MIT licensed</span></span>
+    </span>
+    <span class="book-go">Inspect the book →</span>
+  </a>
+  <p class="book-repo"><a href="https://github.com/Jcurry44/icenomics-open-book" target="_blank" rel="noopener">Anchored public repo ↗</a></p>
+  <div class="land-search">
+    <div style="display:flex; gap:8px;">
+      <input id="land-q" type="search" autocomplete="off" placeholder="Find a player — e.g. Connor McDavid"
+        style="flex:1; min-height:44px; padding:0 14px; font-size:15px;">
+      <button class="primary" id="land-go" style="min-height:44px;">Search</button>
+    </div>
+    <div id="land-sugg" class="land-sugg" role="listbox" aria-label="Player suggestions"></div>
+  </div>
+  <div class="myteam" id="myteam"></div>
+  <div class="trust">
+    <div><b>Receipts on every number</b><span>Tap any grade on any card — the method,
+      the sample, and the caveats open right there.</span></div>
+    <div><b>Validated before shipped</b><span>Model changes pass pre-registered gates or
+      they don't land — and the refusals are published, not hidden.</span></div>
+    <div><b>Honest ceilings</b><span>Every metric ships with what it can't see — playoffs,
+      thin samples, and our own predictive limits, measured and posted.</span></div>
+  </div>
+  <a class="card" href="./player.html"><b>Player cards</b>
+    <span>Career WAR arcs, play-driving trends, shot maps, scorecards, and contract value
+    for every rated skater and goalie since 2010 — plus the full WAR leaderboards by
+    season range, component, and position, one tap away.</span></a>
+  <a class="card" href="./deal-grader.html"><b>Deal Grader — skater contracts reconstructed</b>
+    <span>Eligible multi-year skater deals evaluated in their signing-year age and cap frame using
+    the current model. Outcome-calibrated letters and a transparent receipt behind each grade;
+    goalies are not yet included.</span></a>
+  <a class="card" href="./games.html"><b>Game cards — the latest night</b>
+    <span>Every game with every player's line and shot-quality context — three stars, single-game
+    goalie GSAx, all honestly labeled as one night, never a rating. In season: last night, nightly.</span></a>
+  <a class="card" href="./standings.html"><b>Projections — standings, playoff &amp; Cup odds</b>
+    <span>Every team's 2026-27 projection from roster WAR — with a live what-if trade
+    simulator: move players between teams and watch the standings and odds re-simulate,
+    each number explained by the underlying play (not the lucky record).</span></a>
+  <a class="card" href="./offseason.html"><b>Offseason — who won the summer</b>
+    <span>Every team's final 2025-26 roster vs today: who came in, who walked, every
+    trade and signing graded — the net projected-points swing, ranked league-wide.</span></a>
+  <a class="card" href="./front-office.html"><b>Front office — roster toolkit + GM ratings</b>
+    <span>Every team's summer view: roster WAR, contracts, trade values priced in real
+    pick packages, expiring decisions, and the prospect pipeline — plus who drafts,
+    signs, and trades best (slot-adjusted, zero-sum audited).</span></a>
+  <a class="card" href="./fa-board.html"><b>Free agents — UFA market + best fits</b>
+    <span>The 2026-27 UFA market ranked by our value, each with the teams that fit by need and
+    cap space — plus the pending-RFA re-sign board.</span></a>
+  <a class="card" href="./draft-board.html"><b>Draft Board — 2026 class</b>
+    <span>Production-ranked draft eligibles with projected 7-season NHL WAR — a
+    rounds-2-7 value tool that names what it can't see (skating, sense, NCAA),
+    not a top-10 scouting list.</span></a>
+  <a class="card" href="./transactions.html"><b>Transactions, graded</b>
+    <span>Every trade and signing in the league, scored the moment it lands — trades by the
+    WAR exchanged, signings by production value vs the cap hit. A live graded log;
+    historical scoring is published separately only when its evidence is locked.</span></a>
+  <a class="card" href="./reliability.html"><b>Reliability — how to read these numbers</b>
+    <span>The honesty page: what r ≈ 0.85 means, per-metric calibration reports, and the
+    limits we name instead of hide.</span></a>
+  <p class="note">Static snapshot baked from the local warehouse. The type-anything tools
+  (Ask, SQL Lab, cap optimizer) run in the local build only — the trade simulator on the
+  Projections page runs right here, client-side.</p>
+  <p class="note" style="margin-top:6px;">Built by <b>Joe Curry</b> ·
+  <a href="https://github.com/Jcurry44" style="color:var(--ice-bright,#7dd3fc);text-decoration:none;">github.com/Jcurry44</a> ·
+  <a href="https://github.com/Jcurry44/icenomics-open-book" style="color:var(--ice-bright,#7dd3fc);text-decoration:none;">the Open Book</a>
+  — pre-registered calls, anchored and settled in public.</p>
+</div>
+<script>
+/* My team pin (roadmap #3, 2026-07-08): one localStorage preference turns the
+   landing into YOUR front door — crest + quick routes to your projection, cap
+   sheet, offseason ledger, and the latest games. No accounts, no tracking. */
+(function () {
+  var KEY = 'ic_team';
+  var CODES = ['ANA','BOS','BUF','CAR','CBJ','CGY','CHI','COL','DAL','DET','EDM','FLA',
+               'LAK','MIN','MTL','NJD','NSH','NYI','NYR','OTT','PHI','PIT','SEA','SJS',
+               'STL','TBL','TOR','UTA','VAN','VGK','WPG','WSH'];
+  var el = document.getElementById('myteam');
+  if (!el) return;
+  function crest(t) { return 'https://assets.nhle.com/logos/nhl/svg/' + t + '_dark.svg'; }
+  function render() {
+    var t = null;
+    try { t = localStorage.getItem(KEY); } catch (e) {}
+    if (t && CODES.indexOf(t) < 0) t = null;
+    if (t) {
+      el.innerHTML = '<img src="' + crest(t) + '" alt="" onerror="this.remove()"><b>' + t + '</b>' +
+        '<a href="./standings.html?team=' + t + '">Projection</a>' +
+        '<a href="./front-office.html">Front office</a>' +
+        '<a href="./offseason.html">Offseason</a>' +
+        '<a href="./games.html">Games</a>' +
+        '<button id="mt-change" type="button">change team</button>';
+      document.getElementById('mt-change').onclick = function () {
+        try { localStorage.removeItem(KEY); } catch (e) {}
+        render();
+      };
+    } else {
+      el.innerHTML = '<span>Make it yours:</span><select id="mt-sel" aria-label="Pick your team">' +
+        '<option value="">pick your team…</option>' +
+        CODES.map(function (c) { return '<option>' + c + '</option>'; }).join('') + '</select>';
+      document.getElementById('mt-sel').onchange = function (e) {
+        if (!e.target.value) return;
+        try { localStorage.setItem(KEY, e.target.value); } catch (err) {}
+        render();
+      };
+    }
+  }
+  render();
+})();
+(function () {
+  var q = document.getElementById('land-q'), box = document.getElementById('land-sugg'),
+      go = document.getElementById('land-go'), idx = null, items = [], active = -1;
+  // accent fold so "stutzle" finds Stützle -- same folding player.html uses
+  function fold(s) { return (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase(); }
+  function nav(name, id) {
+    location.href = id != null
+      ? './player.html?id=' + encodeURIComponent(id)
+      : './player.html?name=' + encodeURIComponent(name);
+  }
+  function submit() {
+    var v = q.value.trim();
+    if (active >= 0 && items[active]) nav(items[active].name, items[active].id);
+    else if (v) nav(v);
+  }
+  function close() { box.classList.remove('open'); active = -1; }
+  function paint() {
+    var opts = box.querySelectorAll('.opt');
+    for (var i = 0; i < opts.length; i++) opts[i].classList.toggle('active', i === active);
+  }
+  function move(d) { if (items.length) { active = (active + d + items.length) % items.length; paint(); } }
+  function ensure() {
+    return idx ? Promise.resolve(idx)
+      : fetch('./api/players.json').then(function (r) { return r.json(); })
+          .then(function (j) {
+            idx = j || [];
+            for (var i = 0; i < idx.length; i++) idx[i]._f = fold(idx[i].name);
+            return idx;
+          }).catch(function () { idx = []; return idx; });
+  }
+  function render() {
+    var v = fold(q.value.trim());
+    if (v.length < 2) { close(); return; }
+    ensure().then(function () {
+      var pre = [], sub = [];
+      for (var i = 0; i < idx.length; i++) {
+        var ln = idx[i]._f != null ? idx[i]._f : fold(idx[i].name);
+        if (ln.indexOf(v) === 0) pre.push(idx[i]);
+        else if (ln.indexOf(v) > 0) sub.push(idx[i]);
+      }
+      items = pre.concat(sub).slice(0, 8); active = -1;
+      if (!items.length) {
+        box.innerHTML = '<div class="none">No matches</div>';
+        box.classList.add('open');
+        return;
+      }
+      box.innerHTML = items.map(function (p, i) {
+        return '<div class="opt" data-i="' + i + '" role="option"><b>' + p.name +
+               '</b><span class="pos">' + (p.pos || '') + '</span></div>';
+      }).join('');
+      var opts = box.querySelectorAll('.opt');
+      for (var k = 0; k < opts.length; k++) opts[k].onclick = function () {
+        var p = items[+this.dataset.i];
+        nav(p.name, p.id);
+      };
+      box.classList.add('open');
+    });
+  }
+  q.addEventListener('input', render);
+  q.addEventListener('focus', function () { ensure(); if (q.value.trim().length >= 2) render(); });
+  q.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') { e.preventDefault(); submit(); }
+    else if (e.key === 'ArrowDown') { e.preventDefault(); move(1); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); move(-1); }
+    else if (e.key === 'Escape') { close(); }
+  });
+  go.onclick = submit;
+  document.addEventListener('click', function (e) { if (!box.contains(e.target) && e.target !== q) close(); });
+})();
+</script>
+</body></html>
