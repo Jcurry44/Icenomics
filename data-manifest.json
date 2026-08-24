@@ -1,9 +1,9 @@
 {
-  "generatedAt": "2026-08-24T02:28:10Z",
+  "generatedAt": "2026-08-24T02:49:03Z",
   "freshness": {
     "gamesThrough": "2026-06-14",
     "transactionsThrough": "2026-08-21",
-    "databaseUpdated": "2026-08-24T02:25:49Z"
+    "databaseUpdated": "2026-08-24T02:46:41Z"
   },
   "counts": [
     {
@@ -82,5 +82,5 @@
     "Roster assignments can lag the trade tracker by a few players until team pages update."
   ],
   "note": "Icenomics is an independent hockey-analytics project. Stats are derived from the attributed sources above; access and redistribution terms vary by source. Models are original work, and figures are estimates \u2014 see Reliability for what we do and don't claim.",
-  "buildId": "f167368-20260824T022810Z"
+  "buildId": "f167368-20260824T024747Z"
 }
