@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>window.STATIC=1;window.BUILD_ID="f167368-20260824T013133Z"</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Open Book — Icenomics</title>
+  <meta property="og:title" content="The Open Book — Icenomics">
+  <meta property="og:description" content="Pre-registered NHL contract predictions: frozen before the outcome, externally anchored, settled in public whatever the result.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://jcurry44.github.io/Icenomics/og-card.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#0b1018">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <link rel="apple-touch-icon" href="./apple-touch-icon.png">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./styles.css?v=20260723-bgfix">
+  <style>
+    .ob-wrap { max-width: 880px; margin: 0 auto;
+      padding: 26px 18px max(60px, calc(24px + env(safe-area-inset-bottom))); }
+    .ob-top { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 6px; }
+    .ob-top h2 { margin: 0; font-size: 20px; color: var(--ink-strong); }
+    .ob-lede { color: var(--muted); font-size: 13px; line-height: 1.6; margin: 0 0 16px; max-width: 680px; }
+    .ob-lede b { color: var(--ink-strong); }
+
+    /* counts — the ledger at a glance, dg-tile language */
+    .ob-hero { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 18px; }
+    .ob-tile { padding: 12px 13px; border: 1px solid var(--line); border-radius: 12px;
+      background: linear-gradient(160deg, rgba(56,189,248,.06), transparent 72%); }
+    .ob-tile .k { font-size: 10px; text-transform: uppercase; letter-spacing: .09em; color: var(--muted); font-weight: 800; }
+    .ob-tile .v { font-size: 20px; font-weight: 800; letter-spacing: -.01em; color: var(--ice-bright); margin: 3px 0 1px; }
+    .ob-tile .s { font-size: 11px; color: var(--faint); line-height: 1.45; }
+
+    .ob-sec { font-size: 10px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
+      color: var(--ice-bright, #7dd3fc); margin: 22px 0 8px; }
+    .ob-note { color: var(--muted); font-size: 12px; line-height: 1.6; margin: 8px 0 12px; }
+
+    /* Tickets read like receipts: the claim, outcome, and miss stay together.
+       Full frozen prose remains available one tap away in Audit details. */
+    .ob-ticket-list { display: grid; gap: 10px; }
+    .ob-ticket { overflow: hidden; border: 1px solid var(--line); border-radius: 14px;
+      background: linear-gradient(165deg, rgba(22,32,47,.94), rgba(13,20,32,.96));
+      box-shadow: 0 10px 28px rgba(2,8,20,.16); }
+    .ob-ticket-main { padding: 14px 15px 13px; }
+    .ob-ticket-head { display: flex; align-items: center; justify-content: space-between;
+      gap: 12px; margin-bottom: 11px; }
+    .ob-player-line { min-width: 0; }
+    .ob-player { font-size: 15px; font-weight: 780; color: var(--ink-strong); }
+    .ob-team { font-size: 10px; font-weight: 800; letter-spacing: .06em; color: var(--faint); margin-left: 7px; }
+    .ob-chip { display: inline-block; font-size: 10.5px; font-weight: 800; letter-spacing: .05em;
+      padding: 3px 9px; border-radius: 999px; border: 1px solid; white-space: nowrap; }
+    .ob-chip.pending { color: var(--ice-bright, #7dd3fc); border-color: rgba(125,211,252,.45); }
+    .ob-chip.settled { color: #2dd4a7; border-color: rgba(45,212,167,.5); background: rgba(45,212,167,.09); }
+    .ob-chip.reference { color: #f0b86e; border-color: rgba(240,184,110,.45); background: rgba(240,184,110,.08); }
+    .ob-score { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1px; overflow: hidden; border: 1px solid var(--line); border-radius: 11px;
+      background: var(--line); margin: 0; }
+    .ob-metric { min-width: 0; padding: 10px 11px; background: rgba(8,14,23,.72); }
+    .ob-metric dt, .ob-metric dd { margin: 0; }
+    .ob-metric .k { display: block; font-size: 9px; line-height: 1.2; font-weight: 800;
+      letter-spacing: .09em; text-transform: uppercase; color: var(--faint); }
+    .ob-metric .v { display: block; overflow: hidden; margin-top: 4px; color: var(--ink-strong);
+      font-size: 18px; line-height: 1.15; font-weight: 820; letter-spacing: -.015em;
+      font-variant-numeric: tabular-nums; text-overflow: ellipsis; white-space: nowrap; }
+    .ob-metric .s { display: block; overflow: hidden; margin-top: 4px; color: var(--muted);
+      font-size: 10px; line-height: 1.25; text-overflow: ellipsis; white-space: nowrap; }
+    .ob-metric.actual.settled .v { color: #6ee7c8; }
+    .ob-metric.delta.low .v { color: #f0b86e; }
+    .ob-metric.delta.high .v { color: var(--ice-bright); }
+    .ob-metric.muted .v { color: var(--muted); }
+    .ob-details { border-top: 1px solid var(--line); }
+    .ob-details summary { display: flex; align-items: center; justify-content: space-between;
+      gap: 10px; min-height: 44px; padding: 9px 15px; color: var(--muted); font-size: 11px; font-weight: 720;
+      cursor: pointer; list-style: none; user-select: none; }
+    .ob-details summary::-webkit-details-marker { display: none; }
+    .ob-details summary::after { content: "+"; color: var(--ice-bright); font-size: 16px; font-weight: 500; }
+    .ob-details[open] summary::after { content: "−"; }
+    .ob-details summary:hover { color: var(--ink-strong); }
+    .ob-details summary:focus-visible { outline: 2px solid var(--ice); outline-offset: -3px; border-radius: 8px; }
+    .ob-detail-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px 18px; padding: 2px 15px 14px; }
+    .ob-detail { min-width: 0; }
+    .ob-detail.wide { grid-column: 1 / -1; }
+    .ob-detail .k { display: block; margin-bottom: 3px; color: var(--faint); font-size: 9px;
+      line-height: 1.2; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+    .ob-detail .v { display: block; color: var(--muted); font-size: 11px; line-height: 1.5;
+      overflow-wrap: anywhere; }
+    .ob-detail .v strong { color: var(--ink-strong); }
+    .ob-detail a { color: var(--ice-bright); text-decoration: none; }
+    .ob-detail a:hover { text-decoration: underline; }
+    .ob-loading { padding: 16px; border: 1px solid var(--line); border-radius: 12px; }
+
+    /* verify — the receipts panel */
+    .ob-verify { border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px;
+      background: linear-gradient(160deg, rgba(45,212,167,.05), transparent 70%); }
+    .ob-vrow { margin-bottom: 12px; }
+    .ob-vrow .k { font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+    .ob-mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px;
+      color: var(--ink-strong); background: rgba(5,10,18,.5); border: 1px solid var(--line);
+      border-radius: 8px; padding: 8px 10px; word-break: break-all; line-height: 1.5; }
+    .ob-mono.absent { color: var(--faint); font-family: inherit; font-size: 11.5px; }
+    .ob-vlink { display: inline-block; font-size: 12.5px; font-weight: 700; color: var(--ice-bright, #7dd3fc);
+      text-decoration: none; border: 1px solid rgba(125,211,252,.35); border-radius: 9px; padding: 7px 13px; margin: 2px 8px 2px 0; }
+    .ob-steps { margin: 6px 0 0; padding-left: 20px; }
+    .ob-steps li { font-size: 12.5px; line-height: 1.65; color: var(--ink); margin-bottom: 7px; }
+    .ob-foot { color: var(--muted); font-size: 12px; line-height: 1.6; margin-top: 20px; }
+    .ob-foot a { color: var(--ice-bright); text-decoration: none; }
+
+    @media (max-width: 680px) {
+      .ob-wrap { padding: 14px 12px max(28px, calc(14px + env(safe-area-inset-bottom))); }
+      .ob-hero { grid-template-columns: repeat(2, 1fr); gap: 7px; }
+      .ob-tile { padding: 9px 11px; }
+      .ob-tile .v { font-size: 16px; }
+      .ob-lede { font-size: 12px; margin-bottom: 10px; }
+      .ob-ticket-main { padding: 12px 11px 11px; }
+      .ob-ticket-head { margin-bottom: 9px; }
+      .ob-player { font-size: 14px; }
+      .ob-score { border-radius: 9px; }
+      .ob-metric { padding: 9px 7px; }
+      .ob-metric .v { font-size: 15.5px; }
+      .ob-metric .s { font-size: 9px; }
+      .ob-details summary { padding: 9px 11px; }
+      .ob-detail-grid { grid-template-columns: 1fr; gap: 9px; padding: 2px 11px 12px; }
+      .ob-detail.wide { grid-column: auto; }
+    }
+  </style>
+</head>
+<body>
+  <div class="ob-wrap">
+    <div class="ob-top">
+      <h2>The Open Book</h2>
+    </div>
+    <nav style="display:flex; gap:12px; flex-wrap:wrap; align-items:center; font-size:12.5px; font-weight:600;"><a href="./index.html" style="color:var(--muted); text-decoration:none;">Home</a> <a href="./player.html" style="color:var(--muted); text-decoration:none;">Players</a> <a href="./games.html" style="color:var(--muted); text-decoration:none;">Games</a> <a href="./standings.html" style="color:var(--muted); text-decoration:none;">Projections</a> <a href="./fa-board.html" style="color:var(--muted); text-decoration:none;">Free agents</a> <a href="./deal-grader.html" style="color:var(--muted); text-decoration:none;">Deal Grader</a> <a href="./front-office.html" style="color:var(--muted); text-decoration:none;">Front office</a> <a href="./draft-board.html" style="color:var(--muted); text-decoration:none;">Draft board</a> <a href="./leaders.html" style="color:var(--muted); text-decoration:none;">Leaders</a> <a href="./transactions.html" style="color:var(--muted); text-decoration:none;">Transactions</a> <a href="./offseason.html" style="color:var(--muted); text-decoration:none;">Offseason</a> <span style="color:var(--ice-bright);">Open Book</span> <a href="./reliability.html" style="color:var(--muted); text-decoration:none;">Reliability</a></nav>
+    <p class="ob-lede"><b>Every prediction here was registered before the outcome, anchored outside our control so it cannot be quietly edited, and settles in public whatever the result.</b>
+      This page is the on-site view of that ledger: each ticket below is a frozen claim, its status, and its settlement —
+      including the misses, which stay on the page forever.</p>
+
+    <div class="ob-hero" id="ob-hero"></div>
+
+    <div class="ob-sec">Claim vs. result — 2026 arbitration slate</div>
+    <p class="ob-note" id="ob-slate"></p>
+    <div class="ob-ticket-list" id="ob-table" role="list" aria-label="Open Book tickets">
+      <div class="ob-loading ob-note" id="ob-rows" role="status">Loading the book…</div>
+    </div>
+    <p class="ob-note" id="ob-legend"></p>
+
+    <div class="ob-sec">Verify it yourself</div>
+    <div class="ob-verify" id="ob-verify">
+      <div class="ob-vrow"><div class="k">Merkle root over the frozen tickets</div><div class="ob-mono" id="ob-root"></div></div>
+      <div class="ob-vrow"><div class="k">External anchors</div><div id="ob-anchors"></div></div>
+      <div class="ob-vrow"><div class="k">How to check the book — no trust in this site required</div><ol class="ob-steps" id="ob-steps"></ol></div>
+    </div>
+
+    <p class="ob-foot" id="ob-foot"></p>
+  </div>
+
+  <script>
+  "use strict";
+
+  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) {
+    return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+  function usd(v) { return v == null ? "—" : "$" + Math.round(v).toLocaleString("en-US"); }
+  function compactUsd(v) {
+    if (v == null) return "—";
+    var a = Math.abs(v);
+    if (a >= 1000000) return "$" + (a / 1000000).toFixed(2) + "M";
+    if (a >= 1000) return "$" + Math.round(a / 1000) + "K";
+    return "$" + Math.round(a);
+  }
+  function shortDate(s) {
+    if (!s) return "date pending";
+    var p = s.slice(0, 10).split("-");
+    var months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    return months[Number(p[1]) - 1] + " " + Number(p[2]);
+  }
+  function metric(k, v, s, cls) {
+    return '<div class="ob-metric ' + (cls || "") + '" aria-label="' + esc(k) +
+      ": " + esc(v) + ". " + esc(s) + '"><dt class="k">' + esc(k) +
+      '</dt><dd class="v" title="' + esc(v) + '">' + esc(v) +
+      '</dd><dd class="s" title="' + esc(s) + '">' + esc(s) + "</dd></div>";
+  }
+  function heroTile(k, v, s) {
+    return '<div class="ob-tile"><div class="k">' + k + '</div><div class="v">' + v + '</div><div class="s">' + s + "</div></div>";
+  }
+
+  function renderHero(d) {
+    var c = d.counts || {};
+    var excluded = c.settledExcluded != null ? c.settledExcluded : (c.settledPreRegistration || 0);
+    document.getElementById("ob-hero").innerHTML =
+      heroTile("Registered tickets", c.registered,
+        (c.priced || 0) + " priced, " + (c.unpriced || 0) + " explicit no-prices — refusals publish too") +
+      heroTile("Pending", c.pending, "open into the Jul 20 – Aug 1 hearing window") +
+      heroTile("Settled", c.settled,
+        excluded ? excluded + " resolved pre-registration or pre-anchor — recorded, excluded from scored claims" : "settled strictly after the anchor") +
+      heroTile("Settlement unit", "cap-share",
+        "AAV over the " + (d.capUsd ? "$" + (d.capUsd / 1e6).toFixed(0) + "M" : "signing-year") + " cap; one number per case, term not scored");
+  }
+
+  function exclusionLabel(s) {
+    if (!s) return "";
+    if (s.resolvedPreRegistration) {
+      return "resolved pre-registration — excluded from scored claims";
+    }
+    if (s.resolvedPreAnchor) {
+      return "resolved pre-anchor — excluded from scored claims";
+    }
+    return "";
+  }
+
+  function detail(k, v, wide) {
+    return '<div class="ob-detail' + (wide ? " wide" : "") + '"><span class="k">' +
+      esc(k) + '</span><span class="v">' + v + "</span></div>";
+  }
+
+  function ticketCard(t, d) {
+    var s = t.settlement;
+    var priced = t.predictedAavUsd != null;
+    var excluded = exclusionLabel(s);
+    var claimV = priced ? compactUsd(t.predictedAavUsd) : "No price";
+    var claimS = priced && t.predictedCapShare != null
+      ? (t.predictedCapShare * 100).toFixed(2) + "% of cap"
+      : "Refusal recorded";
+    var actualV = s ? compactUsd(s.aavUsd) : "Pending";
+    var actualS = s
+      ? (s.years ? s.years + (s.years === 1 ? " year" : " years") + " · " : "") + shortDate(s.signDate)
+      : "Awaiting resolution";
+    var delta = priced && s && s.aavUsd != null ? s.aavUsd - t.predictedAavUsd : null;
+    var deltaV = delta == null ? (priced ? "—" : "Not scored")
+      : (delta >= 0 ? "+" : "−") + compactUsd(delta);
+    var deltaS = delta == null
+      ? (priced ? "No actual yet" : "No registered claim")
+      : "Model " + (delta >= 0 ? "low" : "high") +
+        (s.inPrimaryCi != null ? " · range " + (s.inPrimaryCi ? "hit" : "miss") : "");
+    var statusLabel = !s ? "Open" : (excluded ? "Reference" : "Settled");
+    var statusClass = !s ? "pending" : (excluded ? "reference" : "settled");
+    var frozen = (t.registeredAt || "").slice(0, 10);
+    var basis = t.registeredBasis === "frozen_at" ? "frozen" : "drafted";
+    var range = priced && t.ciLow != null && t.ciHigh != null
+      ? compactUsd(t.ciLow * d.capUsd) + "–" + compactUsd(t.ciHigh * d.capUsd) +
+        " (" + (t.ciLow * 100).toFixed(2) + "%–" + (t.ciHigh * 100).toFixed(2) + "% cap)"
+      : "No interval registered";
+    var source = s && s.publicReport && s.publicReport.source
+      ? '<a href="' + esc(s.publicReport.source) + '" target="_blank" rel="noopener">Open public report ↗</a>'
+      : esc(s && s.source ? s.source : "Settlement source pending");
+    var auditNote = excluded
+      ? '<strong>Reference only.</strong> ' + esc(excluded) + "."
+      : (s ? "<strong>Scored settlement.</strong> Resolution is after the external anchor."
+        : "Settles against the realized AAV of the club deal, arbitration award, or walk.");
+    var publicDetail = s && s.publicReport && s.publicReport.detail
+      ? detail("First public report", esc(s.publicReport.detail), true) : "";
+
+    return '<article class="ob-ticket" role="listitem">' +
+      '<div class="ob-ticket-main"><div class="ob-ticket-head"><div class="ob-player-line">' +
+      '<span class="ob-player">' + esc(t.player) + '</span><span class="ob-team">' +
+      esc(t.team) + '</span></div><span class="ob-chip ' + statusClass + '">' +
+      statusLabel + "</span></div><dl class=\"ob-score\">" +
+      metric("Claimed", claimV, claimS, priced ? "" : "muted") +
+      metric("Actual", actualV, actualS, s ? "actual settled" : "actual muted") +
+      metric("Difference", deltaV, deltaS, "delta " + (delta == null ? "muted" : (delta >= 0 ? "low" : "high"))) +
+      '</dl></div><details class="ob-details"><summary>Audit details</summary><div class="ob-detail-grid">' +
+      detail("Registered", esc(frozen) + " · " + esc(basis), false) +
+      detail("Primary range", esc(range), false) +
+      (s ? detail("Resolved contract", "<strong>" + esc(s.outcome) + "</strong>", true) : "") +
+      detail("Scoring status", auditNote, true) +
+      detail("Original frozen ticket", esc(t.claim), true) +
+      detail("Evidence", source, true) + publicDetail +
+      "</div></details></article>";
+  }
+
+  function renderTable(d) {
+    document.getElementById("ob-slate").textContent = d.slate || "";
+    var tickets = (d.tickets || []).slice().sort(function (a, b) {
+      var resultFirst = Number(b.status === "settled") - Number(a.status === "settled");
+      return resultFirst || String(a.player).localeCompare(String(b.player));
+    });
+    document.getElementById("ob-rows").outerHTML = tickets.map(function (t) {
+      return ticketCard(t, d);
+    }).join("");
+    document.getElementById("ob-legend").textContent =
+      "Settled tickets are shown first. Difference = actual AAV minus claimed AAV; positive means the model priced low. Tickets resolved on or before the draft date — or not provably after the external anchor — are recorded for reference and excluded from every scored claim; hiding them would be worse. Resolutions feed " +
+      (d.trackerLatestFetch ? "from the daily contract tracker, last fetched " + d.trackerLatestFetch + " UTC." : "from the daily contract tracker.");
+  }
+
+  function renderVerify(d) {
+    var rootEl = document.getElementById("ob-root");
+    if (d.merkleRoot) {
+      rootEl.textContent = d.merkleRoot;
+      rootEl.classList.remove("absent");
+    } else {
+      rootEl.textContent = d.merkleRootNote || "Not recorded in this build.";
+      rootEl.classList.add("absent");
+    }
+    var anchors = "";
+    var rk = d.rekor || {};
+    if (rk.verifyUrl) {
+      anchors += '<a class="ob-vlink" href="' + esc(rk.verifyUrl) + '" target="_blank" rel="noopener">Rekor transparency log' +
+        (rk.logIndex != null ? " · entry " + esc(rk.logIndex) : "") + " ↗</a>";
+    }
+    if (d.publicRepo) {
+      anchors += '<a class="ob-vlink" href="' + esc(d.publicRepo) + '" target="_blank" rel="noopener">Public book repo ↗</a>';
+    }
+    if (!rk.verifyUrl && rk.note) {
+      anchors += '<div class="ob-note" style="margin:6px 0 0;">' + esc(rk.note) + "</div>";
+    }
+    document.getElementById("ob-anchors").innerHTML = anchors;
+    document.getElementById("ob-steps").innerHTML = (d.howToVerify || []).map(function (s) {
+      return "<li>" + esc(s) + "</li>";
+    }).join("");
+  }
+
+  function boot(d) {
+    renderHero(d);
+    renderTable(d);
+    renderVerify(d);
+    document.getElementById("ob-foot").innerHTML =
+      "<b>The rules were written before the outcomes.</b> " +
+      esc(d.settlementRulesNote || "Settlement rules are versioned in the public repo.") +
+      " No number on this page is hand-written — every figure renders from the ledger files. " +
+      'Model calibration and the research record live on the <a href="reliability.html">reliability page</a>. ' +
+      '<a href="./methods.html">How every number is computed — Methods</a>.';
+  }
+
+  (function load() {
+    var urls = window.STATIC ? ["api/book.json"] : ["/api/book.json", "api/book.json"];
+    (function next(i) {
+      if (i >= urls.length) {
+        document.getElementById("ob-rows").textContent = "Could not load the book.";
+        return;
+      }
+      fetch(urls[i] + "?v=" + (window.BUILD_ID || Date.now()), { cache: "no-cache" })
+        .then(function (r) { if (!r.ok) throw 0; return r.json(); })
+        .then(boot).catch(function () { next(i + 1); });
+    })(0);
+  })();
+  </script>
+</body>
+</html>
