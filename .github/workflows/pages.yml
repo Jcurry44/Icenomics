@@ -1,0 +1,45 @@
+﻿name: Deploy Pages
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: true
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Stage site (exclude repo internals)
+        run: |
+          mkdir -p /tmp/site
+          rsync -a --exclude .git --exclude .github ./ /tmp/site/
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: /tmp/site
+      - id: deployment
+        uses: actions/deploy-pages@v4
+        continue-on-error: true
+      - id: deployment2
+        if: steps.deployment.outcome == 'failure'
+        uses: actions/deploy-pages@v4
+        continue-on-error: true
+      - id: deployment3
+        if: steps.deployment.outcome == 'failure' && steps.deployment2.outcome == 'failure'
+        uses: actions/deploy-pages@v4
+      - name: Fail if all deploy attempts failed
+        if: steps.deployment.outcome == 'failure' && steps.deployment2.outcome == 'failure' && steps.deployment3.outcome == 'failure'
+        run: exit 1
+      - name: Expose page URL
+        if: always()
+        run: |
+          url="${{ steps.deployment.outputs.page_url }}${{ steps.deployment2.outputs.page_url }}${{ steps.deployment3.outputs.page_url }}"
+          echo "page_url=$url" >> "$GITHUB_OUTPUT"
