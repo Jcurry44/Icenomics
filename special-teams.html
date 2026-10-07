@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>window.STATIC=1;window.BUILD_ID="18242ff-20261007T004611Z"</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Special Teams — Icenomics</title>
+  <meta property="og:title" content="Special Teams Grade — Icenomics">
+  <meta property="og:description" content="PP+ and PK+: power plays and penalty kills graded per minute of man-advantage time, on possession, lanes, chance quality and finishing -- each shrunk by how repeatable it has proven.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://jcurry44.github.io/Icenomics/og-card.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#0b1018">
+  <link rel="apple-touch-icon" href="./apple-touch-icon.png">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./styles.css?v=20260723-bgfix">
+  <style>
+    .st-wrap { max-width: 960px; margin: 0 auto; padding: 26px 16px 64px; }
+    .st-top { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 18px; flex-wrap: wrap; }
+    .st-top nav a { color: var(--muted); text-decoration: none; }
+    .st-head { display: flex; align-items: center; justify-content: space-between; gap: 12px 16px; flex-wrap: wrap; margin-bottom: 6px; }
+    .st-head h1 { margin: 0; font-size: 26px; letter-spacing: -.02em; color: var(--ink-strong); }
+    .st-dek { color: var(--muted); font-size: 13.5px; line-height: 1.55; max-width: 640px; margin: 4px 0 16px; }
+    .st-dek b { color: var(--ink); font-weight: 650; }
+    .st-ctl { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+    @media (min-width: 761px) { .st-ctl { flex-wrap: nowrap; justify-content: flex-end; } }
+    .st-chip { min-height: 36px; padding: 0 14px; font-size: 12.5px; font-weight: 700; border-radius: 999px;
+      border: 1px solid var(--line); background: transparent; color: var(--muted); cursor: pointer; white-space: nowrap; }
+    .st-chip.on { background: var(--ice); border-color: var(--ice); color: #06121f; }
+    select.st-sel { min-height: 36px; max-width: 140px; }
+    /* disagreements strip */
+    .st-flips { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; margin: 14px 0 18px; }
+    .st-flip { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; background: var(--panel); cursor: pointer; }
+    .st-flip .k { font-size: 10.5px; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; color: var(--faint); }
+    .st-flip .t { font-size: 15px; font-weight: 750; color: var(--ink-strong); margin: 4px 0 2px; }
+    .st-flip .d { font-size: 12.5px; color: var(--muted); line-height: 1.45; }
+    .st-flip .d b { color: var(--ink); font-variant-numeric: tabular-nums; }
+    /* board */
+    .st-legend { display: grid; grid-template-columns: 30px minmax(150px, 1.3fr) minmax(170px, 1.4fr) minmax(250px, 2fr) 92px;
+      gap: 12px; padding: 0 10px 6px; font-size: 10.5px; font-weight: 750; letter-spacing: .07em; text-transform: uppercase; color: var(--faint); }
+    .st-row { display: grid; grid-template-columns: 30px minmax(150px, 1.3fr) minmax(170px, 1.4fr) minmax(250px, 2fr) 92px;
+      gap: 12px; align-items: center; padding: 11px 10px; border-bottom: 1px solid var(--line); cursor: pointer; border-radius: 10px; }
+    .st-row:hover, .st-row.open { background: rgba(56,189,248,.06); }
+    .st-rk { font-size: 13px; font-weight: 750; color: var(--faint); font-variant-numeric: tabular-nums; text-align: right; }
+    .st-team .nm { font-size: 14.5px; font-weight: 700; color: var(--ink-strong); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .st-team .sub { font-size: 11.5px; color: var(--faint); margin-top: 2px; font-variant-numeric: tabular-nums; }
+    .st-grade { display: flex; align-items: center; gap: 10px; }
+    .st-num { font-size: 19px; font-weight: 800; color: var(--ink-strong); font-variant-numeric: tabular-nums; min-width: 44px; }
+    .st-bar { position: relative; flex: 1; height: 8px; border-radius: 99px; background: rgba(148,163,184,.12); }
+    .st-bar::after { content: ""; position: absolute; left: 50%; top: -3px; bottom: -3px; width: 2px; background: var(--muted); opacity: .55; }
+    .st-bar i { position: absolute; top: 0; bottom: 0; border-radius: 99px; background: var(--ice); }
+    .st-bar i.dn { background: transparent; border: 1.5px solid var(--ice); }
+    .st-facs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+    .st-fac { font-size: 11px; color: var(--faint); line-height: 1.25; }
+    .st-fac b { display: block; font-size: 13.5px; color: var(--ink); font-variant-numeric: tabular-nums; font-weight: 700; }
+    .st-gva { text-align: right; font-variant-numeric: tabular-nums; }
+    .st-gva b { font-size: 15px; color: var(--ink-strong); }
+    .st-gva span { display: block; font-size: 11px; color: var(--faint); }
+    .st-detail { grid-column: 1 / -1; display: none; padding: 6px 4px 6px 42px; }
+    .st-row.open .st-detail { display: block; }
+    .st-dt { display: grid; grid-template-columns: 110px 1fr 54px 120px; gap: 10px; align-items: center; font-size: 12.5px; padding: 4px 0; color: var(--muted); }
+    .st-dt .v { color: var(--ink); font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; }
+    .st-dt .w { font-size: 11.5px; color: var(--faint); }
+    .st-raw { font-size: 12px; color: var(--faint); margin-top: 8px; font-variant-numeric: tabular-nums; }
+    .st-note { color: var(--muted); font-size: 12.5px; line-height: 1.6; margin-top: 18px; }
+    .st-valid { margin-top: 22px; border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+    .st-valid h3 { margin: 0 0 8px; font-size: 13px; letter-spacing: .02em; color: var(--ink-strong); }
+    .st-valid table { width: 100%; border-collapse: collapse; font-size: 12.5px; font-variant-numeric: tabular-nums; table-layout: fixed; }
+    .st-valid th, .st-valid td { white-space: normal; position: static; background: transparent; }
+    .st-valid th { font-size: 11px; font-weight: 650; line-height: 1.3; vertical-align: bottom; text-transform: none; letter-spacing: 0; }
+    .st-valid th:first-child { width: 26%; }
+    .st-valid th, .st-valid td { padding: 5px 6px; text-align: right; border-bottom: 1px solid var(--line); color: var(--muted); }
+    .st-valid th:first-child, .st-valid td:first-child { text-align: left; }
+    .st-valid tr.us td { color: var(--ink-strong); font-weight: 700; }
+    .st-empty { color: var(--muted); padding: 30px 0; }
+    @media (max-width: 760px) {
+      .st-legend { display: none; }
+      .st-row { grid-template-columns: 26px 1fr 78px; gap: 8px 10px; }
+      .st-grade { grid-column: 2 / 3; }
+      .st-gva { grid-column: 3; grid-row: 1; }
+      .st-facs { grid-column: 2 / -1; }
+      .st-detail { padding-left: 0; }
+      .st-dt { grid-template-columns: 86px 1fr 46px; }
+      .st-dt .w { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="st-wrap">
+    <div class="st-top">
+      <a class="bl-brand" href="./index.html"><span class="bl-mark">IC</span> Icenomics</a>
+      <nav style="display:flex; gap:12px; flex-wrap:wrap; align-items:center; font-size:12.5px; font-weight:600;"><a href="./index.html" style="color:var(--muted); text-decoration:none;">Home</a> <a href="./player.html" style="color:var(--muted); text-decoration:none;">Players</a> <a href="./games.html" style="color:var(--muted); text-decoration:none;">Games</a> <a href="./standings.html" style="color:var(--muted); text-decoration:none;">Projections</a> <a href="./leaders.html" style="color:var(--muted); text-decoration:none;">Leaders</a> <span style="color:var(--ice-bright);">Special teams</span> <a href="./betting.html" style="color:var(--muted); text-decoration:none;">Betting ledger</a> <a href="./methods.html#special-teams" style="color:var(--muted); text-decoration:none;">Method</a></nav>
+    </div>
+
+    <div class="st-head">
+      <h1 id="st-title">Power play grade</h1>
+      <div class="st-ctl">
+        <button class="st-chip on" data-mode="pp">Power play</button>
+        <button class="st-chip" data-mode="pk">Penalty kill</button>
+        <button class="st-chip" data-mode="all">Overall</button>
+        <select class="st-sel" id="st-season" aria-label="Season"></select>
+      </div>
+    </div>
+    <p class="st-dek" id="st-dek"><b>Graded per minute of man-advantage time, not per opportunity</b> -- a power play that ends 5 seconds in counts for 5 seconds. Goals are broken into what a unit actually controls, and each piece is trusted only as far as it has proven repeatable. 100 = league average.</p>
+
+    <div class="st-flips" id="st-flips"></div>
+    <div class="st-legend" id="st-legend"></div>
+    <div id="st-board"><div class="st-empty">Loading…</div></div>
+
+    <div class="st-valid" id="st-valid"></div>
+    <p class="st-note" id="st-note"></p>
+  </div>
+
+<script>
+const FACTORS = {
+  pp: [["possession", "Possession", "attempts per 60"], ["lanes", "Lanes", "share not blocked"],
+       ["quality", "Quality", "xG per shot"], ["finishing", "Finishing", "goals per xG"]],
+  pk: [["suppression", "Suppress", "attempts allowed / 60"], ["blocking", "Block", "share blocked"],
+       ["quality", "Quality", "xG allowed per shot"], ["goaltending", "Goalie", "goals per xG allowed"]],
+};
+const state = { mode: "pp", season: null };
+let bundle = null;                        // static: every season; live: fetched per season
+
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const lab = s => `${String(s).slice(0, 4)}-${String(s).slice(6)}`;
+const sgn = v => (v > 0 ? "+" : "") + v.toFixed(1);
+const pct = v => v == null ? "—" : (100 * v).toFixed(1) + "%";
+
+async function load(season) {
+  if (window.STATIC) {
+    if (!bundle) bundle = await fetch("api/special-teams.json").then(r => r.json());
+    const s = season || bundle.default;
+    return { ...bundle.bySeason[String(s)], seasons: bundle.seasons, validation: bundle.validation,
+             method: bundle.method, available: true };
+  }
+  return fetch(`/api/nhl-special-teams${season ? `?season=${season}` : ""}`).then(r => r.json());
+}
+
+function bar(v) {             // centered at 100; +/-35 fills the half
+  const d = Math.max(-35, Math.min(35, v - 100)), w = Math.abs(d) / 35 * 50;
+  return `<div class="st-bar" aria-hidden="true"><i class="${d < 0 ? "dn" : ""}" style="${d >= 0
+    ? `left:50%;width:${w}%` : `left:${50 - w}%;width:${w}%`}"></i></div>`;
+}
+
+function rankBy(teams, f, desc = true) {
+  const s = [...teams].sort((a, b) => desc ? f(b) - f(a) : f(a) - f(b)), m = new Map();
+  s.forEach((t, i) => m.set(t.team, i + 1));
+  return m;
+}
+
+function flips(d) {
+  const el = document.getElementById("st-flips");
+  if (state.mode === "all") { el.innerHTML = ""; return; }
+  const side = state.mode, key = side === "pp" ? "ppPlus" : "pkPlus", raw = side === "pp" ? "ppPct" : "pkPct";
+  const gr = rankBy(d.teams, t => t[key]), rr = rankBy(d.teams, t => t.raw[raw] ?? 0);
+  const gaps = d.teams.map(t => ({ t, g: gr.get(t.team), r: rr.get(t.team) }))
+    .sort((a, b) => Math.abs(b.g - b.r) - Math.abs(a.g - a.r)).slice(0, 3);
+  el.innerHTML = gaps.map(({ t, g, r }) => {
+    // the last factor is the luck-heavy one (finishing / goaltending); the
+    // first three are the process the grade trusts most
+    const fs = FACTORS[side].map(([k, name]) => ({ name: name.toLowerCase(), idx: t[side][k].index }));
+    const luck = fs[3], proc = fs.slice(0, 3).sort((a, b) => b.idx - a.idx);
+    const word = side === "pp" ? "PP%" : "PK%";
+    const why = g < r
+      ? `${word} undersells them: ${proc[0].name} ${proc[0].idx.toFixed(0)} says the process beats the results.`
+      : `${word} flatters them: the process lags (${proc[2].name} ${proc[2].idx.toFixed(0)}); ${luck.name} ${luck.idx.toFixed(0)} did work that rarely repeats.`;
+    return `<div class="st-flip" data-team="${esc(t.team)}"><div class="k">${word} says #${r} · grade says #${g}</div>
+      <div class="t">${esc(t.name)}</div><div class="d">${why} <b>${pct(t.raw[raw])}</b> ${word}, grade <b>${t[key].toFixed(0)}</b>.</div></div>`;
+  }).join("");
+  el.querySelectorAll(".st-flip").forEach(c => c.onclick = () => {
+    const row = document.querySelector(`.st-row[data-team="${c.dataset.team}"]`);
+    if (row) { row.classList.add("open"); row.scrollIntoView({ behavior: "smooth", block: "center" }); }
+  });
+}
+
+// NHL EDGE tracked zone time (descriptive; not in the grade -- see Method)
+function zoneSub(t, side) {
+  const z = t.zone || {};
+  if (side === "pp" && z.ppOz != null) return ` · OZ time ${pct(z.ppOz)}`;
+  if (side === "pk" && z.pkDz != null) return ` · pinned ${pct(z.pkDz)}`;
+  return "";
+}
+function zoneRow(t, side) {
+  const z = t.zone || {};
+  if (side === "pp" && z.ppOz != null)
+    return `<div class="st-raw">Time in the offensive zone on the power play (NHL EDGE tracking): <b>${pct(z.ppOz, 1)}</b> · league ${pct(z.ppOzLeague, 1)} · NHL rank #${z.ppOzRank}</div>`;
+  if (side === "pk" && z.pkDz != null)
+    return `<div class="st-raw">Time pinned in its own zone while shorthanded (NHL EDGE tracking): <b>${pct(z.pkDz, 1)}</b> · league ${pct(z.pkDzLeague, 1)} · NHL rank #${z.pkDzRank}</div>`;
+  return "";
+}
+function detail(t, side) {
+  const rows = FACTORS[side].map(([k, name, what]) => {
+    const p = t[side][k];
+    return `<div class="st-dt"><span>${name} <span class="w">${what}</span></span>${bar(p.index)}
+      <span class="v">${p.index.toFixed(0)}</span><span class="w">${Math.round(100 * p.weight)}% of its gap trusted</span></div>`;
+  }).join("");
+  const r = t.raw;
+  const raw = side === "pp"
+    ? `Raw: ${pct(r.ppPct)} PP · ${r.ppGF60 ?? "—"} GF/60 · ${r.ppXGF60 ?? "—"} xGF/60 · ${t.ppMinutesPerGame} PP min/GP`
+    : `Raw: ${pct(r.pkPct)} PK · ${r.pkGA60 ?? "—"} GA/60 · ${r.pkXGA60 ?? "—"} xGA/60 · ${t.pkMinutesPerGame} PK min/GP`;
+  return `<div class="st-detail">${rows}${zoneRow(t, side)}<div class="st-raw">${raw}</div></div>`;
+}
+
+function render(d) {
+  const board = document.getElementById("st-board");
+  if (!d || !d.available || !d.teams) { board.innerHTML = `<div class="st-empty">${esc(d && d.note || "Special teams not built yet.")}</div>`; return; }
+  const m = state.mode;
+  document.getElementById("st-title").textContent =
+    m === "pp" ? "Power play grade" : m === "pk" ? "Penalty kill grade" : "Special teams, overall";
+  const sel = document.getElementById("st-season");
+  if (!sel.options.length) {
+    sel.innerHTML = [...d.seasons].reverse().map(s => `<option value="${s}">${lab(s)}</option>`).join("");
+    sel.onchange = () => { state.season = Number(sel.value); go(); };
+  }
+  sel.value = String(d.season);
+  const key = m === "pp" ? "ppPlus" : m === "pk" ? "pkPlus" : "specialTeamsGoals";
+  const teams = [...d.teams].sort((a, b) => b[key] - a[key]);
+  const rawRank = m === "all" ? null : rankBy(d.teams, t => t.raw[m === "pp" ? "ppPct" : "pkPct"] ?? 0);
+  document.getElementById("st-legend").innerHTML = m === "all"
+    ? `<span>#</span><span>Team</span><span>Goals vs average</span><span>PP+ · PK+ · volume</span><span style="text-align:right">PP / PK</span>`
+    : `<span>#</span><span>Team</span><span>${m === "pp" ? "PP+" : "PK+"}</span><span>Factors (100 = league, higher = better)</span><span style="text-align:right">Goals vs avg</span>`;
+  board.innerHTML = teams.map((t, i) => {
+    if (m === "all") {
+      return `<div class="st-row" data-team="${esc(t.team)}"><span class="st-rk">${i + 1}</span>
+        <div class="st-team"><div class="nm">${esc(t.name)}</div><div class="sub">${t.games} GP</div></div>
+        <div class="st-grade"><span class="st-num">${sgn(t.specialTeamsGoals)}</span></div>
+        <div class="st-facs"><div class="st-fac">PP+<b>${t.ppPlus.toFixed(0)}</b></div><div class="st-fac">PK+<b>${t.pkPlus.toFixed(0)}</b></div>
+          <div class="st-fac">Execution<b>${sgn(t.ppGoalsAboveAvg + t.pkGoalsAboveAvg)}</b></div><div class="st-fac">Volume<b>${sgn(t.volumeGoals)}</b></div></div>
+        <div class="st-gva"><b>${pct(t.raw.ppPct)}</b><span>${pct(t.raw.pkPct)} PK</span></div>
+        <div class="st-detail">${detail(t, "pp").replace('class="st-detail"', "")}${detail(t, "pk").replace('class="st-detail"', "")}</div></div>`;
+    }
+    const v = t[key], gva = m === "pp" ? t.ppGoalsAboveAvg : t.pkGoalsAboveAvg;
+    const facs = FACTORS[m].map(([k, name]) => `<div class="st-fac">${name}<b>${t[m][k].index.toFixed(0)}</b></div>`).join("");
+    const raw = m === "pp" ? "ppPct" : "pkPct";
+    return `<div class="st-row" data-team="${esc(t.team)}"><span class="st-rk">${i + 1}</span>
+      <div class="st-team"><div class="nm">${esc(t.name)}</div><div class="sub">${m.toUpperCase()}% ${pct(t.raw[raw])} · #${rawRank.get(t.team)}${zoneSub(t, m)}</div></div>
+      <div class="st-grade"><span class="st-num">${v.toFixed(0)}</span>${bar(v)}</div>
+      <div class="st-facs">${facs}</div>
+      <div class="st-gva"><b>${sgn(gva)}</b><span>goals</span></div>
+      ${detail(t, m)}</div>`;
+  }).join("");
+  board.querySelectorAll(".st-row").forEach(r => r.onclick = () => r.classList.toggle("open"));
+  flips(d);
+  const so = d.inProgress ? ` ${lab(d.season)} is in progress (${d.gamesPerTeam} games): early grades lean on the league average by design.` : "";
+  document.getElementById("st-note").innerHTML = esc(d.method || "") + so +
+    ` Goals vs average = the grade's rate gap × the team's actual minutes. Overall adds volume: power-play time drawn and penalty time avoided, valued at the league's rate.`;
+  const v = d.validation;
+  if (v) {
+    const row = (name, x, us) => `<tr class="${us ? "us" : ""}"><td>${name}</td><td>${x.reliability.toFixed(2)}</td><td>${x.predictsGoalsRate.toFixed(2)}</td><td>${x.predictsPct.toFixed(2)}</td></tr>`;
+    document.getElementById("st-valid").innerHTML = `<h3>Does it beat PP%? Tested on ${v.teamSeasons} team-seasons (${esc(v.seasons)})</h3>
+      <table><tr><th></th><th>Stable</th><th>&rarr; goals/60</th><th>&rarr; PP% / PK%</th></tr>
+      ${row("PP grade", v.pp.grade, true)}${row("PP%", v.pp.ppPct)}${row("PK grade", v.pk.grade, true)}${row("PK%", v.pk.pkPct)}</table>
+      <p class="st-note" style="margin-top:8px">Correlations across team-seasons, each season centered on its own league average. Stable: odd games vs even games. &rarr;: first half of the season vs the second half, with the grade's constants fit on the other seasons only. Goals are noisy at any sample, so no measure predicts them well -- the grade predicts a team's next-half PP% better than its PP% does.</p>`;
+  }
+}
+
+async function go() {
+  try { render(await load(state.season)); }
+  catch (e) { document.getElementById("st-board").innerHTML = `<div class="st-empty">Couldn't load special teams.</div>`; }
+}
+document.querySelectorAll(".st-chip").forEach(b => b.onclick = () => {
+  document.querySelectorAll(".st-chip").forEach(x => x.classList.toggle("on", x === b));
+  state.mode = b.dataset.mode;
+  go();
+});
+go();
+</script>
+</body>
+</html>

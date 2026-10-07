@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>window.STATIC=1;window.BUILD_ID="18242ff-20261007T004611Z"</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Deserved Standings — Icenomics</title>
+  <meta name="description" content="Every NHL game re-played from its expected goals: which teams are over- or under-performing their record, and a validated true-talent points pace.">
+  <meta property="og:title" content="Deserved Standings — Icenomics">
+  <meta property="og:description" content="The table vs the games: deserved points from expected goals, luck, and a true-talent points pace that predicts the second half better than the standings.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://jcurry44.github.io/Icenomics/og-card.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="manifest" href="./manifest.json">
+  <meta name="theme-color" content="#0b1018">
+  <link rel="apple-touch-icon" href="./apple-touch-icon.png">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./styles.css?v=20260723-bgfix">
+  <style>
+    :root { --s-ours: #2a93db; --grid: rgba(148,163,184,.13); --axis: #5d6b7e; }
+    .ds-wrap { max-width: 1000px; margin: 0 auto; padding: 26px 16px 64px; }
+    .ds-top { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 18px; flex-wrap: wrap; }
+    .ds-head { display: flex; align-items: center; justify-content: space-between; gap: 12px 16px; flex-wrap: wrap; }
+    .ds-head h1 { margin: 0; font-size: 26px; letter-spacing: -.02em; color: var(--ink-strong); }
+    .ds-ctl { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+    @media (min-width: 761px) { .ds-ctl { flex-wrap: nowrap; justify-content: flex-end; } }
+    .ds-chip { min-height: 36px; padding: 0 14px; font-size: 12.5px; font-weight: 700; border-radius: 999px; white-space: nowrap;
+      border: 1px solid var(--line); background: transparent; color: var(--muted); cursor: pointer; }
+    .ds-chip.on { background: var(--ice); border-color: var(--ice); color: #06121f; }
+    select.ds-sel { min-height: 36px; max-width: 140px; }
+    .ds-dek { color: var(--muted); font-size: 13.5px; line-height: 1.55; max-width: 680px; margin: 6px 0 16px; }
+    .ds-dek b { color: var(--ink); font-weight: 650; }
+    .ds-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px; margin: 6px 0 18px; }
+    .ds-card { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; background: var(--panel); }
+    .ds-card .k { font-size: 10.5px; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; color: var(--faint); }
+    .ds-card .t { font-size: 15px; font-weight: 750; color: var(--ink-strong); margin: 4px 0 2px; }
+    .ds-card .d { font-size: 12.5px; color: var(--muted); line-height: 1.45; }
+    .ds-card .d b { color: var(--ink); font-variant-numeric: tabular-nums; }
+    .ds-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; }
+    table.ds-t { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .ds-t th, .ds-t td { white-space: nowrap; position: static; background: transparent; padding: 9px 9px; border-bottom: 1px solid var(--line); text-align: right; }
+    .ds-t tr:last-child td { border-bottom: 0; }
+    .ds-t th { font-size: 10.5px; font-weight: 750; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); cursor: pointer; user-select: none; }
+    .ds-t th[aria-sort="ascending"]::after { content: " ▲"; } .ds-t th[aria-sort="descending"]::after { content: " ▼"; }
+    .ds-t td { color: var(--ink); font-variant-numeric: tabular-nums; }
+    .ds-t td.l, .ds-t th.l { text-align: left; }
+    .ds-t td.nm { color: var(--ink-strong); font-weight: 650; }
+    .ds-t td .s2 { display: block; color: var(--faint); font-size: 11px; margin-top: 2px; font-weight: 500; }
+    .ds-t td.big { font-weight: 800; font-size: 14px; color: var(--ink-strong); }
+    .luck { display: flex; align-items: center; gap: 8px; justify-content: flex-end; min-width: 170px; }
+    .luck .bar { position: relative; width: 110px; height: 8px; border-radius: 99px; background: var(--grid); }
+    .luck .bar::after { content: ""; position: absolute; left: 50%; top: -3px; bottom: -3px; width: 2px; background: var(--axis); }
+    .luck .bar i { position: absolute; top: 0; bottom: 0; border-radius: 99px; background: var(--s-ours); }
+    .luck .bar i.dn { background: transparent; border: 1.5px solid var(--s-ours); }
+    .luck b { min-width: 46px; text-align: right; }
+    .ds-note { color: var(--muted); font-size: 12.5px; line-height: 1.6; margin-top: 16px; }
+    .ds-valid { margin-top: 20px; border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+    .ds-valid h3 { margin: 0 0 8px; font-size: 13px; color: var(--ink-strong); }
+    .ds-valid table { width: 100%; border-collapse: collapse; font-size: 12.5px; table-layout: fixed; }
+    .ds-valid th, .ds-valid td { white-space: normal; position: static; background: transparent; padding: 5px 6px; text-align: right; border-bottom: 1px solid var(--line); color: var(--muted); font-variant-numeric: tabular-nums; }
+    .ds-valid th { font-size: 11px; font-weight: 650; text-transform: none; letter-spacing: 0; }
+    .ds-valid th:first-child, .ds-valid td:first-child { text-align: left; width: 50%; }
+    .ds-valid tr.us td { color: var(--ink-strong); font-weight: 700; }
+    @media (max-width: 760px) {
+      .luck .bar { width: 56px; } .luck { min-width: 96px; gap: 6px; }
+      .ds-t th:nth-child(6), .ds-t td:nth-child(6), .ds-t th:nth-child(7), .ds-t td:nth-child(7) { display: none; }
+      .ds-t th, .ds-t td { padding: 9px 4px; }
+      .ds-t th:nth-child(1), .ds-t td:nth-child(1) { display: none; }
+      .ds-t td.nm { white-space: normal; min-width: 80px; }
+      .ds-t td .s2 { white-space: nowrap; }
+      .luck b { min-width: 34px; }
+      .luck .bar { display: none; } .luck { min-width: 0; }
+      .ds-t th:nth-child(9), .ds-t td:nth-child(9) { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="ds-wrap">
+    <div class="ds-top">
+      <a class="bl-brand" href="./index.html"><span class="bl-mark">IC</span> Icenomics</a>
+      <nav style="display:flex; gap:12px; flex-wrap:wrap; align-items:center; font-size:12.5px; font-weight:600;"><a href="./index.html" style="color:var(--muted); text-decoration:none;">Home</a> <a href="./player.html" style="color:var(--muted); text-decoration:none;">Players</a> <a href="./games.html" style="color:var(--muted); text-decoration:none;">Games</a> <a href="./standings.html" style="color:var(--muted); text-decoration:none;">Projections</a> <span style="color:var(--ice-bright);">Deserved standings</span> <a href="./special-teams.html" style="color:var(--muted); text-decoration:none;">Special teams</a> <a href="./betting.html" style="color:var(--muted); text-decoration:none;">Betting ledger</a> <a href="./methods.html#deserved-standings" style="color:var(--muted); text-decoration:none;">Method</a></nav>
+    </div>
+
+    <div class="ds-head">
+      <h1>Deserved standings</h1>
+      <div class="ds-ctl">
+        <button class="ds-chip on" data-sort="talentPct">True talent</button>
+        <button class="ds-chip" data-sort="luck">Luck</button>
+        <button class="ds-chip" data-sort="points">The table</button>
+        <select class="ds-sel" id="ds-season" aria-label="Season"></select>
+      </div>
+    </div>
+    <p class="ds-dek"><b>The table vs the games.</b> Every game is re-played from its expected goals to get the points each team <i>deserved</i>; the gap is luck -- finishing, goaltending, overtime coin flips. <b>True talent</b> blends deserved points with goal differential, the combination that predicts a team's second half best.</p>
+
+    <div class="ds-cards" id="ds-cards"></div>
+    <div class="ds-scroll"><table class="ds-t" id="ds-table"></table></div>
+    <p class="ds-note" id="ds-note"></p>
+    <div class="ds-valid" id="ds-valid"></div>
+  </div>
+
+<script>
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const lab = s => `${String(s).slice(0, 4)}-${String(s).slice(6)}`;
+const sgn = (v, d = 1) => (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v).toFixed(d);
+const pct = (v, d = 1) => v == null ? "—" : (100 * v).toFixed(d) + "%";
+const state = { season: null, sort: { key: "talentPct", dir: -1 } };
+let bundle = null;
+
+async function load(season) {
+  if (window.STATIC) {
+    if (!bundle) bundle = await fetch("api/deserved-standings.json").then(r => r.json());
+    const s = season || bundle.default;
+    return { available: true, ...bundle.bySeason[String(s)], seasons: bundle.seasons, validation: bundle.validation };
+  }
+  return fetch(`/api/deserved-standings${season ? `?season=${season}` : ""}`).then(r => r.json());
+}
+
+function luckBar(v, max) {
+  const w = Math.min(50, Math.abs(v) / (max || 1) * 50);
+  return `<div class="luck"><div class="bar" aria-hidden="true"><i class="${v < 0 ? "dn" : ""}" style="${v >= 0 ? `left:50%;width:${w}%` : `left:${50 - w}%;width:${w}%`}"></i></div><b>${sgn(v)}</b></div>`;
+}
+
+function render(d) {
+  const t = document.getElementById("ds-table");
+  if (!d || !d.available) { t.innerHTML = `<tr><td>${esc((d && d.note) || "Not built yet.")}</td></tr>`; return; }
+  const sel = document.getElementById("ds-season");
+  if (!sel.options.length) {
+    sel.innerHTML = [...d.seasons].reverse().map(s => `<option value="${s}">${lab(s)}</option>`).join("");
+    sel.onchange = () => { state.season = Number(sel.value); go(); };
+  }
+  sel.value = String(d.season);
+  const teams = d.teams, maxLuck = Math.max(...teams.map(x => Math.abs(x.luck)), 1);
+  // cards: biggest over / under performers and the true-talent leader
+  const over = [...teams].sort((a, b) => b.luck - a.luck)[0], under = [...teams].sort((a, b) => a.luck - b.luck)[0];
+  const top = [...teams].sort((a, b) => b.talentPct - a.talentPct)[0];
+  const early = d.inProgress && d.gamesPerTeam < 20;
+  document.getElementById("ds-cards").innerHTML = [
+    ["Running hottest", over, `<b>${over.points}</b> points on games worth <b>${over.deserved}</b> — ${sgn(over.luck)} over what its play earned.`],
+    ["Running coldest", under, `<b>${under.points}</b> points on games worth <b>${under.deserved}</b> — ${sgn(under.luck)} under.`],
+    ["Best true talent", top, `${pct(top.talentPct)} points pace (${top.pace82.toFixed(0)} over 82); the table has them #${top.pointsRank}.`],
+  ].map(([k, x, dsc]) => `<div class="ds-card"><div class="k">${k}</div><div class="t">${esc(x.name)}</div><div class="d">${dsc}</div></div>`).join("");
+  const cols = [["rank", "#", ""], ["name", "Team", "l"], ["points", "Pts"], ["deserved", "Deserved"], ["luck", "Luck"],
+                ["gd", "GD"], ["xgShare", "xG share"], ["talentPct", "True talent"], ["projectedPoints", d.inProgress ? "Projected" : "Final"]];
+  const rows = [...teams].sort((a, b) => {
+    const k = state.sort.key, x = k === "name" ? a.name : a[k], y = k === "name" ? b.name : b[k];
+    return (x > y ? 1 : x < y ? -1 : 0) * state.sort.dir; });
+  t.innerHTML = `<thead><tr>${cols.map(([k, l, c]) => `<th class="${c}" data-k="${k}" ${state.sort.key === k ? `aria-sort="${state.sort.dir > 0 ? "ascending" : "descending"}"` : ""}>${l}</th>`).join("")}</tr></thead><tbody>`
+    + rows.map((x, i) => `<tr><td>${i + 1}</td>
+      <td class="l nm">${esc(x.name)}<span class="s2">${esc(x.record)} · ${x.gp} GP</span></td>
+      <td>${x.points}<span class="s2">#${x.pointsRank}</span></td><td>${x.deserved.toFixed(1)}<span class="s2">#${x.deservedRank}</span></td>
+      <td>${luckBar(x.luck, maxLuck)}</td>
+      <td>${x.gd > 0 ? "+" : ""}${x.gd}</td><td>${pct(x.xgShare)}</td>
+      <td class="big">${pct(x.talentPct)}<span class="s2">#${x.talentRank} · ${x.pace82.toFixed(0)}-pt pace</span></td>
+      <td>${x.projectedPoints.toFixed(0)}</td></tr>`).join("") + "</tbody>";
+  t.querySelectorAll("th[data-k]").forEach(th => th.onclick = () => {
+    const k = th.dataset.k; state.sort = { key: k, dir: state.sort.key === k ? -state.sort.dir : (k === "name" ? 1 : -1) }; render(d); });
+  document.getElementById("ds-note").innerHTML = (d.inProgress
+      ? `${lab(d.season)} is ${d.gamesPerTeam} games in${early ? " — early: true talent leans hard on the league average by design, and luck this early is mostly noise" : ""}. Projected = current points + true-talent pace over the remaining games. `
+      : "") + `Deserved points: each team's goals drawn from its non-empty-net expected goals game by game; 2 points for a regulation win, 1.5 for a game tied after regulation, scaled so the league total matches the real one (the extra overtime point), so luck sums to zero. True talent = league average + weights × (deserved-points gap, goal-differential gap), with weights fit by games played.`;
+  const v = d.validation;
+  if (v) document.getElementById("ds-valid").innerHTML = `<h3>Does it beat the standings? ${v.teamSeasons} team-seasons (${esc(v.seasons)})</h3>
+    <table><tr><th>First half of the season</th><th>Stable (odd vs even games)</th><th>Predicts 2nd-half points %</th></tr>
+    ${v.rows.map((r, i) => `<tr class="${i === v.rows.length - 1 ? "us" : ""}"><td>${esc(r.name)}</td><td>${r.reliability == null ? "—" : r.reliability.toFixed(2)}</td><td>${r.predicts.toFixed(2)}</td></tr>`).join("")}</table>
+    <p class="ds-note" style="margin-top:8px">Correlations across team-seasons, each season centered on its league average; the blend scored leave-one-season-out. Deserved points alone is the most stable number but predicts worse than the standings -- results carry finishing and goaltending that expected goals miss -- so true talent keeps both.</p>`;
+}
+
+async function go() { try { render(await load(state.season)); } catch (e) { document.getElementById("ds-table").innerHTML = `<tr><td>Couldn't load.</td></tr>`; } }
+document.querySelectorAll(".ds-chip").forEach(b => b.onclick = () => {
+  document.querySelectorAll(".ds-chip").forEach(x => x.classList.toggle("on", x === b));
+  state.sort = { key: b.dataset.sort, dir: -1 }; go();
+});
+go();
+</script>
+</body>
+</html>
