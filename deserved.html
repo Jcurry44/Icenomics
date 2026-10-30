@@ -161,7 +161,7 @@ function render(d) {
   if (v) document.getElementById("ds-valid").innerHTML = `<h3>Does it beat the standings? ${v.teamSeasons} team-seasons (${esc(v.seasons)})</h3>
     <table><tr><th>First half of the season</th><th>Stable (odd vs even games)</th><th>Predicts 2nd-half points %</th></tr>
     ${v.rows.map((r, i) => `<tr class="${i === v.rows.length - 1 ? "us" : ""}"><td>${esc(r.name)}</td><td>${r.reliability == null ? "—" : r.reliability.toFixed(2)}</td><td>${r.predicts.toFixed(2)}</td></tr>`).join("")}</table>
-    <p class="ds-note" style="margin-top:8px">Correlations across team-seasons, each season centered on its league average; the blend scored leave-one-season-out. Deserved points alone is the most stable number but predicts worse than the standings -- results carry finishing streaks and goaltending that expected goals miss -- so true talent keeps both. Pricing each shot for its shooter (October 2026) lifted deserved points from 0.46 to 0.49.</p>`;
+    <p class="ds-note" style="margin-top:8px">Correlations across team-seasons, each season centered on its league average; the blend scored leave-one-season-out. Deserved points alone is the most stable number but predicts worse than the standings -- results carry finishing streaks and goaltending that expected goals miss -- so true talent keeps both. Pricing each shot for its shooter (October 2026) lifted deserved points from 0.46 to 0.48.</p>`;
 }
 
 async function go() { try { render(await load(state.season)); } catch (e) { document.getElementById("ds-table").innerHTML = `<tr><td>Couldn't load.</td></tr>`; } }
